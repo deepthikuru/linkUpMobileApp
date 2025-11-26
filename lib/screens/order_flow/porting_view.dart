@@ -36,7 +36,6 @@ class _PortingViewState extends State<PortingView> {
   bool _isFormValid = false;
   String? _selectedCarrier;
 
-  // Predefined carrier options (matching Trump Mobile)
   final List<String> _carrierOptions = [
     'Verizon',
     'AT&T',
@@ -341,7 +340,6 @@ class _PortingViewState extends State<PortingView> {
               
               SizedBox(height: AppTheme.spacingItem),
               
-              // Skip for Now button (matching Trump Mobile styling)
               OutlinedButton(
                 onPressed: _isSaving ? null : _handleSkip,
                 style: OutlinedButton.styleFrom(

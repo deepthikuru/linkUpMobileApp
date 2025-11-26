@@ -91,7 +91,7 @@ class _ContentViewState extends State<ContentView> {
     navigationState.orderStartStep = 1;
     navigationState.navigateTo(Destination.orderFlow);
     
-    // Check if order already exists and has a currentStep (matching TrumpMobile behavior)
+    // Check if order already exists and has a currentStep 
     if (viewModel.userId != null) {
       final orderManager = FirebaseOrderManager();
       orderManager.fetchOrderDocument(viewModel.userId!, orderId).then((orderData) {

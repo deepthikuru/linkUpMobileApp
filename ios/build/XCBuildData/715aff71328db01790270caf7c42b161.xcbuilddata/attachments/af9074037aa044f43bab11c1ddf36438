@@ -1,0 +1,30 @@
+{
+  "" : {
+    "const-values" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master.swiftconstvalues",
+    "dependencies" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master.d",
+    "diagnostics" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master.dia",
+    "emit-module-dependencies" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master-emit-module.dia",
+    "swift-dependencies" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/url_launcher_ios-master.swiftdeps"
+  },
+  "/Users/k_l_deepthi/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.3/ios/url_launcher_ios/Sources/url_launcher_ios/Launcher.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/Launcher.o",
+    "llvm-bc" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/Launcher.bc",
+    "object" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/Launcher.o"
+  },
+  "/Users/k_l_deepthi/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.3/ios/url_launcher_ios/Sources/url_launcher_ios/URLLaunchSession.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLaunchSession.o",
+    "llvm-bc" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLaunchSession.bc",
+    "object" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLaunchSession.o"
+  },
+  "/Users/k_l_deepthi/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.3/ios/url_launcher_ios/Sources/url_launcher_ios/URLLauncherPlugin.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLauncherPlugin.o",
+    "llvm-bc" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLauncherPlugin.bc",
+    "object" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/URLLauncherPlugin.o"
+  },
+  "/Users/k_l_deepthi/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.3/ios/url_launcher_ios/Sources/url_launcher_ios/messages.g.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/messages.g.o",
+    "llvm-bc" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/messages.g.bc",
+    "object" : "/Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/build/Pods.build/Release-iphoneos/url_launcher_ios.build/Objects-normal/arm64/messages.g.o"
+  }
+}

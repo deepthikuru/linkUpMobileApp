@@ -108,7 +108,6 @@ class FirebaseManager {
 
     final orderId = orderRef.id;
 
-    // Match TrumpMobile Swift implementation exactly
     final orderData = {
       'orderId': orderId,
       'userId': userId,

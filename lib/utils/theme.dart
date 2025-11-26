@@ -45,14 +45,14 @@ class AppTheme {
       );
 
   // Font Sizes
-  static const double fontSizeTitle = 22.0; // title2 size to match Trump Mobile
+  static const double fontSizeTitle = 22.0;
   static const double fontSizeSubtitle = 14.0;
   static const double fontSizeBody = 16.0;
   static const double fontSizeBodySmall = 14.0;
   static const double fontSizeCaption = 12.0;
   static const double fontSizeButton = 16.0;
   static const double fontSizeOptionTitle = 18.0;
-  static const double fontSizeSectionTitle = 22.0; // title2 size to match Trump Mobile
+  static const double fontSizeSectionTitle = 22.0;
 
   // Font Weights
   static const FontWeight fontWeightTitle = FontWeight.bold;
@@ -64,17 +64,17 @@ class AppTheme {
 
   // Spacing
   static const double spacingTitleSubtitle = 8.0;
-  static const double spacingSection = 12.0; // Match Trump Mobile VStack spacing
-  static const double spacingItem = 12.0; // Match Trump Mobile VStack spacing
+  static const double spacingSection = 12.0;
+  static const double spacingItem = 12.0;
   static const double spacingSmall = 8.0;
   static const double spacingMedium = 12.0;
   static const double spacingLarge = 32.0;
 
   // Border Radius
-  static const double borderRadiusButton = 10.0; // Match Trump Mobile button corner radius
+  static const double borderRadiusButton = 10.0;
   static const double borderRadiusCard = 12.0;
-  static const double borderRadiusInput = 8.0; // Match Trump Mobile input corner radius
-  static const double borderRadiusOption = 25.0; // Match Trump Mobile selection button corner radius
+  static const double borderRadiusInput = 8.0;
+  static const double borderRadiusOption = 25.0;
 
   // Border Widths
   static const double borderWidthDefault = 1.0;

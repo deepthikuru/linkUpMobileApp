@@ -655,7 +655,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
     final success = await viewModel.saveContactInfo();
     print('✅ DEBUG: saveContactInfo returned: $success, Error: ${viewModel.errorMessage}');
     
-    // Save step progress to Firestore (matching TrumpMobile behavior)
+    // Save step progress to Firestore 
     if (success && viewModel.userId != null && viewModel.orderId != null) {
       print('💾 DEBUG: Saving step progress - UserID: ${viewModel.userId}, OrderID: ${viewModel.orderId}');
       final orderManager = FirebaseOrderManager();

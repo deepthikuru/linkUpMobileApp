@@ -498,7 +498,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
 
     final success = await viewModel.saveBillingInfo();
     
-    // Save step progress to Firestore (matching TrumpMobile behavior)
+    // Save step progress to Firestore
     if (success && viewModel.userId != null && viewModel.orderId != null) {
       final orderManager = FirebaseOrderManager();
       await orderManager.saveStepProgress(
@@ -820,7 +820,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
               ),
               SizedBox(height: AppTheme.spacingSection),
               
-              // Pricing Section (matching TrumpMobile)
+              // Pricing Section 
               _buildPricingSection(),
               SizedBox(height: AppTheme.spacingSection),
               

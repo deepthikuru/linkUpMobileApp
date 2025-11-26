@@ -511,7 +511,6 @@ class _NumberPortingViewState extends State<NumberPortingView> {
     
     // Show appropriate sheet based on SIM type and device selection
     // IMPORTANT: For eSIM, never show shipping sheet
-    // Following TrumpMobile's SIMSetupView logic
     // simType is still available in viewModel since we haven't called completeOrder() yet
     
     // Check SIM type from viewModel (it will still be available since we haven't called completeOrder yet)

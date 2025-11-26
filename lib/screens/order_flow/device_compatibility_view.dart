@@ -143,7 +143,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
 
     final success = await viewModel.saveDeviceInfo();
     
-    // Save step progress to Firestore (matching TrumpMobile behavior)
+    // Save step progress to Firestore
     if (success && viewModel.userId != null && viewModel.orderId != null) {
       final orderManager = FirebaseOrderManager();
       await orderManager.saveStepProgress(

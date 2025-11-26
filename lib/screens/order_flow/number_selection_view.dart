@@ -163,7 +163,7 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
 
     final success = await viewModel.saveNumberSelection();
     
-    // Save step progress to Firestore (matching TrumpMobile behavior)
+    // Save step progress to Firestore
     if (success && viewModel.userId != null && viewModel.orderId != null) {
       final orderManager = FirebaseOrderManager();
       await orderManager.saveStepProgress(

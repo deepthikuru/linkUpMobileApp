@@ -5,7 +5,6 @@ import 'step_indicator.dart';
 import 'gradient_button.dart';
 import 'bottom_action_bar.dart';
 
-/// Step navigation container matching TrumpMobile's StepNavigationContainer
 /// Header: Back button (left), Step indicator (center), Info/Cancel button (right)
 /// Footer: Next Step button (or Complete Order for step 5)
 class StepNavigationContainer extends StatelessWidget {
