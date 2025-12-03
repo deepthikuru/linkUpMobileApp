@@ -60,7 +60,11 @@ class StepNavigationContainer extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
+                  foregroundColor: AppTheme.getComponentTextColor(
+                    context,
+                    'stepNavigation_cancelButtonText',
+                    fallback: Colors.red,
+                  ),
                 ),
                 child: const Text('Yes, I want to cancel'),
               ),
@@ -101,7 +105,11 @@ class StepNavigationContainer extends StatelessWidget {
                       icon: Icon(
                         Icons.arrow_back,
                         color: showBackButton
-                            ? AppTheme.accentGold
+                            ? AppTheme.getComponentIconColor(
+                                context,
+                                'stepNavigation_backIcon',
+                                fallback: AppTheme.accentGold,
+                              )
                             : Colors.transparent,
                       ),
                       onPressed: showBackButton ? backButtonAction : null,
@@ -156,7 +164,11 @@ class StepNavigationContainer extends StatelessWidget {
           // Footer matching AppFooter structure (same height and styling)
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.getComponentBackgroundColor(
+                context,
+                'stepNavigation_footer_background',
+                fallback: Colors.white,
+              ),
             ),
             child: BottomActionBar(
               child: GradientButton(

@@ -184,10 +184,18 @@ class _InternationalLongDistanceViewState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppTheme.getComponentBackgroundColor(
+          context,
+          'international_container_background',
+          fallback: Colors.grey[100],
+        ),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusCard),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: AppTheme.getComponentBorderColor(
+            context,
+            'international_container_border',
+            fallback: Colors.grey[300]!,
+          ),
           width: AppTheme.borderWidthDefault,
         ),
       ),
@@ -233,10 +241,18 @@ class _InternationalLongDistanceViewState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppTheme.getComponentBackgroundColor(
+          context,
+          'international_container_background',
+          fallback: Colors.grey[100],
+        ),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusCard),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: AppTheme.getComponentBorderColor(
+            context,
+            'international_container_border',
+            fallback: Colors.grey[300]!,
+          ),
           width: AppTheme.borderWidthDefault,
         ),
       ),
@@ -283,7 +299,11 @@ class _InternationalLongDistanceViewState
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.getComponentBackgroundColor(
+              context,
+              'international_button_background',
+              fallback: Colors.white,
+            ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: AppTheme.borderColor,
@@ -292,7 +312,14 @@ class _InternationalLongDistanceViewState
           ),
           child: Row(
             children: [
-              Icon(Icons.search, color: Colors.grey[600]),
+              Icon(
+                Icons.search,
+                color: AppTheme.getComponentIconColor(
+                  context,
+                  'international_searchIcon',
+                  fallback: Colors.grey[600],
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
@@ -300,7 +327,11 @@ class _InternationalLongDistanceViewState
                   decoration: InputDecoration(
                     hintText: 'Search countries...',
                     hintStyle: GoogleFonts.montserrat(
-                      color: Colors.grey[600],
+                      color: AppTheme.getComponentTextColor(
+                        context,
+                        'international_button_text',
+                        fallback: Colors.grey[600],
+                      ),
                       fontSize: AppTheme.fontSizeBody,
                     ),
                     border: InputBorder.none,
@@ -330,8 +361,12 @@ class _InternationalLongDistanceViewState
               // Header Row
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  decoration: BoxDecoration(
+                    color: AppTheme.getComponentBorderColor(
+                      context,
+                      'international_container_border',
+                      fallback: Colors.grey[300],
+                    ),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8),
                     topRight: Radius.circular(8),
@@ -374,7 +409,11 @@ class _InternationalLongDistanceViewState
                         horizontal: 16,
                         vertical: 12,
                       ),
-                      color: Colors.white,
+                      color: AppTheme.getComponentBackgroundColor(
+                        context,
+                        'international_button_background',
+                        fallback: Colors.white,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -403,7 +442,11 @@ class _InternationalLongDistanceViewState
                       Divider(
                         height: 1,
                         thickness: 1,
-                        color: Colors.grey[300],
+                        color: AppTheme.getComponentBorderColor(
+                          context,
+                          'international_container_border',
+                          fallback: Colors.grey[300],
+                        ),
                       ),
                   ],
                 );
@@ -450,7 +493,13 @@ class _InternationalLongDistanceViewState
           const SizedBox(height: 20),
           Container(
             decoration: BoxDecoration(
-              gradient: AppTheme.blueGradient,
+              gradient: AppTheme.getComponentGradient(
+                context,
+                'international_phoneButton_gradientStart',
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                fallback: AppTheme.blueGradient,
+              ),
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
             ),
             child: Material(
@@ -466,14 +515,25 @@ class _InternationalLongDistanceViewState
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.phone, color: Colors.white),
+                      Icon(
+                        Icons.phone,
+                        color: AppTheme.getComponentIconColor(
+                          context,
+                          'international_phoneIcon',
+                          fallback: Colors.white,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Call (888) 878-6745',
                         style: GoogleFonts.montserrat(
                           fontSize: AppTheme.fontSizeButton,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppTheme.getComponentTextColor(
+                            context,
+                            'international_phoneIcon',
+                            fallback: Colors.white,
+                          ),
                         ),
                       ),
                     ],

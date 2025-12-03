@@ -24,10 +24,14 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gradient = showGradient
+        ? (AppTheme.getComponentGradient(context, 'appHeader_gradientStart', fallback: AppTheme.blueGradient) ?? AppTheme.blueGradient)
+        : null;
+    
     return Container(
-      decoration: showGradient
+      decoration: gradient != null
           ? BoxDecoration(
-              gradient: AppTheme.blueGradient,
+              gradient: gradient,
             )
           : null,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
@@ -45,7 +49,9 @@ class AppHeader extends StatelessWidget {
                     ? IconButton(
                         icon: Icon(
                           Icons.arrow_back,
-                          color: showGradient ? Colors.white : Colors.black,
+                          color: showGradient
+                              ? AppTheme.getComponentIconColor(context, 'appHeader_backIcon_gradient', fallback: Colors.white)
+                              : AppTheme.getComponentIconColor(context, 'appHeader_backIcon', fallback: Colors.black),
                         ),
                         onPressed: onBackTap,
                         iconSize: 24,
@@ -68,7 +74,9 @@ class AppHeader extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: showGradient ? Colors.white : Colors.black,
+                            color: showGradient
+                                ? AppTheme.getComponentTextColor(context, 'appHeader_titleText_gradient', fallback: Colors.white)
+                                : AppTheme.getComponentTextColor(context, 'appHeader_titleText', fallback: Colors.black),
                           ),
                         )
                       : zipCode != null && zipCode!.isNotEmpty
@@ -82,14 +90,18 @@ class AppHeader extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
-                                      color: showGradient ? Colors.white : Colors.black,
+                                      color: showGradient
+                                          ? AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText_gradient', fallback: Colors.white)
+                                          : AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText', fallback: Colors.black),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Icon(
                                     Icons.keyboard_arrow_down,
                                     size: 20,
-                                    color: showGradient ? Colors.white : Colors.grey,
+                                    color: showGradient
+                                        ? AppTheme.getComponentIconColor(context, 'appHeader_zipIcon_gradient', fallback: Colors.white)
+                                        : AppTheme.getComponentIconColor(context, 'appHeader_zipIcon', fallback: Colors.grey),
                                   ),
                                 ],
                               ),
@@ -105,7 +117,9 @@ class AppHeader extends StatelessWidget {
                     ? IconButton(
                         icon: Icon(
                           Icons.menu,
-                          color: showGradient ? Colors.white : Colors.black,
+                          color: showGradient
+                              ? AppTheme.getComponentIconColor(context, 'appHeader_menuIcon_gradient', fallback: Colors.white)
+                              : AppTheme.getComponentIconColor(context, 'appHeader_menuIcon', fallback: Colors.black),
                         ),
                         onPressed: onMenuTap,
                         iconSize: 28,

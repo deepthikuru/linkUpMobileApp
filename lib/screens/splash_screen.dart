@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_registration_view_model.dart';
 import '../providers/navigation_state.dart';
 import '../services/firebase_order_manager.dart';
+import '../utils/theme.dart';
 import 'login_page.dart';
 import 'content_view.dart';
 
@@ -93,8 +94,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'splash_scaffold_background',
+      fallback: Colors.white,
+    );
+    final progressColor = AppTheme.getComponentIconColor(
+      context,
+      'splash_loadingIndicator_color',
+      fallback: Colors.grey,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -105,8 +117,8 @@ class _SplashScreenState extends State<SplashScreen> {
               fit: BoxFit.fitHeight,
             ),
             const SizedBox(height: 20),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             ),
           ],
         ),

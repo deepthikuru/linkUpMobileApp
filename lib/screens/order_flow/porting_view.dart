@@ -89,10 +89,15 @@ class _PortingViewState extends State<PortingView> {
     }
 
     if (_selectedCarrier == null || _selectedCarrier!.isEmpty) {
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'porting_warning_background',
+        fallback: Colors.red,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a carrier'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please select a carrier'),
+          backgroundColor: errorBg,
         ),
       );
       return false;
@@ -163,10 +168,15 @@ class _PortingViewState extends State<PortingView> {
         widget.onPortingSkip!();
       }
     } else if (mounted) {
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'porting_warning_background',
+        fallback: Colors.red,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Failed to save skip porting information'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorBg,
         ),
       );
     }
@@ -196,10 +206,15 @@ class _PortingViewState extends State<PortingView> {
       if (_formKey.currentState?.validate() ?? true) {
         // Validation passed but save failed, error already shown
       } else {
+        final errorBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-error',
+          fallback: Colors.red,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please fill in all required fields correctly'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please fill in all required fields correctly'),
+            backgroundColor: errorBg,
           ),
         );
       }

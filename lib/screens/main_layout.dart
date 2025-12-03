@@ -6,6 +6,7 @@ import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
 import '../providers/user_registration_view_model.dart';
 import '../utils/constants.dart';
+import '../utils/theme.dart';
 import '../screens/profile/hamburger_menu_view.dart';
 import 'home/start_order_view.dart';
 import 'home/plans_view.dart';
@@ -60,11 +61,22 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _showHamburgerMenu(BuildContext context) {
+    final menuBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'mainLayout_hamburgerMenu_background',
+      fallback: Colors.white,
+    );
+    final barrierColor = AppTheme.getComponentShadowColor(
+      context,
+      'mainLayout_dialogBarrier',
+      fallback: Colors.black54,
+    );
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: barrierColor,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -80,7 +92,7 @@ class _MainLayoutState extends State<MainLayout> {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.75,
               height: MediaQuery.of(context).size.height,
-              color: Colors.white,
+              color: menuBg,
               child: const HamburgerMenuView(),
             ),
           ),
@@ -91,8 +103,14 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'mainLayout_scaffold_background',
+      fallback: Colors.white,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: Column(
         children: [
           // Persistent Header (extends behind status bar)

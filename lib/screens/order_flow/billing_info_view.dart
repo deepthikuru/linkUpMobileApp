@@ -32,8 +32,6 @@ class _BillingInfoViewState extends State<BillingInfoView> {
   final _billingAddressController = TextEditingController();
   bool _isSaving = false;
   bool _useShippingAddress = true;
-  bool _sameAsCustomerAddressEmergency = true;
-  bool _e911Agreement = false;
   bool _recurringChargeAgreement = false;
   bool _privacyTermsAgreement = false;
   bool _showBroadbandFacts = false;
@@ -209,7 +207,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
     );
   }
 
-  Widget _buildEmergencyAddressSection() {
+  Widget _buildAgreementsSection() {
     return Container(
       padding: EdgeInsets.all(AppTheme.paddingCard),
       decoration: BoxDecoration(
@@ -219,44 +217,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Emergency 911 Address (required for Wi‑Fi Calling)',
-            style: AppTheme.sectionTitleStyle.copyWith(
-              fontSize: AppTheme.fontSizeBody,
-            ),
-          ),
-          SizedBox(height: AppTheme.spacingSmall),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('Same as Shipping Address', style: AppTheme.bodyStyle),
-            value: _sameAsCustomerAddressEmergency,
-            onChanged: (value) {
-              setState(() {
-                _sameAsCustomerAddressEmergency = value ?? true;
-              });
-            },
-          ),
-          SizedBox(height: AppTheme.spacingSmall),
-          // Agreements inside the box
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: Text(
-              'I confirm the address provided is my E911 address for first responders in an emergency.',
-              style: AppTheme.captionStyle,
-            ),
-            value: _e911Agreement,
-            onChanged: (value) {
-              setState(() {
-                _e911Agreement = value ?? false;
-              });
-            },
-          ),
-          CheckboxListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Text(
-              'I authorize Telgoo5 Mobile LLC to charge my card on a recurring basis. You can cancel any time to stop future charges.',
+              'I authorize Telgoo5 Mobile LLC to charge my card on a recurring basis.',
               style: AppTheme.captionStyle,
             ),
             value: _recurringChargeAgreement,
@@ -478,7 +443,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       return;
     }
 
-    if (!_e911Agreement || !_recurringChargeAgreement || !_privacyTermsAgreement) {
+    if (!_recurringChargeAgreement || !_privacyTermsAgreement) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please accept all agreements')),
       );
@@ -527,7 +492,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Failed to save billing info'),
-          backgroundColor: AppTheme.errorColor,
+          backgroundColor: AppTheme.getComponentBackgroundColor(
+            context,
+            'login_errorSnackbar_background',
+            fallback: AppTheme.errorColor,
+          ),
         ),
       );
     }
@@ -578,7 +547,17 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       }
 
       // Determine activation type
-      final activationType = viewModel.numberType == 'Existing' ? 'PORTIN' : 'NEWACTIVATION';
+      // Only use PORTIN if port-in details are already available
+      // Otherwise, create with NEWACTIVATION and submit port-in later in step 6
+      final isPortInOrder = viewModel.numberType == 'Existing';
+      final hasPortInDetails = isPortInOrder &&
+          viewModel.portInAccountNumber.isNotEmpty &&
+          viewModel.portInPin.isNotEmpty &&
+          viewModel.portInCurrentCarrier.isNotEmpty &&
+          viewModel.portInAccountHolderName.isNotEmpty &&
+          viewModel.selectedPhoneNumber.isNotEmpty;
+      
+      final activationType = hasPortInDetails ? 'PORTIN' : 'NEWACTIVATION';
 
       // Determine enrollment type (SHIPMENT or HANDOVER)
       final enrollmentType = viewModel.simType == 'eSIM' ? 'SHIPMENT' : 'SHIPMENT'; // eSIM always uses SHIPMENT
@@ -622,8 +601,9 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
       }
 
-      // Add port-in information if activation type is PORTIN
-      if (activationType == 'PORTIN') {
+      // Add port-in information ONLY if activation type is PORTIN AND details are available
+      // According to API docs, port-in fields are REQUIRED when activation_type is PORTIN
+      if (activationType == 'PORTIN' && hasPortInDetails) {
         customerInfo['port_current_carrier'] = viewModel.portInCurrentCarrier;
         customerInfo['port_account_number'] = viewModel.portInAccountNumber;
         customerInfo['port_account_password'] = viewModel.portInPin;
@@ -631,13 +611,15 @@ class _BillingInfoViewState extends State<BillingInfoView> {
 
         // Port-in name (split if available)
         final portName = viewModel.portInAccountHolderName;
-        final portNameParts = portName.split(' ');
-        if (portNameParts.length >= 2) {
-          customerInfo['port_first_name'] = portNameParts[0];
-          customerInfo['port_last_name'] = portNameParts.sublist(1).join(' ');
-        } else if (portNameParts.length == 1) {
-          customerInfo['port_first_name'] = portNameParts[0];
-          customerInfo['port_last_name'] = '';
+        if (portName.isNotEmpty) {
+          final portNameParts = portName.split(' ');
+          if (portNameParts.length >= 2) {
+            customerInfo['port_first_name'] = portNameParts[0];
+            customerInfo['port_last_name'] = portNameParts.sublist(1).join(' ');
+          } else if (portNameParts.length == 1) {
+            customerInfo['port_first_name'] = portNameParts[0];
+            customerInfo['port_last_name'] = '';
+          }
         }
 
         // Use service address for port-in address (as per typical flow)
@@ -646,6 +628,12 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         customerInfo['port_city'] = viewModel.city;
         customerInfo['port_state'] = viewModel.state;
         customerInfo['port_zip_code'] = viewModel.zip;
+      }
+      
+      // Log activation type decision
+      if (isPortInOrder && !hasPortInDetails) {
+        print('⚠️ Port-in order detected but port-in details not yet collected.');
+        print('   Creating customer with NEWACTIVATION. Port-in will be submitted in step 6.');
       }
 
       // Call create_customer_prepaid_multiline API
@@ -765,8 +753,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       // Note: Port-in APIs (get_list, submit_portin, query_portin) are NOT called here
       // because port-in details are collected in step 6 (porting view), not step 5 (billing)
       // The port-in APIs will be called in number_porting_view.dart after user fills port-in details
-      // Customer is created with activation_type: 'PORTIN' if numberType is 'Existing',
-      // but the actual port-in submission happens later when port-in details are available
+      // 
+      // IMPORTANT: Customer is created with activation_type: 'PORTIN' ONLY if port-in details
+      // are already available. Otherwise, customer is created with 'NEWACTIVATION' and port-in
+      // will be submitted later in step 6 using submit_portin API. This is because the API
+      // requires all port-in fields to be present when activation_type is 'PORTIN'.
     } catch (e, stackTrace) {
       print('❌ Failed to create customer: $e');
       print('   Stack trace: $stackTrace');
@@ -828,8 +819,8 @@ class _BillingInfoViewState extends State<BillingInfoView> {
               _buildPaymentSection(),
               SizedBox(height: AppTheme.spacingSection),
               
-              // Emergency Address Section (with agreements inside)
-              _buildEmergencyAddressSection(),
+              // Agreements Section
+              _buildAgreementsSection(),
               SizedBox(height: AppTheme.spacingSection),
               
               // Broadband Facts Section

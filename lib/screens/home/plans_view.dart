@@ -9,6 +9,7 @@ import '../../widgets/app_footer.dart';
 import '../../widgets/plan_card.dart';
 import '../../widgets/plan_details_sheet.dart';
 import '../../utils/constants.dart';
+import '../../utils/theme.dart';
 import '../../providers/navigation_state.dart';
 import '../../screens/profile/hamburger_menu_view.dart';
 import 'address_info_sheet.dart';
@@ -167,7 +168,16 @@ class _PlansViewBodyState extends State<PlansViewBody> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.getComponentBackgroundColor(
+        context,
+        'plansView_modal_background',
+        fallback: Colors.transparent,
+      ),
+      barrierColor: AppTheme.getComponentShadowColor(
+        context,
+        'plansView_modal_barrier',
+        fallback: Colors.black54,
+      ),
       builder: (context) => PlanDetailsSheet(
         plan: plan,
         onStartOrder: () {
@@ -186,6 +196,22 @@ class _PlansViewBodyState extends State<PlansViewBody> {
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = AppTheme.getComponentIconColor(
+      context,
+      'plansView_filterIcon',
+      fallback: Colors.grey,
+    );
+    final titleColor = AppTheme.getComponentTextColor(
+      context,
+      'plansView_filterTitle_text',
+      fallback: Colors.grey[700]!,
+    );
+    final bodyColor = AppTheme.getComponentTextColor(
+      context,
+      'plansView_filterSubtitle_text',
+      fallback: Colors.grey[600]!,
+    );
+
     return _isLoadingPlans
         ? const Center(child: CircularProgressIndicator())
         : _availablePlans.isEmpty
@@ -195,10 +221,10 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.inbox_outlined,
                         size: 64,
-                        color: Colors.grey,
+                        color: iconColor,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -206,7 +232,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -214,7 +240,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                         'No plans found for ZIP: ${_currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: bodyColor,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -273,11 +299,22 @@ class _PlansViewState extends State<PlansView> {
   }
 
   void _showHamburgerMenu(BuildContext context) {
+    final menuBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'mainLayout_hamburgerMenu_background',
+      fallback: Colors.white,
+    );
+    final barrierColor = AppTheme.getComponentShadowColor(
+      context,
+      'mainLayout_dialogBarrier',
+      fallback: Colors.black54,
+    );
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: barrierColor,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -293,7 +330,7 @@ class _PlansViewState extends State<PlansView> {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.75,
               height: MediaQuery.of(context).size.height,
-              color: Colors.white,
+              color: menuBg,
               child: const HamburgerMenuView(),
             ),
           ),
@@ -429,7 +466,16 @@ class _PlansViewState extends State<PlansView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.getComponentBackgroundColor(
+        context,
+        'plansView_modal_background',
+        fallback: Colors.transparent,
+      ),
+      barrierColor: AppTheme.getComponentShadowColor(
+        context,
+        'plansView_modal_barrier',
+        fallback: Colors.black54,
+      ),
       builder: (context) => PlanDetailsSheet(
         plan: plan,
         onStartOrder: () {
@@ -448,8 +494,14 @@ class _PlansViewState extends State<PlansView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'screen-plans',
+      fallback: Colors.white,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -479,10 +531,14 @@ class _PlansViewState extends State<PlansView> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.inbox_outlined,
                                   size: 64,
-                                  color: Colors.grey,
+                                  color: AppTheme.getComponentIconColor(
+                                    context,
+                                    'plansView_filterIcon',
+                                    fallback: Colors.grey,
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -490,7 +546,11 @@ class _PlansViewState extends State<PlansView> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.grey[700],
+                                    color: AppTheme.getComponentTextColor(
+                                      context,
+                                      'plansView_filterTitle_text',
+                                      fallback: Colors.grey[700]!,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -498,7 +558,11 @@ class _PlansViewState extends State<PlansView> {
                                   'No plans found for ZIP: ${_currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey[600],
+                                    color: AppTheme.getComponentTextColor(
+                                      context,
+                                      'plansView_filterSubtitle_text',
+                                      fallback: Colors.grey[600]!,
+                                    ),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),

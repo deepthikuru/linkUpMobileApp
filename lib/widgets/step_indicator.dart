@@ -14,16 +14,18 @@ class StepIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gradient = AppTheme.getComponentGradient(context, 'stepIndicator_gradientStart', fallback: AppTheme.blueGradient) ?? AppTheme.blueGradient;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        gradient: AppTheme.blueGradient,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         'Step $currentStep of $totalSteps',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: AppTheme.getComponentTextColor(context, 'stepIndicator_text', fallback: Colors.white),
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),

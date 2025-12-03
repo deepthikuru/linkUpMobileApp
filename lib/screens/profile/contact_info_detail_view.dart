@@ -67,9 +67,13 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contact information saved'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Contact information saved'),
+            backgroundColor: AppTheme.getComponentBackgroundColor(
+              context,
+              'login_successSnackbar_background',
+              fallback: Colors.green,
+            ),
           ),
         );
         Navigator.of(context).pop();
@@ -79,7 +83,11 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.getComponentBackgroundColor(
+              context,
+              'profile_errorButton_background',
+              fallback: Colors.red,
+            ),
           ),
         );
       }
@@ -148,10 +156,20 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
                   onPressed: _isSaving ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.mainBlue,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppTheme.getComponentTextColor(
+                      context,
+                      'main_elevatedButton_text',
+                      fallback: Colors.white,
+                    ),
                   ),
                   child: _isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? CircularProgressIndicator(
+                          color: AppTheme.getComponentTextColor(
+                            context,
+                            'main_elevatedButton_text',
+                            fallback: Colors.white,
+                          ),
+                        )
                       : const Text('Save'),
                 ),
               ),

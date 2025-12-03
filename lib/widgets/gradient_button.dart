@@ -21,12 +21,18 @@ class GradientButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDisabled = onPressed == null;
     
+    final gradient = isDisabled 
+        ? null 
+        : (AppTheme.getComponentGradient(context, 'gradientButton_gradientStart', fallback: AppTheme.blueGradient) ?? AppTheme.blueGradient);
+    
     return Container(
       width: width ?? double.infinity,
       height: height,
       decoration: BoxDecoration(
-        gradient: isDisabled ? null : AppTheme.blueGradient,
-        color: isDisabled ? Colors.grey.shade500 : null,
+        gradient: gradient,
+        color: isDisabled 
+            ? AppTheme.getComponentBackgroundColor(context, 'gradientButton_disabledBackground', fallback: Colors.grey.shade500)
+            : null,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
       ),
       child: Material(
@@ -37,18 +43,20 @@ class GradientButton extends StatelessWidget {
           child: Container(
             alignment: Alignment.center,
             child: isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppTheme.getComponentIconColor(context, 'gradientButton_loadingIndicator', fallback: Colors.white),
+                      ),
                     ),
                   )
                 : Text(
                     text,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppTheme.getComponentTextColor(context, 'gradientButton_text', fallback: Colors.white),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

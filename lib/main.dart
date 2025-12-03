@@ -8,6 +8,9 @@ import 'providers/user_registration_view_model.dart';
 import 'providers/navigation_state.dart';
 import 'utils/theme.dart';
 import 'services/notification_service.dart';
+import 'services/contentful_service.dart';
+import 'services/app_colors_service.dart';
+import 'services/component_colors_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +28,39 @@ void main() async {
     print('❌ Error initializing notification service: $e');
     // Don't block app startup if notifications fail
   }
+
+  // Initialize Contentful Service
+  try {
+    await ContentfulService().initialize(
+      spaceId: 'w44htb0sb9sl',
+      accessToken: 'rm5ph3ht3B4U-6PG9zM_opMFnoVojXmHOe3T9R9C8JQ',
+      previewAccessToken: 'wdRyb5ysWZkGDt9IXM-O2BaLCQiiZxW-ZIoBTdhcxMc',
+      environment: 'master',
+      usePreview: false, // Set to true to use Preview API for draft content
+    );
+    print('✅ Contentful service initialized in main');
+  } catch (e) {
+    print('❌ Error initializing Contentful service: $e');
+    // Don't block app startup if Contentful fails
+  }
+
+  // Initialize App Colors Service (loads from cache immediately)
+  try {
+    await AppColorsService().initialize();
+    print('✅ App colors service initialized in main');
+  } catch (e) {
+    print('❌ Error initializing app colors service: $e');
+    // App continues with default colors
+  }
+
+  // Initialize Component Colors Service (loads from cache immediately)
+  try {
+    await ComponentColorsService().initialize();
+    print('✅ Component colors service initialized in main');
+  } catch (e) {
+    print('❌ Error initializing component colors service: $e');
+    // App continues with default colors
+  }
   
   runApp(const LinkMobileApp());
 }
@@ -38,46 +74,52 @@ class LinkMobileApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => UserRegistrationViewModel()),
         ChangeNotifierProvider(create: (_) => NavigationState()),
+        ChangeNotifierProvider.value(value: AppColorsService()),
+        ChangeNotifierProvider.value(value: ComponentColorsService()), // Add ComponentColorsService
       ],
-      child: MaterialApp(
-        title: 'LinkUp Mobile',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppTheme.mainBlue,
-            primary: AppTheme.mainBlue,
-            secondary: AppTheme.secondBlue,
-            surface: AppTheme.appBackground,
-            error: AppTheme.errorColor,
-          ),
-          textTheme: GoogleFonts.montserratTextTheme(),
-          fontFamily: GoogleFonts.montserrat().fontFamily,
-          appBarTheme: AppBarTheme(
-            backgroundColor: AppTheme.mainBlue,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            titleTextStyle: GoogleFonts.montserrat(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.mainBlue,
-              foregroundColor: Colors.white,
-              textStyle: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+      child: Consumer<AppColorsService>(
+        builder: (context, colorsService, _) {
+          return MaterialApp(
+            title: 'LinkUp Mobile',
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppTheme.mainBlueDynamic(context),
+                primary: AppTheme.mainBlueDynamic(context),
+                secondary: AppTheme.secondBlueDynamic(context),
+                surface: AppTheme.appBackgroundDynamic(context),
+                error: AppTheme.errorColorDynamic(context),
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+              textTheme: GoogleFonts.montserratTextTheme(),
+              fontFamily: GoogleFonts.montserrat().fontFamily,
+              appBarTheme: AppBarTheme(
+                backgroundColor: AppTheme.headerBackgroundDynamic(context),
+                foregroundColor: AppTheme.headerTextDynamic(context),
+                elevation: 0,
+                titleTextStyle: GoogleFonts.montserrat(
+                  color: AppTheme.headerTextDynamic(context),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.mainBlueDynamic(context),
+                  foregroundColor: Colors.white,
+                  textStyle: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        home: const SplashScreen(),
-        debugShowCheckedModeBanner: false,
+            home: const SplashScreen(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/app_header.dart';
 import '../models/plan_model.dart';
 import '../widgets/plan_carousel.dart';
+import '../utils/theme.dart';
 import 'login_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -124,8 +125,35 @@ class HomePage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final plans = _getHardcodedPlans();
 
+    // Get component colors
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'home_scaffold_background',
+      fallback: Colors.white,
+    );
+    final titleColor = AppTheme.getComponentTextColor(
+      context,
+      'home_title_text',
+      fallback: Colors.black,
+    );
+    final bodyColor = AppTheme.getComponentTextColor(
+      context,
+      'home_description_text',
+      fallback: Colors.grey,
+    );
+    final buttonBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'home_signOutButton_background',
+      fallback: Colors.red,
+    );
+    final buttonText = AppTheme.getComponentTextColor(
+      context,
+      'home_signOutButton_text',
+      fallback: Colors.white,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -138,39 +166,39 @@ class HomePage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 40),
-                      const Text(
+                      Text(
                         'Welcome!',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 20),
                       if (user != null) ...[
                         Text(
                           'Signed in as: ${user.email ?? user.displayName ?? "User"}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey,
+                            color: bodyColor,
                           ),
                         ),
                         const SizedBox(height: 40),
                       ],
-                      const Text(
+                      Text(
                         'Our Plans',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black,
+                          color: titleColor,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Text(
+                      Text(
                         'Choose the perfect plan for you',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          color: bodyColor,
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -195,8 +223,8 @@ class HomePage extends StatelessWidget {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
+                            backgroundColor: buttonBg,
+                            foregroundColor: buttonText,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),

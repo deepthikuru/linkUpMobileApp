@@ -27,11 +27,22 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
 
   Future<void> _handleForgotPassword() async {
+    final errorBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_errorSnackbar_background',
+      fallback: Colors.red,
+    );
+    final successBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_successSnackbar_background',
+      fallback: Colors.green,
+    );
+
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your email address'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please enter your email address'),
+          backgroundColor: errorBg,
         ),
       );
       return;
@@ -41,9 +52,9 @@ class _LoginPageState extends State<LoginPage> {
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset email sent. Please check your inbox.'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Password reset email sent. Please check your inbox.'),
+            backgroundColor: successBg,
           ),
         );
       }
@@ -52,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: errorBg,
           ),
         );
       }
@@ -136,11 +147,22 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'login_errorSnackbar_background',
+        fallback: Colors.red,
+      );
+      final successBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'login_successSnackbar_background',
+        fallback: Colors.green,
+      );
+
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter email and password'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please enter email and password'),
+            backgroundColor: errorBg,
           ),
         );
         setState(() {
@@ -155,10 +177,15 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
+        final successBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-success',
+          fallback: Colors.green,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully signed in!'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Successfully signed in!'),
+            backgroundColor: successBg,
           ),
         );
 
@@ -167,6 +194,11 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
+        final errorBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-error',
+          fallback: Colors.red,
+        );
         String errorMessage = 'Error signing in';
         
         if (e.toString().contains('user-not-found')) {
@@ -182,7 +214,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
+            backgroundColor: errorBg,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -232,10 +264,15 @@ class _LoginPageState extends State<LoginPage> {
       
       // Successfully signed in
       if (mounted) {
+        final successBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-success',
+          fallback: Colors.green,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Successfully signed in with Google!'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text('Successfully signed in with Google!'),
+            backgroundColor: successBg,
           ),
         );
         
@@ -244,6 +281,11 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
+        final errorBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-error',
+          fallback: Colors.red,
+        );
         String errorMessage = 'Error signing in with Google';
         
         // Check for specific error codes
@@ -260,7 +302,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
+            backgroundColor: errorBg,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -276,8 +318,95 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get component colors from Contentful
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_scaffold_background',
+      fallback: Colors.white,
+    );
+    final titleColor = AppTheme.getComponentTextColor(
+      context,
+      'login_title_text',
+      fallback: Colors.black,
+    );
+    final hintColor = AppTheme.getComponentTextColor(
+      context,
+      'login_inputHint_text',
+      fallback: Colors.grey,
+    );
+    final inputBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_input_background',
+      fallback: Colors.white,
+    );
+    final linkColor = AppTheme.getComponentTextColor(
+      context,
+      'link-primary',
+      fallback: AppTheme.mainBlue,
+    );
+    final primaryButtonBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_signInButton_disabledBackground',
+      fallback: Colors.grey,
+    );
+    final primaryButtonText = AppTheme.getComponentTextColor(
+      context,
+      'login_signInButton_text',
+      fallback: Colors.white,
+    );
+    final googleButtonBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_googleButton_background',
+      fallback: Colors.red,
+    );
+    final googleButtonText = AppTheme.getComponentTextColor(
+      context,
+      'login_googleButton_text',
+      fallback: Colors.white,
+    );
+    final googleButtonIcon = AppTheme.getComponentIconColor(
+      context,
+      'login_googleButton_icon',
+      fallback: Colors.white,
+    );
+    final appleButtonBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_appleButton_background',
+      fallback: Colors.black,
+    );
+    final appleButtonText = AppTheme.getComponentTextColor(
+      context,
+      'login_appleButton_text',
+      fallback: Colors.white,
+    );
+    final appleButtonIcon = AppTheme.getComponentIconColor(
+      context,
+      'login_appleButton_icon',
+      fallback: Colors.white,
+    );
+    final buttonText = AppTheme.getComponentTextColor(
+      context,
+      'button-text',
+      fallback: Colors.white,
+    );
+    final bodyText = AppTheme.getComponentTextColor(
+      context,
+      'login_footerText_text',
+      fallback: Colors.black,
+    );
+    final dividerColor = AppTheme.getComponentTextColor(
+      context,
+      'login_separator_text',
+      fallback: Colors.grey[600]!,
+    );
+    final loadingIndicatorColor = AppTheme.getComponentIconColor(
+      context,
+      'login_loadingIndicator_color',
+      fallback: Colors.white,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -293,13 +422,13 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       const SizedBox(height: 40),
                       // Sign In Title - Centered
-                      const Center(
+                      Center(
                         child: Text(
                           'Sign In',
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: titleColor,
                           ),
                         ),
                       ),
@@ -309,12 +438,12 @@ class _LoginPageState extends State<LoginPage> {
                         controller: _emailController,
                         decoration: InputDecoration(
                           hintText: 'Email address',
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+                          hintStyle: TextStyle(color: hintColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          filled: true,
+                          fillColor: inputBg,
                         ),
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -324,12 +453,12 @@ class _LoginPageState extends State<LoginPage> {
                         controller: _passwordController,
                         decoration: InputDecoration(
                           hintText: 'Password',
-                        hintStyle: const TextStyle(color: Colors.grey),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
+                          hintStyle: TextStyle(color: hintColor),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          filled: true,
+                          fillColor: inputBg,
                         ),
                         obscureText: true,
                       ),
@@ -337,12 +466,12 @@ class _LoginPageState extends State<LoginPage> {
                       // Forgot Password Link
                       Align(
                         alignment: Alignment.centerRight,
-                        child:                           TextButton(
-                            onPressed: _handleForgotPassword,
-                        child: const Text(
-                          'Forgot password?',
-                          style: TextStyle(color: AppTheme.mainBlue),
-                        ),
+                        child: TextButton(
+                          onPressed: _handleForgotPassword,
+                          child: Text(
+                            'Forgot password?',
+                            style: TextStyle(color: linkColor),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -353,19 +482,19 @@ class _LoginPageState extends State<LoginPage> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _signInWithEmail,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey,
-                            foregroundColor: Colors.white,
+                            backgroundColor: primaryButtonBg,
+                            foregroundColor: primaryButtonText,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           child: _isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(loadingIndicatorColor),
                                   ),
                                 )
                               : const Text(
@@ -378,18 +507,18 @@ class _LoginPageState extends State<LoginPage> {
                       // OR Separator
                       Row(
                         children: [
-                        const Expanded(child: Divider()),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                          Expanded(child: Divider(color: dividerColor)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                color: dividerColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                        const Expanded(child: Divider()),
+                          Expanded(child: Divider(color: dividerColor)),
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -400,25 +529,25 @@ class _LoginPageState extends State<LoginPage> {
                         child: ElevatedButton.icon(
                           onPressed: _isLoading ? null : _signInWithGoogle,
                           icon: _isLoading
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(googleButtonText),
                                   ),
                                 )
-                              : const Icon(Icons.language, color: Colors.white),
+                              : Icon(Icons.language, color: googleButtonIcon),
                           label: Text(
                             _isLoading ? 'Signing in...' : 'Sign in with Google',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: googleButtonText,
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: googleButtonBg,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -435,8 +564,8 @@ class _LoginPageState extends State<LoginPage> {
                             // Handle Apple sign in
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
+                            backgroundColor: appleButtonBg,
+                            foregroundColor: buttonText,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -444,14 +573,14 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.apple, color: Colors.white),
+                              Icon(Icons.apple, color: appleButtonIcon),
                               const SizedBox(width: 8),
-                              const Text(
+                              Text(
                                 'Sign in with Apple',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: appleButtonText,
                                 ),
                               ),
                             ],
@@ -464,26 +593,26 @@ class _LoginPageState extends State<LoginPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                          const Text(
-                            'New to Telgoo5 Mobile?',
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Navigate to create account - can be implemented later
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Create account feature coming soon'),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Create an account',
-                              style: TextStyle(color: AppTheme.mainBlue),
+                            Text(
+                              'New to Telgoo5 Mobile?',
+                              style: TextStyle(color: bodyText),
                             ),
-                          ),
-                        ],
-                      ),
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to create account - can be implemented later
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Create account feature coming soon'),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Create an account',
+                                style: TextStyle(color: linkColor),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 20),
                     ],

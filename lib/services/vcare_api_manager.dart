@@ -2202,6 +2202,28 @@ class VCareAPIManager {
         }
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         return listResponse;
+      } else if (listResponse.msgCode == 'RESTAPI110') {
+        // RESTAPI110 with "No Record Found" is not an error - it just means no port-in records exist yet
+        // This is expected when customer was created with NEWACTIVATION
+        final errors = json['errors'];
+        if (errors != null) {
+          final errorStr = errors is String ? errors : (errors is List ? (errors.isNotEmpty ? errors[0].toString() : '') : errors.toString());
+          if (errorStr.toLowerCase().contains('no record found')) {
+            print('⚠️ No port-in records found (RESTAPI110) - this is expected for NEWACTIVATION customers');
+            print('   Returning empty records list');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            return PortInListResponse(
+              records: [],
+              msg: listResponse.msg,
+              msgCode: listResponse.msgCode,
+              token: listResponse.token,
+            );
+          }
+        }
+        // If it's RESTAPI110 but not "No Record Found", treat as error
+        print('❌ Get Port-In List API Error: ${listResponse.msg}');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        throw Exception(listResponse.msg);
       } else {
         print('❌ Get Port-In List API Error: ${listResponse.msg}');
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -2209,6 +2231,112 @@ class VCareAPIManager {
       }
     } catch (e) {
       print('❌ Failed to get port-in list: $e');
+      rethrow;
+    }
+  }
+
+  /// Create port-in record when customer was created with NEWACTIVATION
+  /// This API is used to submit the port-in request for customers that were
+  /// created using create_customer_prepaid_multiline with activation_type as NEWACTIVATION
+  Future<PortInSubmitResponse> createPortInV2WhenCreateCustomerWasCalledWithoutPortinTag({
+    required String enrollmentId,
+    required String firstName,
+    required String lastName,
+    required String accountNumber,
+    required String zipCode,
+    required String state,
+    required String city,
+    required String addressOne,
+    required String passwordPin,
+    required String portNumber,
+    String? addressTwo,
+    String? imei,
+    String? sim,
+    String? currentCarrier,
+    String agentId = 'Sushil',
+    String source = 'WEBSITE',
+    String? externalTransactionId,
+  }) async {
+    print('🔍 ========================================');
+    print('🔍 CREATE PORT-IN V2 API CALL');
+    print('🔍 (When customer was created without PORTIN tag)');
+    print('🔍 ========================================');
+
+    // Prepare parameters
+    final parameters = <String, dynamic>{
+      'action': 'create_portin_v2_when_create_customer_was_called_without_portin_tag',
+      'enrollment_id': enrollmentId,
+      'first_name': firstName,
+      'last_name': lastName,
+      'account_number': accountNumber,
+      'zip_code': zipCode,
+      'state': state,
+      'city': city,
+      'address_one': addressOne,
+      'password_pin': passwordPin,
+      'port_number': portNumber,
+      'agent_id': agentId,
+      'source': source,
+    };
+
+    if (addressTwo != null && addressTwo.isNotEmpty) {
+      parameters['address_two'] = addressTwo;
+    }
+
+    if (imei != null && imei.isNotEmpty) {
+      parameters['imei'] = imei;
+    }
+
+    if (sim != null && sim.isNotEmpty) {
+      parameters['sim'] = sim;
+    }
+
+    if (currentCarrier != null && currentCarrier.isNotEmpty) {
+      parameters['current_carrier'] = currentCarrier;
+    }
+
+    if (externalTransactionId != null) {
+      parameters['external_transaction_id'] = externalTransactionId;
+    }
+
+    print('📤 Request Parameters:');
+    parameters.forEach((key, value) {
+      print('   $key: $value');
+    });
+    print('🔍 ========================================');
+
+    try {
+      // Make authenticated request
+      final response = await post(
+        endpoint: '/port',
+        parameters: parameters,
+      );
+
+      // Print raw API response
+      final responseString = response.body;
+      print('📡 Create Port-In V2 API Raw Response:');
+      print(responseString);
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Parse response
+      final json = jsonDecode(responseString) as Map<String, dynamic>;
+      final createResponse = PortInSubmitResponse.fromJson(json);
+
+      print('✅ Create Port-In V2 API Response:');
+      print('   msg_code: ${createResponse.msgCode}');
+      print('   msg: ${createResponse.msg}');
+      print('   data: ${createResponse.data}');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      if (createResponse.msgCode == 'RESTAPI000') {
+        return createResponse;
+      } else {
+        print('❌ Create Port-In V2 API Error: ${createResponse.msg}');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        throw Exception(createResponse.msg);
+      }
+    } catch (e) {
+      print('❌ Failed to create port-in v2: $e');
       rethrow;
     }
   }

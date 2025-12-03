@@ -390,14 +390,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
         }
 
         if (mounted) {
-          if (isCompatible) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Detected: ${detectedBrand.displayName} ${detectedModel!.name}'),
-                backgroundColor: AppTheme.successColor,
-              ),
-            );
-          } else {
+          if (!isCompatible) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -498,10 +491,16 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
     // Show IMEI check bottom sheet if needed
     if (_showIMEICheckSheet) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        final modalBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'deviceCompatibility_button_background',
+          fallback: Colors.transparent,
+        );
+        
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.transparent,
+          backgroundColor: modalBg,
           builder: (context) => IMEICheckView(
             initialImei: _imeiController.text,
             onSubmitIMEI: _onIMEISubmit,
@@ -554,16 +553,39 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.getComponentIconColor(
+                              context,
+                              'deviceCompatibility_loadingIndicator',
+                              fallback: Colors.white,
+                            ),
+                          ),
                         ),
                       )
-                    : Icon(Icons.phone_android, color: Colors.white),
+                    : Icon(
+                        Icons.phone_android,
+                        color: AppTheme.getComponentIconColor(
+                          context,
+                          'deviceCompatibility_icon',
+                          fallback: Colors.white,
+                        ),
+                      ),
                 label: Text(
                   _isReadingDevice ? 'Reading device info...' : 'Auto-detect device',
-                  style: AppTheme.bodyStyle.copyWith(color: Colors.white),
+                  style: AppTheme.bodyStyle.copyWith(
+                    color: AppTheme.getComponentTextColor(
+                      context,
+                      'deviceCompatibility_text',
+                      fallback: Colors.white,
+                    ),
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentGold,
+                  backgroundColor: AppTheme.getComponentBackgroundColor(
+                    context,
+                    'deviceCompatibility_button_background',
+                    fallback: AppTheme.accentGold,
+                  ),
                   disabledBackgroundColor: AppTheme.disabledBackground,
                   padding: EdgeInsets.symmetric(vertical: AppTheme.paddingButtonVertical),
                   shape: RoundedRectangleBorder(

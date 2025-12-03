@@ -15,12 +15,14 @@ class AppFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shadowColor = AppTheme.getComponentShadowColor(context, 'appFooter_shadow', fallback: Colors.black.withOpacity(0.1));
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getComponentBackgroundColor(context, 'appFooter_background', fallback: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: shadowColor,
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -88,8 +90,8 @@ class AppFooter extends StatelessWidget {
             Icon(
               icon,
               color: isSelected
-                  ? AppTheme.accentGold
-                  : Colors.grey,
+                  ? AppTheme.getComponentIconColor(context, 'appFooter_tabIcon_selected', fallback: AppTheme.accentGold)
+                  : AppTheme.getComponentIconColor(context, 'appFooter_tabIcon', fallback: Colors.grey),
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -98,8 +100,8 @@ class AppFooter extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 color: isSelected
-                    ? AppTheme.accentGold
-                    : Colors.grey,
+                    ? AppTheme.getComponentTextColor(context, 'appFooter_tabLabel_selected', fallback: AppTheme.accentGold)
+                    : AppTheme.getComponentTextColor(context, 'appFooter_tabLabel', fallback: Colors.grey),
                 fontWeight: isSelected
                     ? FontWeight.w600
                     : FontWeight.normal,

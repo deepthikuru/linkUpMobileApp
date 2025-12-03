@@ -318,14 +318,24 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                               backgroundColor: _isChecking || !_isIMEIValid
                                   ? AppTheme.textTertiary
                                   : AppTheme.accentGold,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppTheme.getComponentTextColor(
+                                context,
+                                'deviceCompatibility_text',
+                                fallback: Colors.white,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
                               ),
                             ),
                             child: _isChecking
                                 ? CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppTheme.getComponentIconColor(
+                                        context,
+                                        'deviceCompatibility_loadingIndicator',
+                                        fallback: Colors.white,
+                                      ),
+                                    ),
                                   )
                                 : Text(
                                     'Check Compatibility',

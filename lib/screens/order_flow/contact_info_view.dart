@@ -154,7 +154,11 @@ class _ContactInfoViewState extends State<ContactInfoView> {
               backgroundColor: AppTheme.errorColor,
               action: SnackBarAction(
                 label: 'Open Settings',
-                textColor: Colors.white,
+                textColor: AppTheme.getComponentTextColor(
+                  context,
+                  'contactInfo_button_text',
+                  fallback: Colors.white,
+                ),
                 onPressed: () async {
                   await Geolocator.openAppSettings();
                 },
@@ -179,7 +183,11 @@ class _ContactInfoViewState extends State<ContactInfoView> {
               backgroundColor: AppTheme.errorColor,
               action: SnackBarAction(
                 label: 'Open Settings',
-                textColor: Colors.white,
+                textColor: AppTheme.getComponentTextColor(
+                  context,
+                  'contactInfo_button_text',
+                  fallback: Colors.white,
+                ),
                 onPressed: () async {
                   await Geolocator.openAppSettings();
                 },

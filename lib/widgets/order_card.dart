@@ -15,17 +15,20 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = order.status == OrderStatus.completed
-        ? Colors.green
+        ? AppTheme.getComponentIconColor(context, 'orderCard_status_completed', fallback: Colors.green)
         : order.status == OrderStatus.cancelled
-            ? Colors.red
-            : Colors.orange;
+            ? AppTheme.getComponentIconColor(context, 'orderCard_status_cancelled', fallback: Colors.red)
+            : AppTheme.getComponentIconColor(context, 'orderCard_status_inProgress', fallback: Colors.orange);
 
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: AppTheme.getComponentBackgroundColor(context, 'orderCard_background', fallback: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[300]!, width: 1),
+        side: BorderSide(
+          color: AppTheme.getComponentBorderColor(context, 'orderCard_border', fallback: Colors.grey[300]!),
+          width: 1,
+        ),
       ),
       child: InkWell(
         onTap: onTap,
@@ -78,18 +81,18 @@ class OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     _formatDate(order.orderDate),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: Colors.grey,
+                      color: AppTheme.getComponentTextColor(context, 'orderCard_date_text', fallback: Colors.grey),
                     ),
                   ),
                   if (order.phoneNumber != null && order.phoneNumber!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       order.phoneNumber!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: Colors.grey,
+                        color: AppTheme.getComponentTextColor(context, 'orderCard_phoneNumber_text', fallback: Colors.grey),
                       ),
                     ),
                   ],
@@ -99,9 +102,9 @@ class OrderCard extends StatelessWidget {
               // Chevron
               Padding(
                 padding: const EdgeInsets.only(top: 2.0),
-                child: const Icon(
+                child: Icon(
                   Icons.chevron_right,
-                  color: Colors.grey,
+                  color: AppTheme.getComponentIconColor(context, 'orderCard_chevronIcon', fallback: Colors.grey),
                   size: 20,
                 ),
               ),

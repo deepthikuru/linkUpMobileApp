@@ -541,10 +541,22 @@ class _StartOrderContentState extends State<_StartOrderContent> {
   void _showPlanDetails() {
     if (_selectedPlan == null) return;
     
+    final modalBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'startOrder_planDetails_background',
+      fallback: Colors.transparent,
+    );
+    final modalBarrier = AppTheme.getComponentShadowColor(
+      context,
+      'startOrder_planDetails_barrier',
+      fallback: Colors.black54,
+    );
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: modalBg,
+      barrierColor: modalBarrier,
       builder: (context) => PlanDetailsSheet(
         plan: _selectedPlan!,
         onStartOrder: () {
@@ -592,20 +604,31 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     },
                             );
                           } else {
+      final loadingColor = AppTheme.getComponentIconColor(
+        context,
+        'startOrder_loadingIndicator_color',
+        fallback: AppTheme.accentGold,
+      );
+      final loadingTextColor = AppTheme.getComponentTextColor(
+        context,
+        'startOrder_loadingText_text',
+        fallback: Colors.grey,
+      );
+      
       return _isLoading
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentGold),
+                            valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           Text(
                             'Loading...',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey,
+                              color: loadingTextColor,
                             ),
                           ),
                         ],
@@ -619,6 +642,30 @@ class _StartOrderContentState extends State<_StartOrderContent> {
   }
 
   Widget _buildContent() {
+    // Get component colors for start order view
+    final heroTitleColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_heroTitle_text',
+      fallback: Colors.black87,
+    );
+    final heroSubtitleGradient = AppTheme.getComponentGradient(
+      context,
+      'startOrder_heroSubtitle_gradientStart',
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      fallback: AppTheme.blueGradient,
+    );
+    final welcomeTitleColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_welcomeTitle_text',
+      fallback: Colors.black,
+    );
+    final welcomeSubtitleColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_welcomeSubtitle_text',
+      fallback: Colors.grey,
+    );
+    
     return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -627,18 +674,18 @@ class _StartOrderContentState extends State<_StartOrderContent> {
           Center(
                           child: Column(
                             children: [
-                              const Text(
+                              Text(
                   'Connect to the World for less',
                                 style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w900,
-                                  color: Colors.black87,
+                                  color: heroTitleColor,
                                 ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 ShaderMask(
-                  shaderCallback: (bounds) => AppTheme.blueGradient.createShader(
+                  shaderCallback: (bounds) => (heroSubtitleGradient ?? AppTheme.blueGradient).createShader(
                     Rect.fromLTWH(0, 0, bounds.width, bounds.height),
                   ),
                   child: const Text(
@@ -655,59 +702,92 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                           ),
                         ),
                       ] else ...[
-                        const Center(
-                          child: Column(
-                            children: [
-                              Text(
-                                'Welcome back!',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        Consumer<UserRegistrationViewModel>(
+                          builder: (context, viewModel, _) {
+                            // Use Contentful heading if available, otherwise fallback to default
+                            final heading = viewModel.homeHeadingForExistingUser.isNotEmpty
+                                ? viewModel.homeHeadingForExistingUser
+                                : 'Welcome back!';
+                            
+                            return Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    heading,
+                                    style: TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: welcomeTitleColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Here\'s your dashboard.',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: welcomeSubtitleColor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Here\'s your dashboard.',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ],
                       const SizedBox(height: 32),
                       
         // Complete Your Setup Section - only for users with orders
         if (_totalOrdersCount > 0 && _incompleteOrders.isNotEmpty) ...[
-                        Container(
+                        Builder(
+                          builder: (context) {
+                            final completeSetupBg = AppTheme.getComponentBackgroundColor(
+                              context,
+                              'startOrder_completeSetup_background',
+                              fallback: AppTheme.accentGold.withOpacity(0.1),
+                            );
+                            final completeSetupBorder = AppTheme.getComponentBorderColor(
+                              context,
+                              'startOrder_completeSetup_border',
+                              fallback: AppTheme.accentGold.withOpacity(0.3),
+                            );
+                            final completeSetupTitleColor = AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_completeSetup_title_text',
+                              fallback: Colors.black87,
+                            );
+                            final completeSetupSubtitleColor = AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_completeSetup_subtitle_text',
+                              fallback: Colors.grey,
+                            );
+                            
+                            return Container(
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentGold.withOpacity(0.1),
+                            color: completeSetupBg,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppTheme.accentGold.withOpacity(0.3),
+                              color: completeSetupBorder,
                               width: 1,
                             ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Complete Your Setup',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: completeSetupTitleColor,
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              const Text(
+                              Text(
                                 'You have orders that need completion to activate your SIM:',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey,
+                                  color: completeSetupSubtitleColor,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -738,7 +818,11 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                       margin: const EdgeInsets.symmetric(horizontal: 4),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: AppTheme.accentGold.withOpacity(0.3),
+                                        color: AppTheme.getComponentBackgroundColor(
+                                          context,
+                                          'startOrder_completeSetup_indicator',
+                                          fallback: AppTheme.accentGold.withOpacity(0.3),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -746,6 +830,8 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               ],
                             ],
                           ),
+                        );
+                          },
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -756,20 +842,34 @@ class _StartOrderContentState extends State<_StartOrderContent> {
             child: Text('No plans available for ZIP: ${_currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}'),
           )
         else ...[
-                        Container(
+                        Builder(
+                          builder: (context) {
+                            final availablePlansBg = AppTheme.getComponentBackgroundColor(
+                              context,
+                              'startOrder_availablePlans_background',
+                              fallback: Colors.grey[100],
+                            );
+                            final availablePlansTitleColor = AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_availablePlans_title_text',
+                              fallback: Colors.black,
+                            );
+                            
+                            return Container(
                           padding: const EdgeInsets.all(10.0),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: availablePlansBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Available Plans',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
+                                  color: availablePlansTitleColor,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -791,16 +891,36 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               ),
                             ],
                           ),
+                        );
+                          },
                         ),
                         const SizedBox(height: 24),
                       ],
                       
         // Recent Orders Section - only for users with orders
         if (_totalOrdersCount > 0 && _recentOrders.isNotEmpty) ...[
-                        Container(
+                        Builder(
+                          builder: (context) {
+                            final recentOrdersBg = AppTheme.getComponentBackgroundColor(
+                              context,
+                              'startOrder_recentOrders_background',
+                              fallback: Colors.grey[100],
+                            );
+                            final recentOrdersTitleColor = AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_recentOrders_title_text',
+                              fallback: Colors.black,
+                            );
+                            final recentOrdersCountColor = AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_recentOrders_count_text',
+                              fallback: Colors.grey,
+                            );
+                            
+                            return Container(
                           padding: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: recentOrdersBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -809,18 +929,19 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Recent Orders',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
+                                      color: recentOrdersTitleColor,
                                     ),
                                   ),
                                   Text(
                                     '$_totalOrdersCount total',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey,
+                                      color: recentOrdersCountColor,
                                     ),
                                   ),
                                 ],
@@ -851,29 +972,46 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                       ),
                                     );
                                   },
-                                  child: Row(
+                                  child: Builder(
+                                    builder: (context) {
+                                      final viewAllOrdersIconColor = AppTheme.getComponentIconColor(
+                                        context,
+                                        'startOrder_viewAllOrders_icon',
+                                        fallback: AppTheme.mainBlue,
+                                      );
+                                      final viewAllOrdersTextColor = AppTheme.getComponentTextColor(
+                                        context,
+                                        'startOrder_viewAllOrders_text',
+                                        fallback: AppTheme.mainBlue,
+                                      );
+                                      
+                                      return Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.visibility_outlined,
-                                        color: AppTheme.mainBlue,
+                                        color: viewAllOrdersIconColor,
                                         size: 18,
                                       ),
                                       const SizedBox(width: 8),
-                                      const Text(
+                                      Text(
                                         'View all orders',
                                         style: TextStyle(
-                                          color: AppTheme.mainBlue,
+                                          color: viewAllOrdersTextColor,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ],
+                                  );
+                                    },
                                   ),
                                 ),
                               ],
                             ],
                           ),
+                        );
+                          },
                         ),
           if (!widget.isBodyOnly) const SizedBox(height: 24),
           if (widget.isBodyOnly) const SizedBox(height: 16),
@@ -887,7 +1025,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 20),
+          Icon(
+            Icons.check_circle,
+            color: AppTheme.getComponentIconColor(
+              context,
+              'numberSelection_statusIcon_available',
+              fallback: Colors.green,
+            ),
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -919,20 +1065,108 @@ class _StartOrderContentState extends State<_StartOrderContent> {
         : order.orderDate;
     final missingTasks = _determineMissingTasks(orderData);
     
+    final incompleteOrderBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'startOrder_incompleteOrder_background',
+      fallback: Colors.white,
+    );
+    final incompleteOrderBorder = AppTheme.getComponentBorderColor(
+      context,
+      'startOrder_incompleteOrder_border',
+      fallback: Colors.grey[300]!,
+    );
+    final incompleteOrderShadow = AppTheme.getComponentShadowColor(
+      context,
+      'startOrder_incompleteOrder_shadow',
+      fallback: Colors.black.withOpacity(0.05),
+    );
+    final incompleteOrderTitleColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_title_text',
+      fallback: Colors.black87,
+    );
+    final incompleteOrderDateColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_date_text',
+      fallback: Colors.grey,
+    );
+    final incompleteOrderBadgeBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'startOrder_incompleteOrder_badge_background',
+      fallback: Colors.orange.withOpacity(0.2),
+    );
+    final incompleteOrderBadgeText = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_badge_text',
+      fallback: Colors.orange,
+    );
+    final incompleteOrderTaskIconColor = AppTheme.getComponentIconColor(
+      context,
+      'startOrder_incompleteOrder_taskIcon',
+      fallback: Colors.orange,
+    );
+    final incompleteOrderTaskTextColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_taskText',
+      fallback: Colors.black87,
+    );
+    final incompleteOrderTaskMoreColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_taskMore_text',
+      fallback: Colors.grey,
+    );
+    final incompleteOrderInfoIconColor = AppTheme.getComponentIconColor(
+      context,
+      'startOrder_incompleteOrder_infoIcon',
+      fallback: Colors.orange,
+    );
+    final incompleteOrderInfoTextColor = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_incompleteOrder_infoText',
+      fallback: Colors.black87,
+    );
+    final viewDetailsButtonBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'startOrder_viewDetailsButton_background',
+      fallback: AppTheme.yellowAccent,
+    );
+    final viewDetailsButtonText = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_viewDetailsButton_text',
+      fallback: Colors.white,
+    );
+    final viewDetailsButtonIcon = AppTheme.getComponentIconColor(
+      context,
+      'startOrder_viewDetailsButton_icon',
+      fallback: Colors.white,
+    );
+    final completeSetupButtonGradient = AppTheme.getComponentGradient(
+      context,
+      'startOrder_completeSetupButton_gradientStart',
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      fallback: AppTheme.blueGradient,
+    );
+    final completeSetupButtonText = AppTheme.getComponentTextColor(
+      context,
+      'startOrder_completeSetupButton_text',
+      fallback: Colors.white,
+    );
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: incompleteOrderBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.grey[300]!,
+            color: incompleteOrderBorder,
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: incompleteOrderShadow,
               blurRadius: 2,
               offset: const Offset(0, 1),
             ),
@@ -954,10 +1188,10 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     children: [
                       Text(
                         'Order #${order.id.substring(0, 8)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: incompleteOrderTitleColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -965,9 +1199,9 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                       const SizedBox(height: 4),
                       Text(
                         'Started: ${_formatDate(createdAt)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: incompleteOrderDateColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -978,15 +1212,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
+                    color: incompleteOrderBadgeBg,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Incomplete',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: Colors.orange,
+                      color: incompleteOrderBadgeText,
                     ),
                   ),
                 ),
@@ -1003,11 +1237,11 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                      child: Text(
                       'Number: $phoneNumber',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: incompleteOrderInfoTextColor,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1022,15 +1256,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                 Icon(
                   Icons.sim_card,
                   size: 16,
-                  color: AppTheme.accentGold,
+                  color: incompleteOrderInfoIconColor,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'SIM Type: $simType',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: incompleteOrderInfoTextColor,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1045,15 +1279,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   Icon(
                     Icons.smartphone,
                     size: 16,
-                    color: AppTheme.accentGold,
+                    color: incompleteOrderInfoIconColor,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Device: $deviceBrand $deviceModel',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: incompleteOrderInfoTextColor,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1064,12 +1298,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
             ],
             if (missingTasks.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Tasks to Complete:',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: incompleteOrderTaskTextColor,
                 ),
               ),
               const SizedBox(height: 4),
@@ -1081,15 +1315,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     Icon(
                       Icons.error,
                       size: 16,
-                      color: Colors.orange,
+                      color: incompleteOrderTaskIconColor,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         task,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Colors.black87,
+                          color: incompleteOrderTaskTextColor,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -1105,7 +1339,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     '+${missingTasks.length - 2} more task${missingTasks.length - 2 == 1 ? '' : 's'}',
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.grey,
+                      color: incompleteOrderTaskMoreColor,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -1126,19 +1360,19 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.info_outline, size: 18, color: Colors.white),
-                    label: const Text(
+                    icon: Icon(Icons.info_outline, size: 18, color: viewDetailsButtonIcon),
+                    label: Text(
                       'View Details',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: viewDetailsButtonText,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: viewDetailsButtonText,
                       side: BorderSide.none,
-                      backgroundColor: AppTheme.yellowAccent,
+                      backgroundColor: viewDetailsButtonBg,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1150,7 +1384,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    gradient: AppTheme.blueGradient,
+                    gradient: completeSetupButtonGradient ?? AppTheme.blueGradient,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ElevatedButton.icon(
@@ -1210,17 +1444,17 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                       }
                     },
                     icon: const Icon(Icons.check_circle, size: 18),
-                    label: const Text(
+                    label: Text(
                       'Complete Setup',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: completeSetupButtonText,
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
-                      foregroundColor: Colors.white,
+                      foregroundColor: completeSetupButtonText,
                       shadowColor: Colors.transparent,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -1270,7 +1504,11 @@ class _StartOrderViewState extends State<StartOrderView> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: AppTheme.getComponentShadowColor(
+        context,
+        'mainLayout_dialogBarrier',
+        fallback: Colors.black54,
+      ),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -1286,7 +1524,11 @@ class _StartOrderViewState extends State<StartOrderView> {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.75,
               height: MediaQuery.of(context).size.height,
-              color: Colors.white,
+              color: AppTheme.getComponentBackgroundColor(
+                context,
+                'mainLayout_hamburgerMenu_background',
+                fallback: Colors.white,
+              ),
               child: const HamburgerMenuView(),
             ),
           ),
@@ -1297,8 +1539,14 @@ class _StartOrderViewState extends State<StartOrderView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'home_scaffold_background',
+      fallback: Colors.white,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: SafeArea(
         child: Column(
           children: [

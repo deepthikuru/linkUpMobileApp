@@ -3,10 +3,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firebase_manager.dart';
 import '../services/firebase_order_manager.dart';
+import '../services/contentful_service.dart';
 
 class UserRegistrationViewModel extends ChangeNotifier {
   final FirebaseManager _firebaseManager = FirebaseManager();
   final FirebaseOrderManager _orderManager = FirebaseOrderManager();
+  final ContentfulService _contentfulService = ContentfulService();
 
   // Account Information
   String accountType = '';
@@ -63,6 +65,9 @@ class UserRegistrationViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
 
+  // Contentful Content
+  String homeHeadingForExistingUser = '';
+
   Future<void> loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -116,6 +121,9 @@ class UserRegistrationViewModel extends ChangeNotifier {
       // Load previous orders using fetchCompletedOrders
       final orders = await _orderManager.fetchCompletedOrders(user.uid);
       previousOrders = orders;
+
+      // Load Contentful content
+      await _loadContentfulContent();
     } catch (e) {
       errorMessage = e.toString();
     } finally {
@@ -384,7 +392,49 @@ class UserRegistrationViewModel extends ChangeNotifier {
     resetOrderSpecificFields();
     previousOrders = [];
     userId = null;
+    homeHeadingForExistingUser = '';
     notifyListeners();
+  }
+
+  /// Load content from Contentful
+  Future<void> _loadContentfulContent() async {
+    try {
+      print('📡 Starting Contentful content load...');
+      
+      // Fetch the entry from Contentful
+      // The content type ID is "linkUpMobileApp" based on your Contentful setup
+      final response = await _contentfulService.getEntries('linkUpMobileApp', limit: 1);
+      
+      print('📡 Contentful response: ${response.items.length} items found');
+      
+      if (response.items.isNotEmpty) {
+        final entry = response.items.first;
+        print('📡 Entry ID: ${entry.id}');
+        print('📡 Entry fields: ${entry.fields.keys.toList()}');
+        
+        // Use the correct field ID: "existingUserHomeHeading" (Short text field)
+        // The Rich text field "Home Heading For Exisitng User" is omitted from API response
+        final heading = _contentfulService.getTextField(entry, 'existingUserHomeHeading') ?? '';
+        
+        print('📡 Field value: $heading');
+        
+        homeHeadingForExistingUser = heading;
+        
+        if (homeHeadingForExistingUser.isNotEmpty) {
+          print('✅ Loaded Contentful heading: $homeHeadingForExistingUser');
+          notifyListeners(); // Notify listeners so UI updates
+        } else {
+          print('⚠️ Contentful heading field is empty');
+        }
+      } else {
+        print('⚠️ No Contentful entries found for linkUpMobileApp');
+        print('   Make sure you have created and published at least one entry in Contentful');
+      }
+    } catch (e, stackTrace) {
+      print('❌ Error loading Contentful content: $e');
+      print('❌ Stack trace: $stackTrace');
+      // Don't throw - allow app to continue even if Contentful fails
+    }
   }
 }
 

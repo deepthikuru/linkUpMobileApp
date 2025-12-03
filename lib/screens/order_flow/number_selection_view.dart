@@ -618,8 +618,16 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
                         color: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10
-                            ? AppTheme.accentGold
-                            : Colors.grey.shade300,
+                            ? AppTheme.getComponentBorderColor(
+                                context,
+                                'numberSelection_radio_selected',
+                                fallback: AppTheme.accentGold,
+                              )
+                            : AppTheme.getComponentBorderColor(
+                                context,
+                                'numberSelection_radio_unselected',
+                                fallback: Colors.grey.shade300,
+                              ),
                         width: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10 ? 2 : 1,
                       ),
                     ),
@@ -627,15 +635,27 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
                         color: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10
-                            ? AppTheme.accentGold
-                            : Colors.grey.shade300,
+                            ? AppTheme.getComponentBorderColor(
+                                context,
+                                'numberSelection_radio_selected',
+                                fallback: AppTheme.accentGold,
+                              )
+                            : AppTheme.getComponentBorderColor(
+                                context,
+                                'numberSelection_radio_unselected',
+                                fallback: Colors.grey.shade300,
+                              ),
                         width: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10 ? 2 : 1,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: AppTheme.accentGold,
+                        color: AppTheme.getComponentBorderColor(
+                          context,
+                          'numberSelection_radio_selected',
+                          fallback: AppTheme.accentGold,
+                        ),
                         width: 2,
                       ),
                     ),
@@ -662,7 +682,11 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                         'Validating phone number...',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: AppTheme.getComponentTextColor(
+                            context,
+                            'numberSelection_selectedText',
+                            fallback: Colors.grey.shade600,
+                          ),
                         ),
                       ),
                     ],
@@ -675,8 +699,16 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                             ? Icons.check_circle
                             : Icons.cancel,
                         color: _portInValidationStatus == 'Eligible'
-                            ? Colors.green
-                            : Colors.red,
+                            ? AppTheme.getComponentIconColor(
+                                context,
+                                'numberSelection_statusIcon_available',
+                                fallback: Colors.green,
+                              )
+                            : AppTheme.getComponentIconColor(
+                                context,
+                                'numberSelection_statusIcon_unavailable',
+                                fallback: Colors.red,
+                              ),
                         size: 20,
                       ),
                       SizedBox(width: 8),
@@ -688,8 +720,16 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                           style: TextStyle(
                             fontSize: 14,
                             color: _portInValidationStatus == 'Eligible'
-                                ? Colors.green
-                                : Colors.red,
+                                ? AppTheme.getComponentTextColor(
+                                    context,
+                                    'numberSelection_statusIcon_available',
+                                    fallback: Colors.green,
+                                  )
+                                : AppTheme.getComponentTextColor(
+                                    context,
+                                    'numberSelection_statusIcon_unavailable',
+                                    fallback: Colors.red,
+                                  ),
                           ),
                         ),
                       ),
@@ -700,7 +740,11 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: Colors.orange,
+                        color: AppTheme.getComponentIconColor(
+                          context,
+                          'numberSelection_warningIcon',
+                          fallback: Colors.orange,
+                        ),
                         size: 20,
                       ),
                       SizedBox(width: 8),
@@ -709,7 +753,11 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                           _portInValidationError!,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.orange,
+                            color: AppTheme.getComponentTextColor(
+                              context,
+                              'numberSelection_warningText',
+                              fallback: Colors.orange,
+                            ),
                           ),
                         ),
                       ),
@@ -730,7 +778,11 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                               : 'Please wait for phone number validation to complete.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'numberSelection_selectedText',
+                          fallback: Colors.grey.shade600,
+                        ),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -792,7 +844,13 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
             style: TextStyle(
               fontSize: 18.0,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.white : AppTheme.appText,
+              color: isSelected 
+                  ? AppTheme.getComponentTextColor(
+                      context,
+                      'numberSelection_button_text',
+                      fallback: Colors.white,
+                    )
+                  : AppTheme.appText,
             ),
           ),
         ),

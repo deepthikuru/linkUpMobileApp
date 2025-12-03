@@ -56,26 +56,37 @@ class _PreviousOrdersViewState extends State<PreviousOrdersView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'previousOrders_scaffold_background',
+      fallback: Colors.white,
+    );
+    final emptyTextColor = AppTheme.getComponentTextColor(
+      context,
+      'text-secondary',
+      fallback: Colors.grey,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       appBar: AppBar(
         title: const Text('Previous Orders'),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: AppTheme.blueGradient,
+            gradient: AppTheme.blueGradientDynamic(context),
           ),
         ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _orders.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'No previous orders',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey,
+                      color: emptyTextColor,
                     ),
                   ),
                 )

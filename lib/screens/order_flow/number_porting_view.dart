@@ -156,10 +156,15 @@ class _NumberPortingViewState extends State<NumberPortingView> {
       // Navigate back to home
       widget.onStepChanged(0);
     } else if (mounted) {
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'numberPorting_warning_background',
+        fallback: Colors.red,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Failed to complete order'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorBg,
         ),
       );
     }
@@ -207,10 +212,15 @@ class _NumberPortingViewState extends State<NumberPortingView> {
             } else {
               print('❌ Failed to save port-in information to Firebase');
               if (mounted) {
+                final errorBg = AppTheme.getComponentBackgroundColor(
+                  context,
+                  'snackbar-error',
+                  fallback: Colors.red,
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(viewModel.errorMessage ?? 'Failed to save port-in information'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: errorBg,
                     duration: const Duration(seconds: 5),
                   ),
                 );
@@ -219,11 +229,16 @@ class _NumberPortingViewState extends State<NumberPortingView> {
           } else {
             print('❌ Port-in APIs failed - preventing save and navigation');
             if (mounted) {
+              final errorBg = AppTheme.getComponentBackgroundColor(
+                context,
+                'snackbar-error',
+                fallback: Colors.red,
+              );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Failed to submit port-in request. Please check your information and try again.'),
-                  backgroundColor: Colors.red,
-                  duration: Duration(seconds: 5),
+                SnackBar(
+                  content: const Text('Failed to submit port-in request. Please check your information and try again.'),
+                  backgroundColor: errorBg,
+                  duration: const Duration(seconds: 5),
                 ),
               );
             }
@@ -234,20 +249,30 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         }
       } else {
         print('❌ PortingView state is null - cannot validate and save');
+        final errorBg = AppTheme.getComponentBackgroundColor(
+          context,
+          'snackbar-error',
+          fallback: Colors.red,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to validate port-in information. Please try again.'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Unable to validate port-in information. Please try again.'),
+            backgroundColor: errorBg,
           ),
         );
       }
     } catch (e, stackTrace) {
       print('❌ Error calling validateAndSave: $e');
       print('   Stack trace: $stackTrace');
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'numberPorting_warning_background',
+        fallback: Colors.red,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to save port-in information: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorBg,
         ),
       );
     } finally {
@@ -294,11 +319,26 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         return false;
       }
 
+      // Get plan_id from order (required for create_portin_v2 API)
+      int? planId;
+      if (orderData['plan_id'] is int) {
+        planId = orderData['plan_id'] as int;
+      } else if (orderData['plan_id'] is String) {
+        planId = int.tryParse(orderData['plan_id'] as String);
+      }
+
+      if (planId == null) {
+        print('❌ Cannot submit port-in APIs: plan_id not found in order');
+        print('   Order data keys: ${orderData.keys.toList()}');
+        return false;
+      }
+
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('🔄 STARTING PORT-IN SUBMISSION FLOW');
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('📋 Port-In Details:');
       print('   Enrollment ID: $enrollmentId');
+      print('   Plan ID: $planId');
       print('   Account Number: ${viewModel.portInAccountNumber}');
       print('   Account Holder: ${viewModel.portInAccountHolderName}');
       print('   Current Carrier: ${viewModel.portInCurrentCarrier}');
@@ -308,96 +348,190 @@ class _NumberPortingViewState extends State<NumberPortingView> {
 
       final apiManager = VCareAPIManager();
 
-      // Step 1: Get port-in list to retrieve port_subscriber_id
+      // Step 1: Try to get port-in list first
       print('📋 Step 1: Getting port-in list...');
       final transactionId = VCareAPIManager.generateRandomTransactionId();
-      final listResponse = await apiManager.getPortInList(
+      var listResponse = await apiManager.getPortInList(
         enrollId: enrollmentId,
         agentId: 'Sushil',
         source: 'WEBSITE',
         externalTransactionId: transactionId,
       );
 
-      // Check if get_list API succeeded
-      if (listResponse.msgCode != 'RESTAPI000') {
+      // Check if get_list API succeeded or returned "No Record Found" (RESTAPI110)
+      // RESTAPI110 with "No Record Found" is expected for NEWACTIVATION customers
+      if (listResponse.msgCode != 'RESTAPI000' && listResponse.msgCode != 'RESTAPI110') {
         print('❌ Get port-in list API failed:');
         print('   Message: ${listResponse.msg}');
         print('   Message Code: ${listResponse.msgCode}');
         return false;
       }
 
+      // If no port-in records found, create one first (customer was created with NEWACTIVATION)
       if (listResponse.records.isEmpty) {
-        print('❌ No port-in records found. Cannot submit port-in request.');
-        print('   This might mean the customer was not created with PORTIN activation_type.');
-        print('   Enrollment ID used: $enrollmentId');
-        return false;
+        print('⚠️ No port-in records found. Customer was created with NEWACTIVATION.');
+        print('   Creating port-in record using create_portin_v2 API...');
+        
+        // Split port-in account holder name into first and last name
+        final portName = viewModel.portInAccountHolderName;
+        final portNameParts = portName.split(' ');
+        final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
+        final portLastName = portNameParts.length > 1 
+            ? portNameParts.sublist(1).join(' ') 
+            : '';
+
+        print('📋 Port-In Name Split:');
+        print('   Full Name: $portName');
+        print('   First Name: $portFirstName');
+        print('   Last Name: $portLastName');
+
+        // Get IMEI and SIM from order if available (needed for certain carriers)
+        final imei = orderData['imei'] as String?;
+        final sim = orderData['sim'] as String?;
+
+        // Clean phone number (remove non-digits)
+        final cleanPhoneNumber = viewModel.selectedPhoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+
+        final createTransactionId = VCareAPIManager.generateRandomTransactionId();
+        final createResponse = await apiManager.createPortInV2WhenCreateCustomerWasCalledWithoutPortinTag(
+          enrollmentId: enrollmentId,
+          firstName: portFirstName,
+          lastName: portLastName,
+          accountNumber: viewModel.portInAccountNumber,
+          zipCode: viewModel.zip,
+          state: viewModel.state,
+          city: viewModel.city,
+          addressOne: viewModel.street,
+          addressTwo: viewModel.aptNumber,
+          passwordPin: viewModel.portInPin,
+          portNumber: cleanPhoneNumber,
+          imei: imei,
+          sim: sim,
+          currentCarrier: viewModel.portInCurrentCarrier,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+          externalTransactionId: createTransactionId,
+        );
+
+        // Check if create_portin_v2 API succeeded
+        if (createResponse.msgCode != 'RESTAPI000') {
+          print('❌ Create port-in v2 API failed:');
+          print('   Message: ${createResponse.msg}');
+          print('   Message Code: ${createResponse.msgCode}');
+          return false;
+        }
+
+        print('✅ Port-in record created successfully');
+        print('   Message: ${createResponse.msg}');
+        print('   Message Code: ${createResponse.msgCode}');
+
+        // Wait 10 seconds (as per API documentation recommendation)
+        print('⏳ Waiting 10 seconds before getting port-in list...');
+        await Future.delayed(const Duration(seconds: 10));
+
+        // Get port-in list again to retrieve port_subscriber_id
+        print('📋 Getting port-in list after creation...');
+        final listTransactionId = VCareAPIManager.generateRandomTransactionId();
+        listResponse = await apiManager.getPortInList(
+          enrollId: enrollmentId,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+          externalTransactionId: listTransactionId,
+        );
+
+        // Check if get_list API succeeded
+        if (listResponse.msgCode != 'RESTAPI000') {
+          print('❌ Get port-in list API failed after creation:');
+          print('   Message: ${listResponse.msg}');
+          print('   Message Code: ${listResponse.msgCode}');
+          return false;
+        }
+
+        if (listResponse.records.isEmpty) {
+          print('❌ No port-in records found after creating port-in record.');
+          print('   Enrollment ID used: $enrollmentId');
+          return false;
+        }
       }
 
       final portRecord = listResponse.records.first;
       final portSubscriberId = portRecord.portSubscriberId;
+      final portInStatus = portRecord.portinStatus;
 
-      if (portSubscriberId == null) {
-        print('❌ port_subscriber_id is null. Cannot submit port-in request.');
-        print('   Port record details:');
-        print('   - Enrollment ID: ${portRecord.enrollmentId}');
-        print('   - Port Status: ${portRecord.portinStatus}');
-        return false;
-      }
+      // Check if port-in was already submitted (if we just created it, it's already submitted)
+      final portInAlreadySubmitted = portInStatus != null && 
+          portInStatus.isNotEmpty && 
+          portInStatus.toLowerCase() != 'pending';
 
-      print('✅ Retrieved port_subscriber_id: $portSubscriberId');
+      if (portInAlreadySubmitted) {
+        print('✅ Port-in record found and already submitted');
+        print('   Port Status: $portInStatus');
+        print('   Skipping submit_portin step (port-in already submitted)');
+      } else {
+        // Port-in record exists but not yet submitted, need to submit it
+        if (portSubscriberId == null) {
+          print('❌ port_subscriber_id is null. Cannot submit port-in request.');
+          print('   Port record details:');
+          print('   - Enrollment ID: ${portRecord.enrollmentId}');
+          print('   - Port Status: ${portRecord.portinStatus}');
+          return false;
+        }
 
-      // Step 2: Submit port-in request
-      print('📋 Step 2: Submitting port-in request...');
-      
-      // Split port-in account holder name into first and last name
-      final portName = viewModel.portInAccountHolderName;
-      final portNameParts = portName.split(' ');
-      final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
-      final portLastName = portNameParts.length > 1 
-          ? portNameParts.sublist(1).join(' ') 
-          : '';
+        print('✅ Retrieved port_subscriber_id: $portSubscriberId');
 
-      print('📋 Port-In Name Split:');
-      print('   Full Name: $portName');
-      print('   First Name: $portFirstName');
-      print('   Last Name: $portLastName');
+        // Step 2: Submit port-in request
+        print('📋 Step 2: Submitting port-in request...');
+        
+        // Split port-in account holder name into first and last name
+        final portName = viewModel.portInAccountHolderName;
+        final portNameParts = portName.split(' ');
+        final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
+        final portLastName = portNameParts.length > 1 
+            ? portNameParts.sublist(1).join(' ') 
+            : '';
 
-      final submitTransactionId = VCareAPIManager.generateRandomTransactionId();
-      final submitResponse = await apiManager.submitPortIn(
-        enrollmentId: enrollmentId,
-        portinEnrollmentId: portSubscriberId,
-        firstName: portFirstName,
-        lastName: portLastName,
-        zipCode: viewModel.zip,
-        city: viewModel.city,
-        state: viewModel.state,
-        addressOne: viewModel.street,
-        addressTwo: viewModel.aptNumber,
-        accountNumber: viewModel.portInAccountNumber,
-        passwordPin: viewModel.portInPin,
-        portCurrentCarrier: viewModel.portInCurrentCarrier,
-        agentId: 'Sushil',
-        source: 'WEBSITE',
-        externalTransactionId: submitTransactionId,
-      );
+        print('📋 Port-In Name Split:');
+        print('   Full Name: $portName');
+        print('   First Name: $portFirstName');
+        print('   Last Name: $portLastName');
 
-      // Check if submit_portin API succeeded
-      if (submitResponse.msgCode != 'RESTAPI000') {
-        print('❌ Submit port-in API failed:');
+        final submitTransactionId = VCareAPIManager.generateRandomTransactionId();
+        final submitResponse = await apiManager.submitPortIn(
+          enrollmentId: enrollmentId,
+          portinEnrollmentId: portSubscriberId,
+          firstName: portFirstName,
+          lastName: portLastName,
+          zipCode: viewModel.zip,
+          city: viewModel.city,
+          state: viewModel.state,
+          addressOne: viewModel.street,
+          addressTwo: viewModel.aptNumber,
+          accountNumber: viewModel.portInAccountNumber,
+          passwordPin: viewModel.portInPin,
+          portCurrentCarrier: viewModel.portInCurrentCarrier,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+          externalTransactionId: submitTransactionId,
+        );
+
+        // Check if submit_portin API succeeded
+        if (submitResponse.msgCode != 'RESTAPI000') {
+          print('❌ Submit port-in API failed:');
+          print('   Message: ${submitResponse.msg}');
+          print('   Message Code: ${submitResponse.msgCode}');
+          return false;
+        }
+
+        print('✅ Port-in request submitted successfully');
         print('   Message: ${submitResponse.msg}');
         print('   Message Code: ${submitResponse.msgCode}');
-        return false;
+
+        // Wait 10 seconds (as per API documentation recommendation)
+        print('⏳ Waiting 10 seconds before querying port-in status...');
+        await Future.delayed(const Duration(seconds: 10));
       }
 
-      print('✅ Port-in request submitted successfully');
-      print('   Message: ${submitResponse.msg}');
-      print('   Message Code: ${submitResponse.msgCode}');
-
-      // Step 3: Wait 10 seconds (as per API documentation recommendation)
-      print('⏳ Waiting 10 seconds before querying port-in status...');
-      await Future.delayed(const Duration(seconds: 10));
-
-      // Step 4: Query port-in status
+      // Step 3: Query port-in status
       print('📋 Step 3: Querying port-in status...');
       final queryTransactionId = VCareAPIManager.generateRandomTransactionId();
       final queryResponse = await apiManager.queryPortIn(
@@ -587,10 +721,15 @@ class _NumberPortingViewState extends State<NumberPortingView> {
       widget.onStepChanged(0);
     } else if (mounted) {
       // Still navigate even if there's an error, but show the error
+      final errorBg = AppTheme.getComponentBackgroundColor(
+        context,
+        'numberPorting_warning_background',
+        fallback: Colors.red,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? 'Failed to complete order'),
-          backgroundColor: Colors.red,
+          backgroundColor: errorBg,
         ),
       );
       widget.onStepChanged(0);
@@ -621,7 +760,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.getComponentBackgroundColor(
+        context,
+        'startOrder_planDetails_background',
+        fallback: Colors.transparent,
+      ),
       builder: (context) => _QRCodeSheet(
         viewModel: viewModel,
         onReturn: () {
@@ -637,7 +780,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.getComponentBackgroundColor(
+        context,
+        'startOrder_planDetails_background',
+        fallback: Colors.transparent,
+      ),
       builder: (context) => _ActivationSheet(
         onReturn: () {
           Navigator.of(context).pop();
@@ -652,7 +799,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.getComponentBackgroundColor(
+        context,
+        'startOrder_planDetails_background',
+        fallback: Colors.transparent,
+      ),
       builder: (context) => _ShippingSheet(
         onReturn: () {
           Navigator.of(context).pop();
@@ -771,12 +922,20 @@ class _QRCodeSheet extends StatelessWidget {
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.getComponentBackgroundColor(
+                  context,
+                  'orderCard_background',
+                  fallback: Colors.white,
+                ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.borderColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppTheme.getComponentShadowColor(
+                      context,
+                      'orderCard_background',
+                      fallback: Colors.black.withOpacity(0.1),
+                    ),
                     blurRadius: 8,
                     offset: Offset(0, 4),
                   ),
@@ -816,10 +975,10 @@ class _QRCodeSheet extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 12),
-                  _buildInstructionStep(1, 'Open Camera app on your other device'),
-                  _buildInstructionStep(2, 'Point camera at this QR code'),
-                  _buildInstructionStep(3, 'Tap the notification to add cellular plan'),
-                  _buildInstructionStep(4, 'Follow the prompts to complete activation'),
+                  _buildInstructionStep(context, 1, 'Open Camera app on your other device'),
+                  _buildInstructionStep(context, 2, 'Point camera at this QR code'),
+                  _buildInstructionStep(context, 3, 'Tap the notification to add cellular plan'),
+                  _buildInstructionStep(context, 4, 'Follow the prompts to complete activation'),
                 ],
               ),
             ),
@@ -836,7 +995,7 @@ class _QRCodeSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildInstructionStep(int number, String text) {
+  Widget _buildInstructionStep(BuildContext context, int number, String text) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8),
       child: Row(
@@ -853,7 +1012,11 @@ class _QRCodeSheet extends StatelessWidget {
               child: Text(
                 '$number',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppTheme.getComponentTextColor(
+                    context,
+                    'stepIndicator_text',
+                    fallback: Colors.white,
+                  ),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),

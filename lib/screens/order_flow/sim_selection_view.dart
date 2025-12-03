@@ -223,7 +223,13 @@ class _SimSelectionViewState extends State<SimSelectionView> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.white : AppTheme.appText,
+              color: isSelected 
+                  ? AppTheme.getComponentTextColor(
+                      context,
+                      'numberSelection_button_text',
+                      fallback: Colors.white,
+                    )
+                  : AppTheme.appText,
             ),
           ),
         ),
@@ -235,12 +241,16 @@ class _SimSelectionViewState extends State<SimSelectionView> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '•',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.orange,
+            color: AppTheme.getComponentIconColor(
+              context,
+              'numberSelection_warningIcon',
+              fallback: Colors.orange,
+            ),
           ),
         ),
         const SizedBox(width: 8),

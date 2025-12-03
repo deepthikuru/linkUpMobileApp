@@ -53,16 +53,24 @@ class _ProfileViewState extends State<ProfileView> {
           });
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Notifications enabled'),
-                backgroundColor: Colors.green,
+              SnackBar(
+                content: const Text('Notifications enabled'),
+                backgroundColor: AppTheme.getComponentBackgroundColor(
+                  context,
+                  'login_successSnackbar_background',
+                  fallback: Colors.green,
+                ),
               ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Failed to enable notifications'),
-                backgroundColor: Colors.red,
+              SnackBar(
+                content: const Text('Failed to enable notifications'),
+                backgroundColor: AppTheme.getComponentBackgroundColor(
+                  context,
+                  'profile_errorButton_background',
+                  fallback: Colors.red,
+                ),
               ),
             );
           }
@@ -75,9 +83,13 @@ class _ProfileViewState extends State<ProfileView> {
             _notificationsEnabled = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Notifications disabled'),
-              backgroundColor: Colors.orange,
+            SnackBar(
+              content: const Text('Notifications disabled'),
+              backgroundColor: AppTheme.getComponentBackgroundColor(
+                context,
+                'profile_notificationBadge_background',
+                fallback: Colors.orange,
+              ),
             ),
           );
         }
@@ -87,7 +99,11 @@ class _ProfileViewState extends State<ProfileView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.getComponentBackgroundColor(
+              context,
+              'snackbar-error',
+              fallback: Colors.red,
+            ),
           ),
         );
       }
@@ -264,9 +280,13 @@ class _ProfileViewState extends State<ProfileView> {
             width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey,
+                color: AppTheme.getComponentTextColor(
+                  context,
+                  'text-secondary',
+                  fallback: Colors.grey,
+                ),
                 fontSize: 14,
               ),
             ),

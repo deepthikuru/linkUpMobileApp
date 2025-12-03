@@ -23,9 +23,13 @@ class PlanDetailsSheet extends StatelessWidget {
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: AppTheme.getComponentBackgroundColor(
+              context,
+              'plansView_modal_content_background',
+              fallback: Colors.white,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             children: [
@@ -34,10 +38,14 @@ class PlanDetailsSheet extends StatelessWidget {
                 margin: const EdgeInsets.only(top: 12, bottom: 8),
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.getComponentBorderColor(
+                      context,
+                      'planCard_divider',
+                      fallback: Colors.grey[300],
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
               ),
               // Header with close button
               Padding(
@@ -71,10 +79,14 @@ class PlanDetailsSheet extends StatelessWidget {
                       if (plan.displayName != null && plan.displayName!.isNotEmpty)
                         Text(
                           plan.displayName!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: AppTheme.getComponentTextColor(
+                              context,
+                              'planCard_planNameSmall_text',
+                              fallback: Colors.black87,
+                            ),
                             height: 1.2,
                           ),
                         ),
@@ -95,16 +107,20 @@ class PlanDetailsSheet extends StatelessWidget {
                       // Data description
                       Text(
                         _buildDescription(plan),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
-                          color: Colors.black87,
+                          color: AppTheme.getComponentTextColor(
+                            context,
+                            'planCard_planName_text',
+                            fallback: Colors.black87,
+                          ),
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 24),
                       
                       // Features list with yellow bullets
-                      ..._buildFeaturesList(plan),
+                      ..._buildFeaturesList(context, plan),
                       
                       const SizedBox(height: 32),
                       // Select Button (inside scrollable area but with padding)
@@ -114,8 +130,16 @@ class PlanDetailsSheet extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: onStartOrder,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AppTheme.getComponentBackgroundColor(
+                              context,
+                              'button-danger',
+                              fallback: Colors.red,
+                            ),
+                            foregroundColor: AppTheme.getComponentTextColor(
+                              context,
+                              'button-danger',
+                              fallback: Colors.white,
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -164,7 +188,7 @@ class PlanDetailsSheet extends StatelessWidget {
   }
   
   // Build features list with yellow bullets (matching web format exactly)
-  List<Widget> _buildFeaturesList(Plan plan) {
+  List<Widget> _buildFeaturesList(BuildContext context, Plan plan) {
     final features = <Widget>[];
     final displayName = plan.displayName ?? '';
     final dataText = _formatData(plan.data);
@@ -172,78 +196,78 @@ class PlanDetailsSheet extends StatelessWidget {
     // Build features based on plan type to match web exactly
     if (displayName.contains('STARTER')) {
       // STARTER plan features
-      features.add(_buildFeatureBullet('Unlimited Talk & Text (USA, Canada, Mexico)'));
-      features.add(_buildFeatureBullet('1 GB high-speed data (5G/4G LTE)'));
-      features.add(_buildFeatureBullet('Perfect for light data use'));
-      features.add(_buildFeatureBullet('Affordable/Flexible data add-ons'));
-      features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+      features.add(_buildFeatureBullet(context,'Unlimited Talk & Text (USA, Canada, Mexico)'));
+      features.add(_buildFeatureBullet(context,'1 GB high-speed data (5G/4G LTE)'));
+      features.add(_buildFeatureBullet(context,'Perfect for light data use'));
+      features.add(_buildFeatureBullet(context,'Affordable/Flexible data add-ons'));
+      features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
     } else if (displayName.contains('EXPLORE')) {
       // EXPLORE plan features
-      features.add(_buildFeatureBullet('Unlimited Talk & Text (USA, Canada, Mexico)'));
-      features.add(_buildFeatureBullet('5 GB high-speed data'));
-      features.add(_buildFeatureBullet('Affordable/Flexible data add-ons'));
-      features.add(_buildFeatureBullet('Free Roaming in Mexico & Canada'));
-      features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+      features.add(_buildFeatureBullet(context,'Unlimited Talk & Text (USA, Canada, Mexico)'));
+      features.add(_buildFeatureBullet(context,'5 GB high-speed data'));
+      features.add(_buildFeatureBullet(context,'Affordable/Flexible data add-ons'));
+      features.add(_buildFeatureBullet(context,'Free Roaming in Mexico & Canada'));
+      features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
     } else if (displayName.contains('PREMIUM')) {
       // PREMIUM plan features
-      features.add(_buildFeatureBullet('Unlimited Talk & Text (USA, Canada, Mexico)'));
-      features.add(_buildFeatureBullet('12 GB high-speed data'));
-      features.add(_buildFeatureBullet('100+ International Calling Destinations'));
-      features.add(_buildFeatureBullet('Free Roaming in Mexico & Canada'));
-      features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+      features.add(_buildFeatureBullet(context,'Unlimited Talk & Text (USA, Canada, Mexico)'));
+      features.add(_buildFeatureBullet(context,'12 GB high-speed data'));
+      features.add(_buildFeatureBullet(context,'100+ International Calling Destinations'));
+      features.add(_buildFeatureBullet(context,'Free Roaming in Mexico & Canada'));
+      features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
     } else if (displayName.contains('UNLIMITED PLUS')) {
       // UNLIMITED PLUS plan features
-      features.add(_buildFeatureBullet('Unlimited data (50GB High-speed, then reduced)'));
-      features.add(_buildFeatureBullet('Unlimited Talk & Text (USA, Canada, Mexico)'));
-      features.add(_buildFeatureBullet('100+ International Calling Destinations'));
-      features.add(_buildFeatureBullet('Free Roaming in Mexico & Canada'));
-      features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+      features.add(_buildFeatureBullet(context,'Unlimited data (50GB High-speed, then reduced)'));
+      features.add(_buildFeatureBullet(context,'Unlimited Talk & Text (USA, Canada, Mexico)'));
+      features.add(_buildFeatureBullet(context,'100+ International Calling Destinations'));
+      features.add(_buildFeatureBullet(context,'Free Roaming in Mexico & Canada'));
+      features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
     } else if (displayName.contains('UNLIMITED')) {
       // UNLIMITED plan features
-      features.add(_buildFeatureBullet('Unlimited data (30GB High-speed, then reduced)'));
-      features.add(_buildFeatureBullet('30 GB high-speed data'));
-      features.add(_buildFeatureBullet('100+ International Calling Destinations'));
-      features.add(_buildFeatureBullet('Free Roaming in Mexico & Canada'));
-      features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+      features.add(_buildFeatureBullet(context,'Unlimited data (30GB High-speed, then reduced)'));
+      features.add(_buildFeatureBullet(context,'30 GB high-speed data'));
+      features.add(_buildFeatureBullet(context,'100+ International Calling Destinations'));
+      features.add(_buildFeatureBullet(context,'Free Roaming in Mexico & Canada'));
+      features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
     } else {
       // Fallback: Use displayFeaturesDescription if available
       if (plan.displayFeaturesDescription.isNotEmpty) {
         for (var feature in plan.displayFeaturesDescription) {
-          features.add(_buildFeatureBullet(feature));
+          features.add(_buildFeatureBullet(context,feature));
         }
       } else {
         // Generic fallback based on plan data
         if ((plan.talk >= 9999000 || plan.talk == 0) && (plan.text >= 9999000 || plan.text == 0)) {
-          features.add(_buildFeatureBullet('Unlimited Talk & Text (USA, Canada, Mexico)'));
+          features.add(_buildFeatureBullet(context,'Unlimited Talk & Text (USA, Canada, Mexico)'));
         }
         
         if (plan.data >= 1000) {
           if (plan.isUnlimitedPlan == 'Y') {
-            features.add(_buildFeatureBullet('Unlimited data ($dataText High-speed, then reduced)'));
-            features.add(_buildFeatureBullet('$dataText high-speed data'));
+            features.add(_buildFeatureBullet(context,'Unlimited data ($dataText High-speed, then reduced)'));
+            features.add(_buildFeatureBullet(context,'$dataText high-speed data'));
           } else {
-            features.add(_buildFeatureBullet('$dataText high-speed data'));
+            features.add(_buildFeatureBullet(context,'$dataText high-speed data'));
           }
         }
         
-        features.add(_buildFeatureBullet('Affordable/Flexible data add-ons'));
+        features.add(_buildFeatureBullet(context,'Affordable/Flexible data add-ons'));
         
         if (plan.totalPlanPrice >= 30) {
-          features.add(_buildFeatureBullet('100+ International Calling Destinations'));
+          features.add(_buildFeatureBullet(context,'100+ International Calling Destinations'));
         }
         
         if (plan.totalPlanPrice >= 20) {
-          features.add(_buildFeatureBullet('Free Roaming in Mexico & Canada'));
+          features.add(_buildFeatureBullet(context,'Free Roaming in Mexico & Canada'));
         }
         
-        features.add(_buildFeatureBullet('Global Roaming via "Wifi - Calling"'));
+        features.add(_buildFeatureBullet(context,'Global Roaming via "Wifi - Calling"'));
       }
     }
     
     return features;
   }
   
-  Widget _buildFeatureBullet(String text) {
+  Widget _buildFeatureBullet(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -260,9 +284,13 @@ class PlanDetailsSheet extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: AppTheme.getComponentTextColor(
+                  context,
+                  'planCard_planName_text',
+                  fallback: Colors.black87,
+                ),
                 height: 1.4,
               ),
             ),

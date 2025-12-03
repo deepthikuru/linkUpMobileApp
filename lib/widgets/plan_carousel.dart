@@ -167,11 +167,11 @@ class _PlanCarouselState extends State<PlanCarousel> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: _currentIndex == index
-                      ? AppTheme.blueGradient
+                      ? (AppTheme.getComponentGradient(context, 'planCarousel_indicatorActive_gradientStart', fallback: AppTheme.blueGradient) ?? AppTheme.blueGradient)
                       : null,
                   color: _currentIndex == index
                       ? null
-                      : Colors.grey[300],
+                      : AppTheme.getComponentBackgroundColor(context, 'planCarousel_indicatorInactive', fallback: Colors.grey[300]),
                 ),
               ),
             ),

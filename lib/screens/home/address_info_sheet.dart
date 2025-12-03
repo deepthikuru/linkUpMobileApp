@@ -252,9 +252,13 @@ class _AddressInfoSheetState extends State<AddressInfoSheet> {
     if (_cityController.text.isEmpty || _stateController.text.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid ZIP code to auto-fill city and state.'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please enter a valid ZIP code to auto-fill city and state.'),
+            backgroundColor: AppTheme.getComponentBackgroundColor(
+              context,
+              'addressInfo_errorButton_background',
+              fallback: Colors.red,
+            ),
           ),
         );
       }
@@ -374,17 +378,25 @@ class _AddressInfoSheetState extends State<AddressInfoSheet> {
                           children: [
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.error_outline,
                                   size: 16,
-                                  color: Colors.red,
+                                  color: AppTheme.getComponentIconColor(
+                                    context,
+                                    'addressInfo_errorButton_background',
+                                    fallback: Colors.red,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     _locationError!,
-                                    style: const TextStyle(
-                                      color: Colors.red,
+                                    style: TextStyle(
+                                      color: AppTheme.getComponentTextColor(
+                                        context,
+                                        'addressInfo_errorButton_background',
+                                        fallback: Colors.red,
+                                      ),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -479,9 +491,13 @@ class _AddressInfoSheetState extends State<AddressInfoSheet> {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: Text(
                               '${cityValue.text.isNotEmpty ? cityValue.text.toUpperCase() : ''}${cityValue.text.isNotEmpty && stateValue.text.isNotEmpty ? ', ' : ''}${stateValue.text.isNotEmpty ? stateValue.text.toUpperCase() : ''}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey,
+                                color: AppTheme.getComponentTextColor(
+                                  context,
+                                  'text-secondary',
+                                  fallback: Colors.grey,
+                                ),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -501,10 +517,20 @@ class _AddressInfoSheetState extends State<AddressInfoSheet> {
                 onPressed: _isLoading ? null : _saveAddress,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.mainBlue,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppTheme.getComponentTextColor(
+                    context,
+                    'main_elevatedButton_text',
+                    fallback: Colors.white,
+                  ),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? CircularProgressIndicator(
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'main_elevatedButton_text',
+                          fallback: Colors.white,
+                        ),
+                      )
                     : const Text('Save Address'),
               ),
             ),

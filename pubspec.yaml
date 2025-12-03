@@ -72,6 +72,12 @@ dependencies:
   
   # For notification permissions (iOS later, but good to include now)
   permission_handler: ^11.3.1
+  
+  # Local storage for caching
+  shared_preferences: ^2.2.2
+  
+  # Connectivity checking for offline detection
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_test:

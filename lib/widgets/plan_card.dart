@@ -22,11 +22,13 @@ class PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: AppTheme.getComponentBackgroundColor(context, 'planCard_background', fallback: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isSelected ? AppTheme.mainBlue : Colors.grey[500]!,
+          color: isSelected 
+              ? AppTheme.getComponentBorderColor(context, 'planCard_borderSelected', fallback: AppTheme.mainBlue)
+              : AppTheme.getComponentBorderColor(context, 'planCard_border', fallback: Colors.grey[500]!),
           width: isSelected ? 2.0 : 1.0,
         ),
       ),
@@ -49,11 +51,17 @@ class PlanCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        gradient: isSelected ? AppTheme.blueGradient : null,
-                        color: isSelected ? null : AppTheme.secondBlue.withOpacity(0.1),
+                        gradient: isSelected 
+                            ? (AppTheme.getComponentGradient(context, 'planCard_badgeGradientStart', fallback: AppTheme.blueGradient) ?? AppTheme.blueGradient)
+                            : null,
+                        color: isSelected 
+                            ? null 
+                            : AppTheme.getComponentBackgroundColor(context, 'planCard_badgeBackground', fallback: AppTheme.secondBlue.withOpacity(0.1)),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isSelected ? Colors.transparent : AppTheme.secondBlue.withOpacity(0.5),
+                          color: isSelected 
+                              ? Colors.transparent 
+                              : AppTheme.getComponentBorderColor(context, 'planCard_badgeBorder', fallback: AppTheme.secondBlue.withOpacity(0.5)),
                           width: 1,
                         ),
                       ),
@@ -62,17 +70,19 @@ class PlanCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : AppTheme.mainBlue,
+                          color: isSelected 
+                              ? AppTheme.getComponentTextColor(context, 'planCard_badgeTextSelected', fallback: Colors.white)
+                              : AppTheme.getComponentTextColor(context, 'planCard_badgeText', fallback: AppTheme.mainBlue),
                         ),
                       ),
                     ),
                   // Price with /month on same line
                   Text(
                     '\$${plan.totalPlanPrice}/month',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.mainBlue,
+                      color: AppTheme.getComponentTextColor(context, 'planCard_price_text', fallback: AppTheme.mainBlue),
                     ),
                   ),
                 ],
@@ -86,10 +96,10 @@ class PlanCard extends StatelessWidget {
                 plan.planName,
                 style: showSmallPlanName
                     ? (Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[700],
-                        ) ?? const TextStyle(
+                          color: AppTheme.getComponentTextColor(context, 'planCard_planNameSmall_text', fallback: Colors.grey[700]),
+                        ) ?? TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: AppTheme.getComponentTextColor(context, 'planCard_planName_text', fallback: Colors.grey),
                         ))
                     : const TextStyle(
                         fontSize: 16,
@@ -101,6 +111,7 @@ class PlanCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _buildFeature(
+                      context: context,
                       icon: Icons.phone,
                       value: _formatCalls(plan.talk, showUnlimited),
                       label: 'Calls',
@@ -109,10 +120,11 @@ class PlanCard extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 40,
-                    color: Colors.grey[300],
+                    color: AppTheme.getComponentBorderColor(context, 'planCard_divider', fallback: Colors.grey[300]),
                   ),
                   Expanded(
                     child: _buildFeature(
+                      context: context,
                       icon: Icons.message,
                       value: _formatMessages(plan.text, showUnlimited),
                       label: 'Messages',
@@ -121,10 +133,11 @@ class PlanCard extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 40,
-                    color: Colors.grey[300],
+                    color: AppTheme.getComponentBorderColor(context, 'planCard_divider', fallback: Colors.grey[300]),
                   ),
                   Expanded(
                     child: _buildFeature(
+                      context: context,
                       icon: Icons.signal_wifi_4_bar,
                       value: _formatData(plan.data, showUnlimited),
                       label: 'Data',
@@ -162,10 +175,18 @@ class PlanCard extends StatelessWidget {
     required IconData icon,
     required String value,
     required String label,
+    required BuildContext? context,
   }) {
+    final iconColor = context != null
+        ? AppTheme.getComponentIconColor(context, 'planCard_featureIcon', fallback: AppTheme.mainBlue)
+        : AppTheme.mainBlue;
+    final labelColor = context != null
+        ? AppTheme.getComponentTextColor(context, 'planCard_featureLabel_text', fallback: Colors.grey)
+        : Colors.grey;
+    
     return Column(
       children: [
-        Icon(icon, color: AppTheme.mainBlue, size: 24),
+        Icon(icon, color: iconColor, size: 24),
         const SizedBox(height: 4),
         Text(
           value,
@@ -178,10 +199,10 @@ class PlanCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.normal,
-            color: Colors.grey,
+            color: labelColor,
           ),
           textAlign: TextAlign.center,
         ),

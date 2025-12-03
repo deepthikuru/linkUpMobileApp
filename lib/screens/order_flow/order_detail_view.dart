@@ -131,25 +131,43 @@ class _OrderDetailViewState extends State<OrderDetailView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Order Details'),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.getComponentBackgroundColor(
+          context,
+          'appHeader_gradientStart',
+          fallback: Colors.transparent,
+        ),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: AppTheme.blueGradient,
+            gradient: AppTheme.getComponentGradient(
+              context,
+              'appHeader_gradientStart',
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              fallback: AppTheme.blueGradient,
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _onEditTapped,
             style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.getComponentTextColor(
+                context,
+                'appHeader_titleText_gradient',
+                fallback: Colors.white,
+              ),
             ),
             child: const Text('Edit'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
+              foregroundColor: AppTheme.getComponentTextColor(
+                context,
+                'appHeader_titleText_gradient',
+                fallback: Colors.white,
+              ),
             ),
             child: const Text('Done'),
           ),
@@ -162,10 +180,14 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.red,
+                        color: AppTheme.getComponentIconColor(
+                          context,
+                          'profile_errorButton_background',
+                          fallback: Colors.red,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -212,7 +234,11 @@ class _OrderDetailViewState extends State<OrderDetailView> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppTheme.getComponentBackgroundColor(
+          context,
+          'orderCard_background',
+          fallback: Colors.grey[100],
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -347,11 +373,19 @@ class _OrderDetailViewState extends State<OrderDetailView> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getComponentBackgroundColor(
+          context,
+          'orderCard_background',
+          fallback: Colors.white,
+        ),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.getComponentShadowColor(
+              context,
+              'orderCard_background',
+              fallback: Colors.black.withOpacity(0.05),
+            ),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -384,7 +418,11 @@ class _OrderDetailViewState extends State<OrderDetailView> {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
+                    color: AppTheme.getComponentTextColor(
+                      context,
+                      'orderCard_date_text',
+                      fallback: Colors.grey[600],
+                    ),
                   ),
             ),
           ),
@@ -406,17 +444,37 @@ class _OrderDetailViewState extends State<OrderDetailView> {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
-        return Colors.green;
+        return AppTheme.getComponentIconColor(
+          context,
+          'orderCard_status_completed',
+          fallback: Colors.green,
+        );
       case 'pending':
-        return Colors.orange;
+        return AppTheme.getComponentIconColor(
+          context,
+          'orderCard_status_inProgress',
+          fallback: Colors.orange,
+        );
       case 'cancelled':
-        return Colors.red;
+        return AppTheme.getComponentIconColor(
+          context,
+          'orderCard_status_cancelled',
+          fallback: Colors.red,
+        );
       case 'draft':
-        return Colors.grey;
+        return AppTheme.getComponentTextColor(
+          context,
+          'text-secondary',
+          fallback: Colors.grey,
+        );
       case 'processing':
         return AppTheme.mainBlue;
       default:
-        return Colors.grey;
+        return AppTheme.getComponentTextColor(
+          context,
+          'text-secondary',
+          fallback: Colors.grey,
+        );
     }
   }
 

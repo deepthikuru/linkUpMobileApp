@@ -21,11 +21,15 @@ class PrivacyPolicyView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Last Updated: [Date]',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: AppTheme.getComponentIconColor(
+                  context,
+                  'privacy_icon',
+                  fallback: Colors.grey,
+                ),
               ),
             ),
             const SizedBox(height: 24),

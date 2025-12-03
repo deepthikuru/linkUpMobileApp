@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../screens/login_page.dart';
+import '../../utils/theme.dart';
 import 'privacy_policy_view.dart';
 import 'terms_and_conditions_view.dart';
 import 'previous_orders_view.dart';
@@ -139,10 +140,23 @@ class HamburgerMenuView extends StatelessWidget {
                   ),
                   const Divider(),
                   ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text(
+                    leading: Icon(
+                      Icons.logout,
+                      color: AppTheme.getComponentIconColor(
+                        context,
+                        'hamburgerMenu_logoutIcon',
+                        fallback: Colors.red,
+                      ),
+                    ),
+                    title: Text(
                       'Logout',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'hamburgerMenu_logoutText',
+                          fallback: Colors.red,
+                        ),
+                      ),
                     ),
                     onTap: () => _handleLogout(context),
                   ),

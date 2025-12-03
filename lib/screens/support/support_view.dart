@@ -40,7 +40,11 @@ class _SupportViewBodyState extends State<SupportViewBody> {
         Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AppTheme.getComponentBackgroundColor(
+              context,
+              'screen-support',
+              fallback: Colors.grey[200],
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -57,7 +61,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
         // Content
         Expanded(
           child: _selectedTab == 0
-              ? _buildContactTab()
+              ? _buildContactTab(context)
               : _buildChatTab(),
         ),
       ],
@@ -75,14 +79,30 @@ class _SupportViewBodyState extends State<SupportViewBody> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.accentGold : Colors.transparent,
+          color: isSelected 
+              ? AppTheme.accentGold 
+              : AppTheme.getComponentBackgroundColor(
+                  context,
+                  'screen-support',
+                  fallback: Colors.transparent,
+                ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected 
+                ? AppTheme.getComponentTextColor(
+                    context,
+                    'text-title',
+                    fallback: Colors.white,
+                  )
+                : AppTheme.getComponentTextColor(
+                    context,
+                    'text-title',
+                    fallback: Colors.black,
+                  ),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -90,31 +110,40 @@ class _SupportViewBodyState extends State<SupportViewBody> {
     );
   }
 
-  Widget _buildContactTab() {
+  Widget _buildContactTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Contact Support',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppTheme.getComponentTextColor(
+                context,
+                'text-title',
+                fallback: Colors.black,
+              ),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Get in touch with our support team',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey,
+              color: AppTheme.getComponentTextColor(
+                context,
+                'text-secondary',
+                fallback: Colors.grey,
+              ),
             ),
           ),
           const SizedBox(height: 32),
           // Phone
           _buildContactCard(
+            context: context,
             icon: Icons.phone,
             title: 'Phone',
             subtitle: '904-596-0304',
@@ -123,6 +152,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           const SizedBox(height: 16),
           // Email
           _buildContactCard(
+            context: context,
             icon: Icons.email,
             title: 'Email',
             subtitle: 'support@linkupmobile.com',
@@ -134,6 +164,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
   }
 
   Widget _buildContactCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -170,26 +201,38 @@ class _SupportViewBodyState extends State<SupportViewBody> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'text-title',
+                          fallback: Colors.black,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'text-secondary',
+                          fallback: Colors.grey,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: Colors.grey,
+                color: AppTheme.getComponentIconColor(
+                  context,
+                  'text-secondary',
+                  fallback: Colors.grey,
+                ),
               ),
             ],
           ),
@@ -277,7 +320,11 @@ class _SupportViewState extends State<SupportView> {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black54,
+      barrierColor: AppTheme.getComponentShadowColor(
+        context,
+        'mainLayout_dialogBarrier',
+        fallback: Colors.black54,
+      ),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
         return Align(
@@ -293,7 +340,11 @@ class _SupportViewState extends State<SupportView> {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.75,
               height: MediaQuery.of(context).size.height,
-              color: Colors.white,
+              color: AppTheme.getComponentTextColor(
+                context,
+                'text-title',
+                fallback: Colors.white,
+              ),
               child: const HamburgerMenuView(),
             ),
           ),
@@ -304,8 +355,19 @@ class _SupportViewState extends State<SupportView> {
 
   @override
   Widget build(BuildContext context) {
+    final screenBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'screen-support',
+      fallback: Colors.white,
+    );
+    final tabContainerBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'screen-support',
+      fallback: Colors.grey[200]!,
+    );
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: screenBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -328,7 +390,7 @@ class _SupportViewState extends State<SupportView> {
             Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: tabContainerBg,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -345,7 +407,7 @@ class _SupportViewState extends State<SupportView> {
             // Content
             Expanded(
               child: _selectedTab == 0
-                  ? _buildContactTab()
+                  ? _buildContactTab(context)
                   : _buildChatTab(),
             ),
             Consumer<NavigationState>(
@@ -372,14 +434,30 @@ class _SupportViewState extends State<SupportView> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.accentGold : Colors.transparent,
+          color: isSelected 
+              ? AppTheme.accentGold 
+              : AppTheme.getComponentBackgroundColor(
+                  context,
+                  'screen-support',
+                  fallback: Colors.transparent,
+                ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected 
+                ? AppTheme.getComponentTextColor(
+                    context,
+                    'text-title',
+                    fallback: Colors.white,
+                  )
+                : AppTheme.getComponentTextColor(
+                    context,
+                    'text-title',
+                    fallback: Colors.black,
+                  ),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -387,31 +465,40 @@ class _SupportViewState extends State<SupportView> {
     );
   }
 
-  Widget _buildContactTab() {
+  Widget _buildContactTab(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Contact Support',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: AppTheme.getComponentTextColor(
+                context,
+                'text-title',
+                fallback: Colors.black,
+              ),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Get in touch with our support team',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey,
+              color: AppTheme.getComponentTextColor(
+                context,
+                'text-secondary',
+                fallback: Colors.grey,
+              ),
             ),
           ),
           const SizedBox(height: 32),
           // Phone
           _buildContactCard(
+            context: context,
             icon: Icons.phone,
             title: 'Phone',
             subtitle: '904-596-0304',
@@ -420,6 +507,7 @@ class _SupportViewState extends State<SupportView> {
           const SizedBox(height: 16),
           // Email
           _buildContactCard(
+            context: context,
             icon: Icons.email,
             title: 'Email',
             subtitle: 'support@linkupmobile.com',
@@ -431,6 +519,7 @@ class _SupportViewState extends State<SupportView> {
   }
 
   Widget _buildContactCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -467,26 +556,38 @@ class _SupportViewState extends State<SupportView> {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'text-title',
+                          fallback: Colors.black,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: AppTheme.getComponentTextColor(
+                          context,
+                          'text-secondary',
+                          fallback: Colors.grey,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: Colors.grey,
+                color: AppTheme.getComponentIconColor(
+                  context,
+                  'text-secondary',
+                  fallback: Colors.grey,
+                ),
               ),
             ],
           ),
