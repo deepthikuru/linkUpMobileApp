@@ -85,7 +85,8 @@ cd "$FLUTTER_PROJECT_DIR"
 
 # Generate Flutter plugin symlinks by running a config-only build
 # This ensures all plugin symlinks are created before pod install
-echo "🔗 Generating Flutter plugin symlinks..."
+# This also generates Flutter/Generated.xcconfig which is required for the build
+echo "🔗 Generating Flutter plugin symlinks and configuration files..."
 "$FLUTTER_CMD" build ios --config-only --no-codesign || {
   echo "⚠️  Flutter build ios --config-only failed, trying alternative method..."
   # Alternative: Force plugin symlink generation
@@ -101,6 +102,27 @@ echo "🔗 Generating Flutter plugin symlinks..."
 
 # Navigate back to iOS directory
 cd "$IOS_DIR"
+
+# CRITICAL: Verify Flutter/Generated.xcconfig exists
+# This file is required by Release.xcconfig and Debug.xcconfig
+if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
+  echo "❌ Error: Flutter/Generated.xcconfig not found after build ios --config-only"
+  echo "Attempting to generate manually..."
+  cd "$FLUTTER_PROJECT_DIR"
+  "$FLUTTER_CMD" pub get
+  "$FLUTTER_CMD" precache --ios
+  cd "$IOS_DIR"
+  
+  if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
+    echo "❌ Error: Flutter/Generated.xcconfig still not found"
+    echo "Current directory: $(pwd)"
+    echo "Listing Flutter directory:"
+    ls -la "$IOS_DIR/Flutter/" || echo "Flutter directory does not exist"
+    exit 1
+  fi
+fi
+
+echo "✅ Flutter/Generated.xcconfig verified at $IOS_DIR/Flutter/Generated.xcconfig"
 
 # Verify .symlinks directory exists
 if [ ! -d ".symlinks" ]; then
@@ -143,6 +165,49 @@ echo "📱 Installing CocoaPods dependencies..."
 # Verify Pods were installed correctly
 if [ ! -d "Pods" ]; then
   echo "❌ Error: Pods directory not found after pod install"
+  exit 1
+fi
+
+# CRITICAL: Verify xcfilelist files exist
+# These files are required by Xcode for the build process
+XC_FILELIST_DIR="$IOS_DIR/Pods/Target Support Files/Pods-Runner"
+if [ ! -d "$XC_FILELIST_DIR" ]; then
+  echo "❌ Error: Pods-Runner Target Support Files directory not found at $XC_FILELIST_DIR"
+  echo "Listing Pods/Target Support Files directory:"
+  ls -la "$IOS_DIR/Pods/Target Support Files/" || echo "Directory does not exist"
+  exit 1
+fi
+
+# Check for required xcfilelist files
+REQUIRED_FILES=(
+  "Pods-Runner-frameworks-Release-input-files.xcfilelist"
+  "Pods-Runner-frameworks-Release-output-files.xcfilelist"
+  "Pods-Runner-resources-Release-input-files.xcfilelist"
+  "Pods-Runner-resources-Release-output-files.xcfilelist"
+)
+
+MISSING_FILES=()
+for file in "${REQUIRED_FILES[@]}"; do
+  if [ ! -f "$XC_FILELIST_DIR/$file" ]; then
+    MISSING_FILES+=("$file")
+  fi
+done
+
+if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+  echo "❌ Error: Missing required xcfilelist files:"
+  for file in "${MISSING_FILES[@]}"; do
+    echo "   - $file"
+  done
+  echo "Listing directory contents:"
+  ls -la "$XC_FILELIST_DIR" || echo "Directory does not exist"
+  exit 1
+fi
+
+echo "✅ All required xcfilelist files verified"
+
+# Verify Generated.xcconfig is still accessible
+if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
+  echo "❌ Error: Flutter/Generated.xcconfig disappeared after pod install"
   exit 1
 fi
 
