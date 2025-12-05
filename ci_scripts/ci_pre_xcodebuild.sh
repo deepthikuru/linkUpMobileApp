@@ -349,7 +349,9 @@ if [ "$ROOT_IOS_DIR" != "$IOS_DIR" ] && [ -d "$ROOT_IOS_DIR" ]; then
   # Create symlink for Pods if it doesn't exist at root ios
   if [ -d "$IOS_DIR/Pods" ]; then
     echo "🔗 Creating symlink: $ROOT_IOS_DIR/Pods -> $IOS_DIR/Pods"
-    ln -sf "$IOS_DIR/Pods" "$ROOT_IOS_DIR/Pods" || {
+    # Use absolute path for symlink to ensure it works from any location
+    ABSOLUTE_IOS_DIR="$(cd "$IOS_DIR" && pwd)"
+    ln -sf "$ABSOLUTE_IOS_DIR/Pods" "$ROOT_IOS_DIR/Pods" || {
       echo "❌ ERROR: Could not create Pods symlink"
       exit 1
     }
@@ -362,7 +364,9 @@ if [ "$ROOT_IOS_DIR" != "$IOS_DIR" ] && [ -d "$ROOT_IOS_DIR" ]; then
   # Create symlink for Flutter directory if it doesn't exist at root ios
   if [ -d "$IOS_DIR/Flutter" ]; then
     echo "🔗 Creating symlink: $ROOT_IOS_DIR/Flutter -> $IOS_DIR/Flutter"
-    ln -sf "$IOS_DIR/Flutter" "$ROOT_IOS_DIR/Flutter" || {
+    # Use absolute path for symlink to ensure it works from any location
+    ABSOLUTE_IOS_DIR="$(cd "$IOS_DIR" && pwd)"
+    ln -sf "$ABSOLUTE_IOS_DIR/Flutter" "$ROOT_IOS_DIR/Flutter" || {
       echo "❌ ERROR: Could not create Flutter symlink"
       exit 1
     }
@@ -375,7 +379,27 @@ if [ "$ROOT_IOS_DIR" != "$IOS_DIR" ] && [ -d "$ROOT_IOS_DIR" ]; then
   # Verify symlinks were created and are valid
   if [ -L "$ROOT_IOS_DIR/Pods" ] && [ -d "$ROOT_IOS_DIR/Pods" ]; then
     echo "✅ Pods symlink verified and accessible at $ROOT_IOS_DIR/Pods"
-    echo "   Points to: $(readlink "$ROOT_IOS_DIR/Pods")"
+    echo "   Points to: $(readlink -f "$ROOT_IOS_DIR/Pods")"
+    
+    # CRITICAL: Verify xcfilelist files are accessible through symlink
+    XCFILELIST_TEST="$ROOT_IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks-Release-input-files.xcfilelist"
+    if [ -f "$XCFILELIST_TEST" ]; then
+      echo "✅ xcfilelist files accessible through Pods symlink"
+    else
+      echo "⚠️  WARNING: xcfilelist file not accessible through symlink at: $XCFILELIST_TEST"
+      echo "   Checking actual path: $IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks-Release-input-files.xcfilelist"
+      if [ -f "$IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner-frameworks-Release-input-files.xcfilelist" ]; then
+        echo "   File exists at actual path, symlink may need to be recreated"
+        # Try recreating the symlink
+        rm -f "$ROOT_IOS_DIR/Pods"
+        ln -sf "$ABSOLUTE_IOS_DIR/Pods" "$ROOT_IOS_DIR/Pods"
+        if [ -f "$XCFILELIST_TEST" ]; then
+          echo "   ✅ Symlink recreated successfully"
+        else
+          echo "   ❌ Symlink still not working"
+        fi
+      fi
+    fi
   else
     echo "❌ ERROR: Pods symlink verification failed"
     exit 1
@@ -383,7 +407,7 @@ if [ "$ROOT_IOS_DIR" != "$IOS_DIR" ] && [ -d "$ROOT_IOS_DIR" ]; then
   
   if [ -L "$ROOT_IOS_DIR/Flutter" ] && [ -d "$ROOT_IOS_DIR/Flutter" ]; then
     echo "✅ Flutter symlink verified and accessible at $ROOT_IOS_DIR/Flutter"
-    echo "   Points to: $(readlink "$ROOT_IOS_DIR/Flutter")"
+    echo "   Points to: $(readlink -f "$ROOT_IOS_DIR/Flutter")"
     
     # Verify Generated.xcconfig is accessible through symlink
     if [ -f "$ROOT_IOS_DIR/Flutter/Generated.xcconfig" ]; then
@@ -442,6 +466,26 @@ else
   echo "✅ Workspace exists at $XCODEBUILD_WORKSPACE"
   echo "📄 Workspace contents:"
   cat "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata"
+  
+  # Verify workspace references are correct
+  WORKSPACE_CONTENTS=$(cat "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata")
+  if ! echo "$WORKSPACE_CONTENTS" | grep -q "linkUpMobileApp/ios/Runner.xcodeproj"; then
+    echo "⚠️  WARNING: Workspace may not reference project correctly"
+    echo "   Updating workspace references..."
+    cat > "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "container:../linkUpMobileApp/ios/Runner.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "container:../linkUpMobileApp/ios/Pods/Pods.xcodeproj">
+   </FileRef>
+</Workspace>
+EOF
+    echo "✅ Updated workspace references"
+  fi
 fi
 
 # Verify all paths are relative and correct
@@ -568,7 +612,7 @@ fi
 if [ -d "Pods" ]; then
   echo "✅ Pods directory accessible from workspace location"
   if [ -L "Pods" ]; then
-    echo "   (via symlink: $(readlink Pods))"
+    echo "   (via symlink: $(readlink -f Pods))"
   fi
   
   # Verify xcfilelist files are accessible
@@ -581,24 +625,101 @@ if [ -d "Pods" ]; then
       "Pods-Runner-resources-Release-input-files.xcfilelist"
       "Pods-Runner-resources-Release-output-files.xcfilelist"
     )
+    ALL_FILES_FOUND=true
     for file in "${REQUIRED_FILES[@]}"; do
-      if [ -f "$XCFILELIST_DIR/$file" ]; then
+      FILE_PATH="$XCFILELIST_DIR/$file"
+      if [ -f "$FILE_PATH" ]; then
         echo "✅ Found: $file"
+        # Verify file is readable and has content
+        if [ -s "$FILE_PATH" ]; then
+          echo "   ✅ File has content ($(wc -l < "$FILE_PATH") lines)"
+        else
+          echo "   ⚠️  WARNING: File is empty"
+        fi
       else
         echo "❌ ERROR: Missing: $file"
-        exit 1
+        echo "   Full path: $(pwd)/$FILE_PATH"
+        ALL_FILES_FOUND=false
       fi
     done
+    
+    if [ "$ALL_FILES_FOUND" = false ]; then
+      echo "❌ ERROR: Some required xcfilelist files are missing"
+      echo "   Listing directory contents:"
+      ls -la "$XCFILELIST_DIR" || echo "   Cannot list directory"
+      exit 1
+    fi
   else
     echo "❌ ERROR: Pods-Runner Target Support Files not accessible"
+    echo "   Expected at: $(pwd)/$XCFILELIST_DIR"
+    echo "   Checking if Pods directory structure is correct..."
+    if [ -d "Pods/Target Support Files" ]; then
+      echo "   Target Support Files directory exists, listing:"
+      ls -la "Pods/Target Support Files" || echo "   Cannot list"
+    else
+      echo "   Target Support Files directory does not exist"
+    fi
     exit 1
   fi
 else
   echo "❌ ERROR: Pods directory NOT accessible from workspace location"
+  echo "   Current directory: $(pwd)"
+  echo "   Expected Pods at: $(pwd)/Pods"
+  echo "   Checking if symlink should have been created..."
+  if [ -d "$IOS_DIR/Pods" ]; then
+    echo "   Pods exists at: $IOS_DIR/Pods"
+    echo "   Symlink should have been created at: $(pwd)/Pods"
+  fi
   exit 1
 fi
 
 echo "✅ Pre-build verification completed"
+
+# CRITICAL: Create a script that fixes PODS_ROOT if it resolves incorrectly
+# This script will be sourced by Xcode build phases if needed
+echo "🔧 Creating PODS_ROOT fix script..."
+PODS_ROOT_FIX_SCRIPT="$REPO_ROOT/ios/fix_pods_root.sh"
+cat > "$PODS_ROOT_FIX_SCRIPT" <<'EOF'
+#!/bin/bash
+# This script fixes PODS_ROOT if it resolves incorrectly when building from workspace
+# It checks if PODS_ROOT points to a valid directory, and if not, tries alternative paths
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Try to find Pods directory
+if [ -d "$SCRIPT_DIR/Pods" ]; then
+    # If Pods exists in the same directory as this script (workspace location)
+    export PODS_ROOT="$SCRIPT_DIR/Pods"
+elif [ -d "$SCRIPT_DIR/../linkUpMobileApp/ios/Pods" ]; then
+    # If Pods exists in the Flutter project location
+    export PODS_ROOT="$(cd "$SCRIPT_DIR/../linkUpMobileApp/ios" && pwd)/Pods"
+elif [ -d "$SCRIPT_DIR/../../linkUpMobileApp/ios/Pods" ]; then
+    # Alternative path resolution
+    export PODS_ROOT="$(cd "$SCRIPT_DIR/../../linkUpMobileApp/ios" && pwd)/Pods"
+fi
+
+# Verify PODS_ROOT is set and valid
+if [ -z "$PODS_ROOT" ] || [ ! -d "$PODS_ROOT" ]; then
+    echo "⚠️  WARNING: Could not determine PODS_ROOT"
+    echo "   SCRIPT_DIR: $SCRIPT_DIR"
+    echo "   Attempted paths:"
+    echo "     - $SCRIPT_DIR/Pods"
+    echo "     - $SCRIPT_DIR/../linkUpMobileApp/ios/Pods"
+    echo "     - $SCRIPT_DIR/../../linkUpMobileApp/ios/Pods"
+else
+    echo "✅ PODS_ROOT resolved to: $PODS_ROOT"
+    # Verify xcfilelist files exist
+    XCFILELIST_TEST="$PODS_ROOT/Target Support Files/Pods-Runner/Pods-Runner-frameworks-Release-input-files.xcfilelist"
+    if [ -f "$XCFILELIST_TEST" ]; then
+        echo "✅ xcfilelist files accessible at PODS_ROOT"
+    else
+        echo "⚠️  WARNING: xcfilelist files not found at PODS_ROOT"
+    fi
+fi
+EOF
+chmod +x "$PODS_ROOT_FIX_SCRIPT"
+echo "✅ Created PODS_ROOT fix script at: $PODS_ROOT_FIX_SCRIPT"
 
 # Final summary
 echo ""
@@ -611,6 +732,7 @@ echo "📍 iOS directory: $IOS_DIR"
 echo "📍 Pods directory: $PODS_DIR"
 echo "📍 Generated.xcconfig: $GENERATED_XCCONFIG"
 echo "📍 Workspace: $IOS_DIR/Runner.xcworkspace"
+echo "📍 PODS_ROOT fix script: $PODS_ROOT_FIX_SCRIPT"
 echo "═══════════════════════════════════════════════════════════"
 echo "✅ Pre-build script completed successfully!"
 echo "═══════════════════════════════════════════════════════════"

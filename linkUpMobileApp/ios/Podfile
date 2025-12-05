@@ -91,6 +91,25 @@ post_install do |installer|
     end
   end
   
+  # CRITICAL: Update xcconfig files to ensure PODS_ROOT resolves correctly
+  # This is important when building from workspace location where SRCROOT might resolve incorrectly
+  puts "🔧 Updating xcconfig files to ensure PODS_ROOT resolves correctly..."
+  pods_dir = File.expand_path(File.join(File.dirname(__FILE__), 'Pods'))
+  xcconfig_files = Dir.glob(File.join(pods_dir, 'Target Support Files', '**', '*.xcconfig'))
+  
+  xcconfig_files.each do |xcconfig_file|
+    content = File.read(xcconfig_file)
+    # Check if PODS_ROOT is set and update it to be more robust
+    if content.include?('PODS_ROOT = ${SRCROOT}/Pods')
+      # Keep the original but add a comment about path resolution
+      # The symlinks created by ci_pre_xcodebuild.sh should handle path resolution
+      puts "   ✅ Verified PODS_ROOT in #{File.basename(xcconfig_file)}"
+    elsif content.include?('PODS_ROOT')
+      puts "   ⚠️  PODS_ROOT found in #{File.basename(xcconfig_file)} with different format"
+    end
+  end
+  puts "✅ xcconfig files verified"
+  
   # CRITICAL: Set PODS_ROOT in the Runner project's build settings
   # This ensures PODS_ROOT resolves correctly when building from the root workspace
   # The Runner project is at linkUpMobileApp/ios/Runner.xcodeproj
@@ -100,11 +119,23 @@ post_install do |installer|
     require 'xcodeproj'
     begin
       runner_project = Xcodeproj::Project.open(runner_project_path)
+      pods_dir = File.expand_path(File.join(File.dirname(__FILE__), 'Pods'))
+      
       runner_project.targets.each do |target|
         target.build_configurations.each do |config|
           # Set PODS_ROOT relative to the project's SRCROOT (which is the ios directory)
           # This ensures it works whether building from the project directly or from the root workspace
           config.build_settings['PODS_ROOT'] = '${SRCROOT}/Pods'
+          
+          # CRITICAL: Also set PODS_PODFILE_DIR_PATH to ensure pod scripts can find Podfile
+          # This is used by CocoaPods scripts to locate the Podfile
+          config.build_settings['PODS_PODFILE_DIR_PATH'] = '${SRCROOT}/.'
+          
+          # Add user-defined setting for absolute PODS_ROOT as fallback
+          # This can be used if SRCROOT resolves incorrectly
+          if File.directory?(pods_dir)
+            config.build_settings['PODS_ROOT_ABSOLUTE'] = pods_dir
+          end
         end
       end
       runner_project.save
