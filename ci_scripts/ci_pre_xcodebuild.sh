@@ -362,6 +362,92 @@ else
   echo "📍 Root ios directory is the same as Flutter project ios directory, no symlinks needed"
 fi
 
+# CRITICAL: Pre-build verification for xcodebuild
+echo ""
+echo "═══════════════════════════════════════════════════════════"
+echo "🔍 PRE-BUILD VERIFICATION FOR XCODEBUILD"
+echo "═══════════════════════════════════════════════════════════"
+
+# Verify workspace that xcodebuild will use
+XCODEBUILD_WORKSPACE="$REPO_ROOT/ios/Runner.xcworkspace"
+echo "📍 Xcodebuild workspace path: $XCODEBUILD_WORKSPACE"
+
+if [ ! -f "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata" ]; then
+  echo "❌ ERROR: Workspace not found at $XCODEBUILD_WORKSPACE"
+  echo "📍 Creating workspace if it doesn't exist..."
+  
+  # Create workspace directory
+  mkdir -p "$XCODEBUILD_WORKSPACE"
+  
+  # Create workspace contents
+  cat > "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "container:../linkUpMobileApp/ios/Runner.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "container:../linkUpMobileApp/ios/Pods/Pods.xcodeproj">
+   </FileRef>
+</Workspace>
+EOF
+  
+  echo "✅ Created workspace at $XCODEBUILD_WORKSPACE"
+else
+  echo "✅ Workspace exists at $XCODEBUILD_WORKSPACE"
+fi
+
+# Verify all paths are relative and correct
+echo "📍 Verifying workspace references..."
+WORKSPACE_CONTENTS=$(cat "$XCODEBUILD_WORKSPACE/contents.xcworkspacedata")
+echo "$WORKSPACE_CONTENTS"
+
+# Verify referenced projects exist from workspace perspective
+cd "$REPO_ROOT"
+echo "📍 Current directory for path resolution: $(pwd)"
+
+# Check Runner.xcodeproj
+if [ -f "linkUpMobileApp/ios/Runner.xcodeproj/project.pbxproj" ]; then
+  echo "✅ Runner.xcodeproj accessible from workspace"
+else
+  echo "❌ ERROR: Runner.xcodeproj not accessible from workspace"
+  echo "   Expected at: linkUpMobileApp/ios/Runner.xcodeproj"
+  echo "   Current directory: $(pwd)"
+  ls -la linkUpMobileApp/ios/ | grep -E "Runner|Pods" || echo "Cannot list directory"
+  exit 1
+fi
+
+# Check Pods.xcodeproj
+if [ -f "linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj" ]; then
+  echo "✅ Pods.xcodeproj accessible from workspace"
+else
+  echo "❌ ERROR: Pods.xcodeproj not accessible from workspace"
+  echo "   Expected at: linkUpMobileApp/ios/Pods/Pods.xcodeproj"
+  echo "   Current directory: $(pwd)"
+  ls -la linkUpMobileApp/ios/Pods/ | head -10 || echo "Cannot list Pods directory"
+  exit 1
+fi
+
+# Verify PODS_ROOT will resolve correctly
+echo "📍 Verifying PODS_ROOT resolution..."
+cd "$IOS_DIR"
+PODS_ABSOLUTE_PATH="$(pwd)/Pods"
+echo "📍 Absolute Pods path: $PODS_ABSOLUTE_PATH"
+echo "📍 PODS_ROOT from xcconfig: $(grep PODS_ROOT "$PODS_DIR/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" | head -1)"
+
+# Test that xcodebuild can see the workspace
+echo "📍 Testing xcodebuild workspace listing..."
+if command -v xcodebuild >/dev/null 2>&1; then
+  cd "$REPO_ROOT/ios"
+  echo "📍 Listing schemes in workspace..."
+  xcodebuild -list -workspace Runner.xcworkspace 2>&1 | head -20 || echo "⚠️  Could not list schemes"
+else
+  echo "⚠️  xcodebuild not found in PATH (this is OK in pre-build script)"
+fi
+
+echo "✅ Pre-build verification completed"
+
 # Final summary
 echo ""
 echo "═══════════════════════════════════════════════════════════"
