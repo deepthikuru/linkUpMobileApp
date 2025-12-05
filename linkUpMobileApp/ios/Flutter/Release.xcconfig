@@ -1,2 +1,8 @@
+// Try Pods xcconfig - first from project location, then from workspace location
 #include? "${SRCROOT}/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
-#include "${SRCROOT}/Flutter/Generated.xcconfig"
+#include? "${SRCROOT}/../linkUpMobileApp/ios/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+
+// Try Flutter Generated.xcconfig - first from project location, then from workspace location
+// At least one of these must exist
+#include? "${SRCROOT}/Flutter/Generated.xcconfig"
+#include? "${SRCROOT}/../linkUpMobileApp/ios/Flutter/Generated.xcconfig"
