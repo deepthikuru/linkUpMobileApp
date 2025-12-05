@@ -325,6 +325,43 @@ if [ ! -f "$IOS_DIR/Runner.xcworkspace/contents.xcworkspacedata" ]; then
 fi
 echo "✅ Flutter project workspace found"
 
+# CRITICAL: Ensure Xcode Cloud can find Pods and Flutter files
+# Xcode Cloud builds from /Volumes/workspace/repository/ios/Runner.xcworkspace
+# but the project is at /Volumes/workspace/repository/linkUpMobileApp/ios/
+# We need to ensure symlinks or structure exists for Xcode to find everything
+echo "🔗 Ensuring Xcode Cloud can access required files..."
+ROOT_IOS_DIR="$REPO_ROOT/ios"
+if [ "$ROOT_IOS_DIR" != "$IOS_DIR" ] && [ -d "$ROOT_IOS_DIR" ]; then
+  echo "📍 Root ios directory exists: $ROOT_IOS_DIR"
+  echo "📍 Flutter project ios directory: $IOS_DIR"
+  
+  # Create symlink for Pods if it doesn't exist at root ios
+  if [ ! -d "$ROOT_IOS_DIR/Pods" ] && [ -d "$IOS_DIR/Pods" ]; then
+    echo "🔗 Creating symlink: $ROOT_IOS_DIR/Pods -> $IOS_DIR/Pods"
+    ln -sf "$IOS_DIR/Pods" "$ROOT_IOS_DIR/Pods" || {
+      echo "⚠️  Warning: Could not create Pods symlink, but continuing..."
+    }
+  fi
+  
+  # Create symlink for Flutter directory if it doesn't exist at root ios
+  if [ ! -d "$ROOT_IOS_DIR/Flutter" ] && [ -d "$IOS_DIR/Flutter" ]; then
+    echo "🔗 Creating symlink: $ROOT_IOS_DIR/Flutter -> $IOS_DIR/Flutter"
+    ln -sf "$IOS_DIR/Flutter" "$ROOT_IOS_DIR/Flutter" || {
+      echo "⚠️  Warning: Could not create Flutter symlink, but continuing..."
+    }
+  fi
+  
+  # Verify symlinks were created
+  if [ -L "$ROOT_IOS_DIR/Pods" ]; then
+    echo "✅ Pods symlink verified at $ROOT_IOS_DIR/Pods"
+  fi
+  if [ -L "$ROOT_IOS_DIR/Flutter" ]; then
+    echo "✅ Flutter symlink verified at $ROOT_IOS_DIR/Flutter"
+  fi
+else
+  echo "📍 Root ios directory is the same as Flutter project ios directory, no symlinks needed"
+fi
+
 # Final summary
 echo ""
 echo "═══════════════════════════════════════════════════════════"
