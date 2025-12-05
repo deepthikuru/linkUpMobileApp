@@ -205,6 +205,19 @@ fi
 
 echo "✅ All required xcfilelist files verified"
 
+# CRITICAL: Verify PODS_ROOT will be set correctly
+# Check that the xcconfig files define PODS_ROOT
+if [ -f "$IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig" ]; then
+  if ! grep -q "PODS_ROOT" "$IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; then
+    echo "❌ Error: PODS_ROOT not found in Pods-Runner.release.xcconfig"
+    exit 1
+  fi
+  echo "✅ PODS_ROOT is defined in Pods-Runner.release.xcconfig"
+else
+  echo "❌ Error: Pods-Runner.release.xcconfig not found"
+  exit 1
+fi
+
 # Verify Generated.xcconfig is still accessible
 if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
   echo "❌ Error: Flutter/Generated.xcconfig disappeared after pod install"
