@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/user_registration_view_model.dart';
 import '../providers/navigation_state.dart';
 import '../services/firebase_order_manager.dart';
+import '../widgets/mesh_background.dart';
 import '../utils/theme.dart';
 import 'login_page.dart';
 import 'content_view.dart';
@@ -106,21 +107,24 @@ class _SplashScreenState extends State<SplashScreen> {
     );
 
     return Scaffold(
-      backgroundColor: screenBg,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/LinkUpLogo.png',
-              height: 100,
-              fit: BoxFit.fitHeight,
-            ),
-            const SizedBox(height: 20),
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-            ),
-          ],
+      backgroundColor: Colors.transparent,
+      body: MeshBackground(
+        animated: true,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/LinkUpLogo2.png',
+                height: 100,
+                fit: BoxFit.fitHeight,
+              ),
+              const SizedBox(height: 20),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/app_footer.dart';
 import '../../providers/navigation_state.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
-import '../profile/hamburger_menu_view.dart';
 import '../home/address_info_sheet.dart';
 
 // Body-only version for MainLayout
@@ -80,7 +77,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppTheme.accentGold 
+              ? AppTheme.accentGold
               : AppTheme.getComponentBackgroundColor(
                   context,
                   'screen-support',
@@ -92,18 +89,8 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected 
-                ? AppTheme.getComponentTextColor(
-                    context,
-                    'text-title',
-                    fallback: Colors.white,
-                  )
-                : AppTheme.getComponentTextColor(
-                    context,
-                    'text-title',
-                    fallback: Colors.black,
-                  ),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -116,27 +103,24 @@ class _SupportViewBodyState extends State<SupportViewBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Contact Support',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.getComponentTextColor(
-                context,
-                'text-title',
-                fallback: Colors.black,
+          Center(
+            child: Text(
+              'Contact Support',
+              textAlign: TextAlign.center,
+              style: AppTheme.getDoubleBoldTextStyle(
+                color: Colors.white,
+                fontSize: 24,
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Get in touch with our support team',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.getComponentTextColor(
-                context,
-                'text-secondary',
-                fallback: Colors.grey,
+          Center(
+            child: Text(
+              'Get in touch with our support team',
+              textAlign: TextAlign.center,
+              style: AppTheme.getDoubleBoldTextStyle(
+                fontSize: 16,
+                color: AppTheme.accentGold,
               ),
             ),
           ),
@@ -185,12 +169,12 @@ class _SupportViewBodyState extends State<SupportViewBody> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentGold.withOpacity(0.1),
+                  color: AppTheme.accentGold,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.accentGold,
+                  color: AppTheme.mainBlueDynamic(context),
                   size: 24,
                 ),
               ),
@@ -315,43 +299,6 @@ class _SupportViewState extends State<SupportView> {
     });
   }
 
-  void _showHamburgerMenu(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: AppTheme.getComponentShadowColor(
-        context,
-        'mainLayout_dialogBarrier',
-        fallback: Colors.black54,
-      ),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            )),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              height: MediaQuery.of(context).size.height,
-              color: AppTheme.getComponentTextColor(
-                context,
-                'text-title',
-                fallback: Colors.white,
-              ),
-              child: const HamburgerMenuView(),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,27 +313,11 @@ class _SupportViewState extends State<SupportView> {
       fallback: Colors.grey[200]!,
     );
 
-    return Scaffold(
-      backgroundColor: screenBg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppHeader(
-              zipCode: _currentZipCode.isNotEmpty ? _currentZipCode : null,
-              onZipCodeTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => const AddressInfoSheet(),
-                ).then((_) {
-                  _loadZipCode();
-                });
-              },
-              onMenuTap: () {
-                _showHamburgerMenu(context);
-              },
-            ),
-            // Tab selector
+    return Padding(
+      padding: const EdgeInsets.only(top: 24.0),
+      child: Column(
+        children: [
+          // Tab selector
             Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -410,17 +341,9 @@ class _SupportViewState extends State<SupportView> {
                   ? _buildContactTab(context)
                   : _buildChatTab(),
             ),
-            Consumer<NavigationState>(
-              builder: (context, navigationState, _) {
-                return AppFooter(
-                  currentTab: navigationState.currentFooterTab,
-                );
-              },
-            ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildTabButton(String label, int index) {
@@ -435,7 +358,7 @@ class _SupportViewState extends State<SupportView> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppTheme.accentGold 
+              ? AppTheme.accentGold
               : AppTheme.getComponentBackgroundColor(
                   context,
                   'screen-support',
@@ -447,18 +370,8 @@ class _SupportViewState extends State<SupportView> {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected 
-                ? AppTheme.getComponentTextColor(
-                    context,
-                    'text-title',
-                    fallback: Colors.white,
-                  )
-                : AppTheme.getComponentTextColor(
-                    context,
-                    'text-title',
-                    fallback: Colors.black,
-                  ),
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -471,27 +384,25 @@ class _SupportViewState extends State<SupportView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Contact Support',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.getComponentTextColor(
-                context,
-                'text-title',
-                fallback: Colors.black,
+          Center(
+            child: Text(
+              'Contact Support',
+              textAlign: TextAlign.center,
+              style: AppTheme.getDoubleBoldTextStyle(
+                color: Colors.white,
+                fontSize: 24,
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Get in touch with our support team',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.getComponentTextColor(
-                context,
-                'text-secondary',
-                fallback: Colors.grey,
+          Center(
+            child: Text(
+              'Get in touch with our support team',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.accentGold,
               ),
             ),
           ),
@@ -540,12 +451,12 @@ class _SupportViewState extends State<SupportView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentGold.withOpacity(0.1),
+                  color: AppTheme.accentGold,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.accentGold,
+                  color: AppTheme.mainBlueDynamic(context),
                   size: 24,
                 ),
               ),

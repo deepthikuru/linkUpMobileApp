@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/navigation_state.dart';
-import '../widgets/app_header.dart';
 import '../widgets/app_footer.dart';
+import '../widgets/mesh_background.dart';
 import '../providers/user_registration_view_model.dart';
-import '../utils/constants.dart';
 import '../utils/theme.dart';
-import '../screens/profile/hamburger_menu_view.dart';
 import 'home/start_order_view.dart';
 import 'home/plans_view.dart';
 import 'support/support_view.dart';
-import 'home/address_info_sheet.dart';
+import 'profile/profile_page_view.dart';
 
 class MainLayout extends StatefulWidget {
   final Function(String)? onStartOrder;
@@ -28,7 +26,6 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  String _currentZipCode = '';
   late PageController _pageController;
   bool _isInitialized = false;
   bool _isNavigatingProgrammatically = false;
@@ -36,13 +33,51 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    _loadZipCode();
-    // Initialize PageController with home tab (index 1: Plans=0, Home=1, Chat=2)
+    // Initialize PageController with home tab (index 1: Plans=0, Home=1, Chat=2, Profile=3)
     _pageController = PageController(initialPage: 1);
     // Mark as initialized after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _isInitialized = true;
+      // Set up the navigation callback
+      final navigationState = Provider.of<NavigationState>(context, listen: false);
+      navigationState.onNavigateToTab = _navigateToTab;
     });
+  }
+  
+  void _navigateToTab(FooterTab tab) {
+    // Update navigation state first to prevent intermediate highlighting
+    final navigationState = Provider.of<NavigationState>(context, listen: false);
+    navigationState.setFooterTab(tab);
+    
+    // Set flag to prevent onPageChanged from updating state during animation
+    _isNavigatingProgrammatically = true;
+    
+    // Navigate to the target page
+    final targetIndex = _getTabIndex(tab);
+    if (_pageController.hasClients) {
+      // Use jumpToPage for non-adjacent tabs to avoid intermediate highlighting
+      final currentIndex = _pageController.page?.round() ?? 1;
+      if ((currentIndex == 0 && targetIndex == 2) || 
+          (currentIndex == 2 && targetIndex == 0) ||
+          (currentIndex == 0 && targetIndex == 3) ||
+          (currentIndex == 3 && targetIndex == 0) ||
+          (currentIndex == 1 && targetIndex == 3) ||
+          (currentIndex == 3 && targetIndex == 1)) {
+        // Jump directly for non-adjacent navigation
+        _pageController.jumpToPage(targetIndex);
+      } else {
+        // Animate for adjacent tabs
+        _pageController.animateToPage(
+          targetIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+    
+    if (tab == FooterTab.home) {
+      navigationState.navigateTo(Destination.startNewOrder);
+    }
   }
 
   @override
@@ -51,84 +86,19 @@ class _MainLayoutState extends State<MainLayout> {
     super.dispose();
   }
 
-  Future<void> _loadZipCode() async {
-    final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
-    await viewModel.loadUserData();
-    
-    setState(() {
-      _currentZipCode = viewModel.zip.isNotEmpty ? viewModel.zip : AppConstants.defaultZipCode;
-    });
-  }
 
-  void _showHamburgerMenu(BuildContext context) {
-    final menuBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'mainLayout_hamburgerMenu_background',
-      fallback: Colors.white,
-    );
-    final barrierColor = AppTheme.getComponentShadowColor(
-      context,
-      'mainLayout_dialogBarrier',
-      fallback: Colors.black54,
-    );
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: barrierColor,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            )),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              height: MediaQuery.of(context).size.height,
-              color: menuBg,
-              child: const HamburgerMenuView(),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final screenBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'mainLayout_scaffold_background',
-      fallback: Colors.white,
-    );
-
     return Scaffold(
-      backgroundColor: screenBg,
-      body: Column(
+      backgroundColor: Colors.transparent,
+      extendBody: true, // allows content to go under translucent nav bar
+      body: MeshBackground(
+        animated: true,
+        child: SafeArea(
+          bottom: false, // Footer handles bottom safe area
+        child: Column(
         children: [
-          // Persistent Header (extends behind status bar)
-          AppHeader(
-            zipCode: _currentZipCode.isNotEmpty ? _currentZipCode : null,
-            onZipCodeTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => const AddressInfoSheet(),
-              ).then((_) {
-                _loadZipCode();
-              });
-            },
-            onMenuTap: () {
-              _showHamburgerMenu(context);
-            },
-          ),
           // Body content - only this changes when switching tabs
           Expanded(
             child: Consumer<NavigationState>(
@@ -150,6 +120,8 @@ class _MainLayoutState extends State<MainLayout> {
                     _buildHomeBody(),
                     // Chat tab (index 2)
                     const SupportViewBody(),
+                        // Profile tab (index 3)
+                        const ProfileViewBody(),
                   ],
                 );
               },
@@ -160,40 +132,13 @@ class _MainLayoutState extends State<MainLayout> {
             builder: (context, navigationState, _) {
               return AppFooter(
                 currentTab: navigationState.currentFooterTab,
-                onTabChanged: (tab) {
-                  // Update navigation state first to prevent intermediate highlighting
-                  navigationState.setFooterTab(tab);
-                  
-                  // Set flag to prevent onPageChanged from updating state during animation
-                  _isNavigatingProgrammatically = true;
-                  
-                  // Navigate to the target page
-                  final targetIndex = _getTabIndex(tab);
-                  if (_pageController.hasClients) {
-                    // Use jumpToPage for non-adjacent tabs to avoid intermediate highlighting
-                    final currentIndex = _pageController.page?.round() ?? 1;
-                    if ((currentIndex == 0 && targetIndex == 2) || 
-                        (currentIndex == 2 && targetIndex == 0)) {
-                      // Jump directly for plans <-> chat navigation
-                      _pageController.jumpToPage(targetIndex);
-                    } else {
-                      // Animate for adjacent tabs
-                      _pageController.animateToPage(
-                        targetIndex,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    }
-                  }
-                  
-                  if (tab == FooterTab.home) {
-                    navigationState.navigateTo(Destination.startNewOrder);
-                  }
-                },
+                onTabChanged: _navigateToTab,
               );
             },
           ),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -206,6 +151,8 @@ class _MainLayoutState extends State<MainLayout> {
         return 1;
       case FooterTab.chat:
         return 2;
+      case FooterTab.profile:
+        return 3;
     }
   }
 
@@ -217,6 +164,8 @@ class _MainLayoutState extends State<MainLayout> {
         return FooterTab.home;
       case 2:
         return FooterTab.chat;
+      case 3:
+        return FooterTab.profile;
       default:
         return FooterTab.home;
     }

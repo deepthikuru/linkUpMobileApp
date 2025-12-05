@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'providers/user_registration_view_model.dart';
 import 'providers/navigation_state.dart';
+import 'providers/plans_provider.dart';
 import 'utils/theme.dart';
 import 'services/notification_service.dart';
 import 'services/contentful_service.dart';
@@ -74,6 +75,7 @@ class LinkMobileApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => UserRegistrationViewModel()),
         ChangeNotifierProvider(create: (_) => NavigationState()),
+        ChangeNotifierProvider(create: (_) => PlansProvider()),
         ChangeNotifierProvider.value(value: AppColorsService()),
         ChangeNotifierProvider.value(value: ComponentColorsService()), // Add ComponentColorsService
       ],

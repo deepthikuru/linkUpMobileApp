@@ -156,6 +156,19 @@ class AppTheme {
         end: Alignment.centerRight,
       );
 
+  /// Mesh background gradient (for use with MeshBackground widget)
+  static LinearGradient get meshGradient => const LinearGradient(
+        colors: [mainBlue, secondBlue],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
+  static LinearGradient meshGradientDynamic(BuildContext? context) => LinearGradient(
+        colors: [mainBlueDynamic(context), secondBlueDynamic(context)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+
   // Font Sizes
   static const double fontSizeTitle = 22.0;
   static const double fontSizeSubtitle = 14.0;
@@ -383,6 +396,41 @@ class AppTheme {
         fontWeight: fontWeightSectionTitle,
         color: appTextDynamic(context),
       );
+
+  // Double bold text style with shadow effect
+  static TextStyle getDoubleBoldTextStyle({
+    required Color color,
+    required double fontSize,
+    FontWeight fontWeight = FontWeight.w800,
+  }) {
+    return TextStyle(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
+      shadows: [
+        Shadow(
+          color: color,
+          offset: const Offset(0.3, 0.3),
+          blurRadius: 0,
+        ),
+        Shadow(
+          color: color,
+          offset: const Offset(-0.3, 0.3),
+          blurRadius: 0,
+        ),
+        Shadow(
+          color: color,
+          offset: const Offset(0.3, -0.3),
+          blurRadius: 0,
+        ),
+        Shadow(
+          color: color,
+          offset: const Offset(-0.3, -0.3),
+          blurRadius: 0,
+        ),
+      ],
+    );
+  }
 
   // Component Color Helpers
   /// Get component color by component ID and color type

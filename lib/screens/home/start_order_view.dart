@@ -4,24 +4,20 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../providers/user_registration_view_model.dart';
+import '../../providers/plans_provider.dart';
 import '../../services/firebase_manager.dart';
 import '../../services/firebase_order_manager.dart';
-import '../../services/vcare_api_manager.dart';
 import '../../models/plan_model.dart';
 import '../../models/order_models.dart' as models;
-import '../../widgets/app_header.dart';
 import '../../widgets/app_footer.dart';
-import '../../widgets/plan_card.dart';
-import '../../widgets/plan_carousel.dart';
 import '../../widgets/order_card.dart';
 import '../../widgets/gradient_button.dart';
-import '../../widgets/plan_details_sheet.dart';
-import 'plan_selection_view.dart';
+import '../../widgets/mesh_background.dart';
+import 'plans_view.dart';
 import 'address_info_sheet.dart';
 import '../order_flow/contact_info_view.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
-import '../../screens/profile/hamburger_menu_view.dart';
 import '../../screens/profile/previous_orders_view.dart';
 import '../../providers/navigation_state.dart';
 import '../order_flow/order_detail_view.dart';
@@ -46,7 +42,6 @@ class _StartOrderContent extends StatefulWidget {
 }
 
 class _StartOrderContentState extends State<_StartOrderContent> {
-  final VCareAPIManager _apiManager = VCareAPIManager();
   final FirebaseManager _firebaseManager = FirebaseManager();
   final FirebaseOrderManager _orderManager = FirebaseOrderManager();
   
@@ -60,7 +55,6 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     });
   }
   
-  List<Plan> _availablePlans = [];
   Plan? _selectedPlan;
   List<models.Order> _incompleteOrders = [];
   List<Map<String, dynamic>> _incompleteOrderDetails = [];
@@ -68,11 +62,8 @@ class _StartOrderContentState extends State<_StartOrderContent> {
   int _totalOrdersCount = 0;
   bool _isLoading = false;
   String _currentZipCode = '';
-  int _currentPlanIndex = 0;
-  PageController? _planPageController = PageController();
   int _currentOrderIndex = 0;
   PageController? _orderPageController = PageController();
-  Timer? _carouselTimer;
 
   @override
   void initState() {
@@ -87,8 +78,6 @@ class _StartOrderContentState extends State<_StartOrderContent> {
 
   @override
   void dispose() {
-    _carouselTimer?.cancel();
-    _planPageController?.dispose();
     _orderPageController?.dispose();
     super.dispose();
   }
@@ -110,14 +99,9 @@ class _StartOrderContentState extends State<_StartOrderContent> {
       _currentZipCode = newZipCode;
     });
 
-    // Reload plans if ZIP code changed
-    if (previousZipCode != newZipCode && newZipCode.isNotEmpty) {
-      print('📍 ZIP code changed from $previousZipCode to $newZipCode - reloading plans');
-      await _loadPlans();
-    } else if (previousZipCode.isEmpty) {
-      // Initial load
-      await _loadPlans();
-    }
+    // Load plans using provider - only loads if zip code changed
+    final plansProvider = Provider.of<PlansProvider>(context, listen: false);
+    await plansProvider.loadPlans(newZipCode);
 
     // Load orders for all users to determine order count
       await Future.wait([
@@ -129,202 +113,8 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     setState(() {
       _isLoading = false;
     });
-    
-    if (_availablePlans.length > 1) {
-      _startCarouselTimer();
-    }
   }
 
-  Future<void> _loadPlans() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Use default zip code if current is empty
-      final zipCodeToUse = _currentZipCode.isNotEmpty 
-          ? _currentZipCode 
-          : AppConstants.defaultZipCode;
-      
-      const enrollmentType = 'NON_LIFELINE';
-      const isFamilyPlan = 'N';
-      
-      // Define allowed plan names from Firestore
-      final allowedPlanNames = [
-        'LinkUp \$50 Unlimited',
-        'LinkUp \$40 30GB',
-        'LinkUp \$30 12GB',
-        'LinkUp \$20 Unlimited Talk &amp; Text + 3GB Data',
-        'LinkUp \$10 1GB',
-      ];
-      
-      // Map plan names to display names
-      String getDisplayName(String planName) {
-        final cleanedName = planName.replaceAll('&amp;', '&');
-        if (cleanedName.contains('LinkUp \$10 1GB')) return 'STARTER';
-        if (cleanedName.contains('LinkUp \$20')) return 'EXPLORE';
-        if (cleanedName.contains('LinkUp \$30 12GB')) return 'PREMIUM';
-        if (cleanedName.contains('LinkUp \$40 30GB')) return 'UNLIMITED';
-        if (cleanedName.contains('LinkUp \$50 Unlimited')) return 'UNLIMITED PLUS';
-        return planName;
-      }
-      
-      // First, try to get plans from Firestore
-      final cachedPlansData = await _firebaseManager.getPlans(
-        zipCode: zipCodeToUse,
-        enrollmentType: enrollmentType,
-        isFamilyPlan: isFamilyPlan,
-      );
-      
-      if (cachedPlansData != null && cachedPlansData.isNotEmpty) {
-        // Filter and map plans from Firestore
-        final filteredPlans = cachedPlansData
-            .where((planData) {
-              final planName = planData['plan_name'] as String? ?? '';
-              return allowedPlanNames.any((allowed) => planName == allowed);
-            })
-            .map((planData) {
-              final plan = Plan.fromJson(planData);
-              final originalPlanName = plan.planName;
-              final displayName = getDisplayName(originalPlanName);
-              
-              return Plan(
-                planId: plan.planId,
-                planName: originalPlanName.replaceAll('&amp;', '&'),
-                planPrice: plan.planPrice,
-                totalPlanPrice: plan.totalPlanPrice,
-                planDescription: plan.planDescription,
-                displayName: displayName,
-                displayDescription: plan.displayDescription,
-                displayFeaturesDescription: plan.displayFeaturesDescription,
-                data: plan.data,
-                talk: plan.talk,
-                text: plan.text,
-                isUnlimitedPlan: plan.isUnlimitedPlan,
-                isFamilyPlan: plan.isFamilyPlan,
-                isPrepaidPostpaid: plan.isPrepaidPostpaid,
-                planExpiryDays: plan.planExpiryDays,
-                planExpiryType: plan.planExpiryType,
-                carrier: plan.carrier,
-                planDiscountDetails: plan.planDiscountDetails,
-                autopayDiscount: plan.autopayDiscount,
-              );
-            })
-            .toList();
-        
-        // Sort plans by price: 10, 20, 30, 40, 50
-        filteredPlans.sort((a, b) => a.planPrice.compareTo(b.planPrice));
-        
-        if (!mounted) return;
-        _safeSetState(() {
-          _availablePlans = filteredPlans;
-          _isLoading = false;
-          if (filteredPlans.isNotEmpty && _selectedPlan == null) {
-            _selectedPlan = filteredPlans.first;
-          }
-        });
-        print('✅ Loaded ${filteredPlans.length} filtered plans from Firestore for zip code: $zipCodeToUse');
-        return;
-      }
-      
-      // Plans not in Firestore, fetch from API
-      print('📡 Plans not found in Firestore, fetching from API for zip code: $zipCodeToUse');
-      final plans = await _apiManager.getPlanList(zipCode: zipCodeToUse);
-      
-      // Filter and map plans from API
-      final filteredPlans = plans
-          .where((plan) {
-            final planName = plan.planName;
-            return allowedPlanNames.any((allowed) => planName == allowed);
-          })
-          .map((plan) {
-            final originalPlanName = plan.planName;
-            final displayName = getDisplayName(originalPlanName);
-            
-            return Plan(
-              planId: plan.planId,
-              planName: originalPlanName.replaceAll('&amp;', '&'),
-              planPrice: plan.planPrice,
-              totalPlanPrice: plan.totalPlanPrice,
-              planDescription: plan.planDescription,
-              displayName: displayName,
-              displayDescription: plan.displayDescription,
-              displayFeaturesDescription: plan.displayFeaturesDescription,
-              data: plan.data,
-              talk: plan.talk,
-              text: plan.text,
-              isUnlimitedPlan: plan.isUnlimitedPlan,
-              isFamilyPlan: plan.isFamilyPlan,
-              isPrepaidPostpaid: plan.isPrepaidPostpaid,
-              planExpiryDays: plan.planExpiryDays,
-              planExpiryType: plan.planExpiryType,
-              carrier: plan.carrier,
-              planDiscountDetails: plan.planDiscountDetails,
-              autopayDiscount: plan.autopayDiscount,
-            );
-          })
-          .toList();
-      
-      // Sort plans by price: 10, 20, 30, 40, 50
-      filteredPlans.sort((a, b) => a.planPrice.compareTo(b.planPrice));
-      
-      if (!mounted) return;
-      _safeSetState(() {
-        _availablePlans = filteredPlans;
-        _isLoading = false;
-        if (filteredPlans.isNotEmpty && _selectedPlan == null) {
-          _selectedPlan = filteredPlans.first;
-        }
-      });
-      
-      // Save plans to Firestore for future use
-      if (plans.isNotEmpty) {
-        try {
-          final plansData = plans.map((plan) {
-            return {
-              'plan_id': plan.planId,
-              'plan_name': plan.planName,
-              'plan_price': plan.planPrice,
-              'total_plan_price': plan.totalPlanPrice,
-              'plan_description': plan.planDescription,
-              'display_name': plan.displayName,
-              'display_description': plan.displayDescription,
-              'display_features_description': plan.displayFeaturesDescription,
-              'data': plan.data,
-              'talk': plan.talk,
-              'text': plan.text,
-              'is_unlimited_plan': plan.isUnlimitedPlan,
-              'is_familyplan': plan.isFamilyPlan,
-              'is_prepaid_postpaid': plan.isPrepaidPostpaid,
-              'plan_expiry_days': plan.planExpiryDays,
-              'plan_expiry_type': plan.planExpiryType,
-              'carrier': plan.carrier,
-              'plan_discount_details': plan.planDiscountDetails,
-              'autopay_discount': plan.autopayDiscount,
-            };
-          }).toList();
-          
-          await _firebaseManager.savePlans(
-            zipCode: zipCodeToUse,
-            enrollmentType: enrollmentType,
-            isFamilyPlan: isFamilyPlan,
-            plans: plansData,
-          );
-          print('✅ Plans saved to Firestore for zip code: $zipCodeToUse');
-        } catch (e) {
-          print('⚠️ Failed to save plans to Firestore: $e');
-        }
-      }
-      
-      print('✅ Loaded ${filteredPlans.length} filtered plans from API for zip code: $zipCodeToUse');
-    } catch (e) {
-      if (!mounted) return;
-      _safeSetState(() {
-        _isLoading = false;
-      });
-      print('❌ Failed to load plans: $e');
-    }
-  }
 
   Future<void> _loadIncompleteOrders() async {
     final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
@@ -506,75 +296,6 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     }
   }
 
-  void _startCarouselTimer() {
-    _carouselTimer?.cancel();
-    if (_availablePlans.length <= 1) return;
-    
-    _carouselTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!mounted || _planPageController == null || !_planPageController!.hasClients) {
-        timer.cancel();
-        return;
-      }
-      
-      final maxPlans = _availablePlans.length > 5 ? 5 : _availablePlans.length;
-      
-      if (_currentPlanIndex >= maxPlans - 1) {
-        _planPageController!.animateToPage(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        _planPageController!.nextPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-  }
-
-  void _stopCarouselTimer() {
-    _carouselTimer?.cancel();
-    _carouselTimer = null;
-  }
-
-  void _showPlanDetails() {
-    if (_selectedPlan == null) return;
-    
-    final modalBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'startOrder_planDetails_background',
-      fallback: Colors.transparent,
-    );
-    final modalBarrier = AppTheme.getComponentShadowColor(
-      context,
-      'startOrder_planDetails_barrier',
-      fallback: Colors.black54,
-    );
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: modalBg,
-      barrierColor: modalBarrier,
-      builder: (context) => PlanDetailsSheet(
-        plan: _selectedPlan!,
-        onStartOrder: () {
-          Navigator.of(context).pop();
-          _createNewOrder();
-        },
-        onClose: () {
-          Navigator.of(context).pop();
-          if (widget.isNewUser) {
-            setState(() {
-              _selectedPlan = null;
-            });
-          }
-          _startCarouselTimer();
-        },
-      ),
-    );
-  }
 
   String get currentZipCode => _currentZipCode;
   void reloadData() => _loadData();
@@ -591,7 +312,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   padding: const EdgeInsets.only(
                     left: 16.0,
                     right: 16.0,
-                    top: 16.0,
+                    top: 24.0,
                     bottom: 0.0,
                   ),
                   child: ConstrainedBox(
@@ -634,10 +355,18 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                         ],
                       ),
                     )
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-              child: _buildContent(),
-            );
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: _buildContent(),
+                          ),
+                        );
+                      },
+                    );
     }
   }
 
@@ -646,7 +375,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final heroTitleColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_heroTitle_text',
-      fallback: Colors.black87,
+      fallback: Colors.white,
     );
     final heroSubtitleGradient = AppTheme.getComponentGradient(
       context,
@@ -666,89 +395,161 @@ class _StartOrderContentState extends State<_StartOrderContent> {
       fallback: Colors.grey,
     );
     
-    return Column(
+    return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+              // Hero Section - Content aligned to top
+              if (_totalOrdersCount == 0) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-        // Header section - different for users with 0 orders vs existing users
-        if (_totalOrdersCount == 0) ...[
-          Center(
-                          child: Column(
-                            children: [
-                              Text(
-                  'Connect to the World for less',
-                                style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                                  color: heroTitleColor,
-                                ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                ShaderMask(
-                  shaderCallback: (bounds) => (heroSubtitleGradient ?? AppTheme.blueGradient).createShader(
-                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                  ),
-                  child: const Text(
-                    'Unlimited talk & text starting at \$10 a month',
-                                style: TextStyle(
-                      fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                              ),
-                            ],
+                      Text(
+                        'CONNECT TO THE WORLD FOR LESS',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Unlimited talk & text starting at \$10 a month',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.accentGold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final navigationState = Provider.of<NavigationState>(context, listen: false);
+                            navigationState.navigateToTab(FooterTab.plans);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.getComponentBackgroundColor(
+                              context,
+                              'startOrder_seePlansButton_background',
+                              fallback: AppTheme.redAccent,
+                            ),
+                            foregroundColor: AppTheme.getComponentTextColor(
+                              context,
+                              'startOrder_seePlansButton_text',
+                              fallback: Colors.white,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Text(
+                            'See plan details',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ] else ...[
-                        Consumer<UserRegistrationViewModel>(
-                          builder: (context, viewModel, _) {
-                            // Use Contentful heading if available, otherwise fallback to default
-                            final heading = viewModel.homeHeadingForExistingUser.isNotEmpty
-                                ? viewModel.homeHeadingForExistingUser
-                                : 'Welcome back!';
-                            
-                            return Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    heading,
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: welcomeTitleColor,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Here\'s your dashboard.',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: welcomeSubtitleColor,
-                                    ),
-                                  ),
-                                ],
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Consumer<UserRegistrationViewModel>(
+                  builder: (context, viewModel, _) {
+                    final heading = viewModel.homeHeadingForExistingUser.isNotEmpty
+                        ? viewModel.homeHeadingForExistingUser
+                        : 'Welcome back!';
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+                        child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              heading,
+                            textAlign: TextAlign.center,
+                            style: AppTheme.getDoubleBoldTextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                            ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Here\'s your dashboard.',
+                            textAlign: TextAlign.center,
+                              style: AppTheme.getDoubleBoldTextStyle(
+                                color: AppTheme.accentGold,
+                                fontSize: 16,
                               ),
-                            );
-                          },
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                final navigationState = Provider.of<NavigationState>(context, listen: false);
+                                navigationState.navigateToTab(FooterTab.plans);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.getComponentBackgroundColor(
+                                  context,
+                                  'startOrder_seePlansButton_background',
+                                  fallback: AppTheme.redAccent,
+                              ),
+                                foregroundColor: AppTheme.getComponentTextColor(
+                                  context,
+                                  'startOrder_seePlansButton_text',
+                                  fallback: Colors.white,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
-                      const SizedBox(height: 32),
-                      
-        // Complete Your Setup Section - only for users with orders
-        if (_totalOrdersCount > 0 && _incompleteOrders.isNotEmpty) ...[
+                                elevation: 2,
+                              ),
+                              child: const Text(
+                                'See plan details',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+              
+              // Complete Your Setup Section - only for users with orders
+              if (_totalOrdersCount > 0 && _incompleteOrders.isNotEmpty) ...[
+                const SizedBox(height: 24),
                         Builder(
                           builder: (context) {
                             final completeSetupBg = AppTheme.getComponentBackgroundColor(
                               context,
                               'startOrder_completeSetup_background',
-                              fallback: AppTheme.accentGold.withOpacity(0.1),
+                              fallback: Color.lerp(AppTheme.accentGold, Colors.white, 0.85) ?? AppTheme.accentGold,
                             );
                             final completeSetupBorder = AppTheme.getComponentBorderColor(
                               context,
                               'startOrder_completeSetup_border',
-                              fallback: AppTheme.accentGold.withOpacity(0.3),
+                              fallback: AppTheme.accentGold,
                             );
                             final completeSetupTitleColor = AppTheme.getComponentTextColor(
                               context,
@@ -821,7 +622,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                         color: AppTheme.getComponentBackgroundColor(
                                           context,
                                           'startOrder_completeSetup_indicator',
-                                          fallback: AppTheme.accentGold.withOpacity(0.3),
+                                          fallback: AppTheme.accentGold,
                                         ),
                                       ),
                                     ),
@@ -833,72 +634,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                         );
                           },
                         ),
-                        const SizedBox(height: 24),
-                      ],
-                      
-        // Available Plans Section
-        if (_availablePlans.isEmpty)
-          Center(
-            child: Text('No plans available for ZIP: ${_currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}'),
-          )
-        else ...[
-                        Builder(
-                          builder: (context) {
-                            final availablePlansBg = AppTheme.getComponentBackgroundColor(
-                              context,
-                              'startOrder_availablePlans_background',
-                              fallback: Colors.grey[100],
-                            );
-                            final availablePlansTitleColor = AppTheme.getComponentTextColor(
-                              context,
-                              'startOrder_availablePlans_title_text',
-                              fallback: Colors.black,
-                            );
-                            
-                            return Container(
-                          padding: const EdgeInsets.all(10.0),
-                          decoration: BoxDecoration(
-                            color: availablePlansBg,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Available Plans',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: availablePlansTitleColor,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              PlanCarousel(
-                                plans: _availablePlans,
-                                selectedPlan: _selectedPlan,
-                                showSmallPlanName: true,
-                                onPlanSelected: (plan) {
-                                  setState(() {
-                                    _selectedPlan = plan;
-                                  });
-                                },
-                                onPlanTapped: (plan) {
-                                  setState(() {
-                                    _selectedPlan = plan;
-                                  });
-                                  _showPlanDetails();
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                      
-        // Recent Orders Section - only for users with orders
-        if (_totalOrdersCount > 0 && _recentOrders.isNotEmpty) ...[
+                const SizedBox(height: 24),
+              ],
+              
+              // Recent Orders Section - only for users with orders
+              if (_totalOrdersCount > 0 && _recentOrders.isNotEmpty) ...[
+                const SizedBox(height: 32),
                         Builder(
                           builder: (context) {
                             final recentOrdersBg = AppTheme.getComponentBackgroundColor(
@@ -1013,11 +754,112 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                         );
                           },
                         ),
-          if (!widget.isBodyOnly) const SizedBox(height: 24),
-          if (widget.isBodyOnly) const SizedBox(height: 16),
-                      ],
-                    ],
-          );
+                if (!widget.isBodyOnly) const SizedBox(height: 24),
+                if (widget.isBodyOnly) const SizedBox(height: 16),
+              ],
+            ],
+        ),
+      );
+  }
+
+  // New method to build compact plan cards for homepage
+  Widget _buildCompactPlanCard(Plan plan) {
+    // Format data
+    String dataText = '';
+    if (plan.isUnlimitedPlan == 'Y' || (plan.data >= 20000)) {
+      dataText = 'UNLIMITED';
+    } else if (plan.data >= 1000) {
+      dataText = '${plan.data ~/ 1000}GB';
+    } else {
+      dataText = '${plan.data}MB';
+    }
+    
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {}, // Plan details now shown in expandable card
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: double.infinity,
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Plan name badge - light blue with white text
+              if (plan.displayName != null && plan.displayName!.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondBlue,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    plan.displayName!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              if (plan.displayName != null && plan.displayName!.isNotEmpty)
+                const SizedBox(height: 12),
+              // Price - large blue text
+              Text(
+                '\$${plan.totalPlanPrice}/mo',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.mainBlue,
+                ),
+              ),
+              const Spacer(),
+              // Data amount - grey text
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  dataText,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ),
+              // Details link with arrow
+              Row(
+                children: [
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 16,
+                    color: AppTheme.mainBlue,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Details',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.mainBlue,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildFeatureItem(String text) {
@@ -1128,7 +970,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final viewDetailsButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'startOrder_viewDetailsButton_background',
-      fallback: AppTheme.yellowAccent,
+      fallback: AppTheme.redAccent
     );
     final viewDetailsButtonText = AppTheme.getComponentTextColor(
       context,
@@ -1365,7 +1207,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                       'View Details',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w700,
                         color: viewDetailsButtonText,
                       ),
                     ),
@@ -1499,91 +1341,34 @@ class StartOrderView extends StatefulWidget {
 class _StartOrderViewState extends State<StartOrderView> {
   final GlobalKey<_StartOrderContentState> _contentKey = GlobalKey<_StartOrderContentState>();
 
-  void _showHamburgerMenu(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: AppTheme.getComponentShadowColor(
-        context,
-        'mainLayout_dialogBarrier',
-        fallback: Colors.black54,
-      ),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            )),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              height: MediaQuery.of(context).size.height,
-              color: AppTheme.getComponentBackgroundColor(
-                context,
-                'mainLayout_hamburgerMenu_background',
-                fallback: Colors.white,
-              ),
-              child: const HamburgerMenuView(),
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    final screenBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'home_scaffold_background',
-      fallback: Colors.white,
-    );
-
     return Scaffold(
-      backgroundColor: screenBg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppHeader(
-              zipCode: _contentKey.currentState?.currentZipCode.isNotEmpty == true
-                  ? _contentKey.currentState!.currentZipCode
-                  : null,
-              onZipCodeTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (context) => const AddressInfoSheet(),
-                ).then((_) {
-                  _contentKey.currentState?.reloadData();
-                });
-              },
-              onMenuTap: () {
-                _showHamburgerMenu(context);
-              },
-            ),
-            Expanded(
-              child: _StartOrderContent(
-                key: _contentKey,
-                isNewUser: widget.isNewUser,
-                onStart: widget.onStart,
-                onResume: widget.onResume,
-                isBodyOnly: false,
+      backgroundColor: Colors.transparent,
+      body: MeshBackground(
+        animated: true,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                  child: _StartOrderContent(
+                    key: _contentKey,
+                    isNewUser: widget.isNewUser,
+                    onStart: widget.onStart,
+                    onResume: widget.onResume,
+                    isBodyOnly: false,
+                  ),
+                ),
+              Consumer<NavigationState>(
+                builder: (context, navigationState, _) {
+                  return AppFooter(
+                    currentTab: navigationState.currentFooterTab,
+                  );
+                },
               ),
-            ),
-            Consumer<NavigationState>(
-              builder: (context, navigationState, _) {
-                return AppFooter(
-                  currentTab: navigationState.currentFooterTab,
-                );
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

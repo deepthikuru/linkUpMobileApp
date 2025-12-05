@@ -44,7 +44,7 @@ class AppHeader extends StatelessWidget {
             children: [
               // Left side: Back button or Logo (fixed width)
               SizedBox(
-                width: 48,
+                width: 70,
                 child: onBackTap != null
                     ? IconButton(
                         icon: Icon(
@@ -58,10 +58,9 @@ class AppHeader extends StatelessWidget {
                         padding: EdgeInsets.zero,
                       )
                     : Image.asset(
-                        'assets/images/LinkUpLogo.png',
-                        height: 50,
-                        width: 80,
-                        fit: BoxFit.contain,
+                        'assets/images/LinkUpLogo2.png',
+                        height: 115,
+                        width: 189,
                       ),
               ),
               
@@ -110,23 +109,8 @@ class AppHeader extends StatelessWidget {
                 ),
               ),
               
-              // Right side: Hamburger menu button (fixed width)
-              SizedBox(
-                width: 48,
-                child: onMenuTap != null
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.menu,
-                          color: showGradient
-                              ? AppTheme.getComponentIconColor(context, 'appHeader_menuIcon_gradient', fallback: Colors.white)
-                              : AppTheme.getComponentIconColor(context, 'appHeader_menuIcon', fallback: Colors.black),
-                        ),
-                        onPressed: onMenuTap,
-                        iconSize: 28,
-                        padding: EdgeInsets.zero,
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              // Right side: Empty space (hamburger menu removed)
+              const SizedBox(width: 48),
             ],
           ),
         ),

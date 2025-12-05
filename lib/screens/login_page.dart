@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import '../widgets/app_header.dart';
+import '../widgets/mesh_background.dart';
 import '../providers/user_registration_view_model.dart';
 import '../services/firebase_order_manager.dart';
 import '../services/notification_service.dart';
@@ -327,7 +327,7 @@ class _LoginPageState extends State<LoginPage> {
     final titleColor = AppTheme.getComponentTextColor(
       context,
       'login_title_text',
-      fallback: Colors.black,
+      fallback: Colors.white,
     );
     final hintColor = AppTheme.getComponentTextColor(
       context,
@@ -342,7 +342,7 @@ class _LoginPageState extends State<LoginPage> {
     final linkColor = AppTheme.getComponentTextColor(
       context,
       'link-primary',
-      fallback: AppTheme.mainBlue,
+      fallback: AppTheme.yellowAccentDynamic(context),
     );
     final primaryButtonBg = AppTheme.getComponentBackgroundColor(
       context,
@@ -392,7 +392,7 @@ class _LoginPageState extends State<LoginPage> {
     final bodyText = AppTheme.getComponentTextColor(
       context,
       'login_footerText_text',
-      fallback: Colors.black,
+      fallback: Colors.white,
     );
     final dividerColor = AppTheme.getComponentTextColor(
       context,
@@ -406,13 +406,14 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     return Scaffold(
-      backgroundColor: screenBg,
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: MeshBackground(
+        animated: true,
+        meshOpacity: 0.5, // Reduced opacity to make background less disturbing
+        child: SafeArea(
         child: Column(
           children: [
-            // Header Component fixed at top
-            const AppHeader(),
-            // Scrollable content below header
+            // Scrollable content
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
@@ -421,14 +422,13 @@ class _LoginPageState extends State<LoginPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 40),
-                      // Sign In Title - Centered
+                      // Sign In Title - Centered, white with double bold style
                       Center(
                         child: Text(
                           'Sign In',
-                          style: TextStyle(
+                          style: AppTheme.getDoubleBoldTextStyle(
+                            color: Colors.white,
                             fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: titleColor,
                           ),
                         ),
                       ),
@@ -470,7 +470,10 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: _handleForgotPassword,
                           child: Text(
                             'Forgot password?',
-                            style: TextStyle(color: linkColor),
+                            style: AppTheme.getDoubleBoldTextStyle(
+                              color: linkColor,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -504,21 +507,32 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      // OR Separator
+                      // OR Separator - Yellow and bolder
                       Row(
                         children: [
-                          Expanded(child: Divider(color: dividerColor)),
+                          Expanded(
+                            child: Divider(
+                              color: linkColor, // Yellow color
+                              thickness: 2.0, // Made bolder
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
                               'OR',
-                              style: TextStyle(
-                                color: dividerColor,
-                                fontWeight: FontWeight.w500,
+                              style: AppTheme.getDoubleBoldTextStyle(
+                                color: linkColor, // Yellow color
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900, // Extra bold
                               ),
                             ),
                           ),
-                          Expanded(child: Divider(color: dividerColor)),
+                          Expanded(
+                            child: Divider(
+                              color: linkColor, // Yellow color
+                              thickness: 2.0, // Made bolder
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 32),
@@ -588,42 +602,52 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 40),
-                      // New User Link
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'New to Telgoo5 Mobile?',
-                              style: TextStyle(color: bodyText),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to create account - can be implemented later
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Create account feature coming soon'),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                'Create an account',
-                                style: TextStyle(color: linkColor),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                     ],
                   ),
+                ),
+              ),
+            ),
+            // Footer at the bottom - using Spacer approach
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'New to LinkUp Mobile? ',
+                      style: AppTheme.getDoubleBoldTextStyle(
+                        color: bodyText,
+                        fontSize: 14,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to create account - can be implemented later
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Create account feature coming soon'),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Create an account!',
+                        style: AppTheme.getDoubleBoldTextStyle(
+                          color: linkColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
       ),
+      ),
     );
   }
 }
+
 

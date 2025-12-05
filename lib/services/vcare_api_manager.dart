@@ -894,6 +894,104 @@ class CreateCustomerResponse {
   }
 }
 
+/// Assign eSIM Response Models
+class AssignEsimResponse {
+  final String statusCode;
+  final String description;
+  final String? smdpAddress;
+  final String? qrActivationCode;
+  final String? iccid;
+  final String? isEsim;
+  final String? activationCode;
+  final String? enrollId;
+  final String? esimAllocationSuccess;
+  final String? deviceId;
+  final String? provisionShipperStatus;
+  final String? provisionShipperMessage;
+
+  AssignEsimResponse({
+    required this.statusCode,
+    required this.description,
+    this.smdpAddress,
+    this.qrActivationCode,
+    this.iccid,
+    this.isEsim,
+    this.activationCode,
+    this.enrollId,
+    this.esimAllocationSuccess,
+    this.deviceId,
+    this.provisionShipperStatus,
+    this.provisionShipperMessage,
+  });
+
+  factory AssignEsimResponse.fromJson(Map<String, dynamic> json) {
+    return AssignEsimResponse(
+      statusCode: json['STATUSCODE']?.toString() ?? '',
+      description: json['DESCRIPTION']?.toString() ?? '',
+      smdpAddress: json['SMDPADDRESS']?.toString(),
+      qrActivationCode: json['QR_ACTIVATION_CODE']?.toString(),
+      iccid: json['ICCID']?.toString(),
+      isEsim: json['IS_ESIM']?.toString(),
+      activationCode: json['ACTIVATION_CODE']?.toString(),
+      enrollId: json['ENROLL_ID']?.toString(),
+      esimAllocationSuccess: json['ESIM_ALLOCATION_SUCCESS']?.toString(),
+      deviceId: json['DEVICE_ID']?.toString(),
+      provisionShipperStatus: json['provision_shipper_status']?.toString(),
+      provisionShipperMessage: json['provision_shipper_message']?.toString(),
+    );
+  }
+}
+
+/// New Number Activation Response Models
+class NewNumberActivationResponse {
+  final NewNumberActivationData? data;
+  final String msg;
+  final String msgCode;
+  final String? token;
+
+  NewNumberActivationResponse({
+    this.data,
+    required this.msg,
+    required this.msgCode,
+    this.token,
+  });
+
+  factory NewNumberActivationResponse.fromJson(Map<String, dynamic> json) {
+    return NewNumberActivationResponse(
+      data: json['data'] != null
+          ? NewNumberActivationData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+      msg: json['msg'] as String? ?? '',
+      msgCode: json['msg_code'] as String? ?? '',
+      token: json['token'] as String?,
+    );
+  }
+}
+
+class NewNumberActivationData {
+  final int? mdn;
+  final int? code;
+  final String? message;
+
+  NewNumberActivationData({
+    this.mdn,
+    this.code,
+    this.message,
+  });
+
+  factory NewNumberActivationData.fromJson(Map<String, dynamic> json) {
+    return NewNumberActivationData(
+      mdn: json['MDN'] is int 
+          ? json['MDN'] as int
+          : (json['MDN'] is String ? int.tryParse(json['MDN'] as String) : null),
+      code: json['code'] is int
+          ? json['code'] as int
+          : (json['code'] is String ? int.tryParse(json['code'] as String) : null),
+      message: json['message']?.toString(),
+    );
+  }
+}
+
 /// USPS Address Validation Models
 class USPSAddressData {
   final String? address1;
@@ -2031,6 +2129,196 @@ class VCareAPIManager {
       }
     } catch (e) {
       print('❌ Failed to create customer: $e');
+      rethrow;
+    }
+  }
+
+  /// Assign eSIM to customer
+  /// This API is used to retry eSIM allocation when it fails during customer creation
+  Future<AssignEsimResponse> assignEsim({
+    required String enrollmentId,
+    required String agentId,
+    String source = 'API',
+    String? externalTransactionId,
+  }) async {
+    print('🔍 ========================================');
+    print('🔍 ASSIGN ESIM API CALL');
+    print('🔍 ========================================');
+
+    // Prepare request body
+    final parameters = <String, dynamic>{
+      'enrollment_id': enrollmentId,
+      'action': 'assign_esim',
+      'agent_id': agentId,
+      'source': source,
+    };
+
+    if (externalTransactionId != null) {
+      parameters['external_transaction_id'] = externalTransactionId;
+    }
+
+    try {
+      final token = await authenticate();
+      final uri = Uri.parse('$_baseURL/customer');
+
+      print('📡 Assign eSIM API Request:');
+      print(jsonEncode(parameters));
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final request = http.Request('POST', uri);
+      request.headers['Content-Type'] = 'application/json';
+      request.headers['token'] = token;
+      request.body = jsonEncode(parameters);
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+            'Assign eSIM API request failed with status code: ${response.statusCode}');
+      }
+
+      // Print raw response
+      final responseString = response.body;
+      print('📡 Assign eSIM API Raw Response:');
+      print(responseString);
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Parse response
+      final json = jsonDecode(responseString) as Map<String, dynamic>;
+      
+      // Check if this is an error response
+      if (json.containsKey('errors') || json['msg_code'] != 'RESTAPI000') {
+        final errorMsg = json['errors'] != null 
+            ? (json['errors'] as List).join(', ')
+            : json['msg']?.toString() ?? 'Unknown error';
+        final errorCode = json['msg_code']?.toString() ?? 'UNKNOWN';
+        
+        print('❌ Assign eSIM API Error:');
+        print('   Error Code: $errorCode');
+        print('   Error Message: $errorMsg');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        throw Exception('Assign eSIM failed: $errorMsg (Code: $errorCode)');
+      }
+
+      final assignEsimResponse = AssignEsimResponse.fromJson(json);
+
+      print('✅ Assign eSIM API Response:');
+      print('   STATUSCODE: ${assignEsimResponse.statusCode}');
+      print('   DESCRIPTION: ${assignEsimResponse.description}');
+      if (assignEsimResponse.qrActivationCode != null) {
+        print('   QR_ACTIVATION_CODE: ${assignEsimResponse.qrActivationCode}');
+      }
+      if (assignEsimResponse.esimAllocationSuccess != null) {
+        print('   ESIM_ALLOCATION_SUCCESS: ${assignEsimResponse.esimAllocationSuccess}');
+      }
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return assignEsimResponse;
+    } catch (e) {
+      print('❌ Failed to assign eSIM: $e');
+      rethrow;
+    }
+  }
+
+  /// Activate new number for customer
+  /// This API is used to assign and activate a new number on customer's account
+  /// after creating customer with activation_type=NEWACTIVATION
+  Future<NewNumberActivationResponse> activateNewNumber({
+    required String enrollmentId,
+    required String zipCode,
+    String? sim,
+    String? imei,
+    required String agentId,
+    String source = 'API',
+    String? externalTransactionId,
+  }) async {
+    print('🔍 ========================================');
+    print('🔍 NEW NUMBER ACTIVATION API CALL');
+    print('🔍 ========================================');
+
+    // Prepare request body
+    final parameters = <String, dynamic>{
+      'enrollment_id': enrollmentId,
+      'zip_code': zipCode,
+      'action': 'new_number_activation_with_zip_code',
+      'agent_id': agentId,
+      'source': source,
+    };
+
+    if (sim != null && sim.isNotEmpty) {
+      parameters['sim'] = sim;
+    }
+
+    if (imei != null && imei.isNotEmpty) {
+      parameters['imei'] = imei;
+    }
+
+    if (externalTransactionId != null) {
+      parameters['external_transaction_id'] = externalTransactionId;
+    }
+
+    try {
+      final token = await authenticate();
+      final uri = Uri.parse('$_baseURL/inventory');
+
+      print('📡 New Number Activation API Request:');
+      print(jsonEncode(parameters));
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final request = http.Request('POST', uri);
+      request.headers['Content-Type'] = 'application/json';
+      request.headers['token'] = token;
+      request.body = jsonEncode(parameters);
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 50));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+            'New Number Activation API request failed with status code: ${response.statusCode}');
+      }
+
+      // Print raw response
+      final responseString = response.body;
+      print('📡 New Number Activation API Raw Response:');
+      print(responseString);
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Parse response
+      final json = jsonDecode(responseString) as Map<String, dynamic>;
+      
+      // Check if this is an error response
+      if (json.containsKey('errors') || json['msg_code'] != 'RESTAPI000') {
+        final errorMsg = json['errors'] != null 
+            ? (json['errors'] as List).join(', ')
+            : json['msg']?.toString() ?? 'Unknown error';
+        final errorCode = json['msg_code']?.toString() ?? 'UNKNOWN';
+        
+        print('❌ New Number Activation API Error:');
+        print('   Error Code: $errorCode');
+        print('   Error Message: $errorMsg');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        
+        throw Exception('New Number Activation failed: $errorMsg (Code: $errorCode)');
+      }
+
+      final activationResponse = NewNumberActivationResponse.fromJson(json);
+
+      print('✅ New Number Activation API Response:');
+      print('   Message: ${activationResponse.msg}');
+      print('   Message Code: ${activationResponse.msgCode}');
+      if (activationResponse.data != null) {
+        print('   MDN (Phone Number): ${activationResponse.data!.mdn}');
+        print('   Code: ${activationResponse.data!.code}');
+        print('   Message: ${activationResponse.data!.message}');
+      }
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      return activationResponse;
+    } catch (e) {
+      print('❌ Failed to activate new number: $e');
       rethrow;
     }
   }

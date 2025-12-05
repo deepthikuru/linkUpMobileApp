@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../services/firebase_order_manager.dart';
 import '../../services/vcare_api_manager.dart';
@@ -639,9 +640,134 @@ class _NumberPortingViewState extends State<NumberPortingView> {
   }
 
   Future<void> _onSimSetupComplete() async {
-    // Show appropriate sheet - don't complete order yet
-    // Order will be completed when user clicks "Return to Dashboard"
     final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
+    
+    // For new number orders, activate the number and assign eSIM before showing sheet
+    if (viewModel.numberType == 'New' && 
+        viewModel.userId != null && 
+        viewModel.orderId != null) {
+      
+      setState(() {
+        _isCompleting = true;
+      });
+      
+      try {
+        final orderManager = FirebaseOrderManager();
+        final orderData = await orderManager.fetchOrderDocument(
+          viewModel.userId!,
+          viewModel.orderId!,
+        );
+        
+        if (orderData != null) {
+          final enrollmentId = orderData['enrollment_id'] as String?;
+          
+          if (enrollmentId != null && enrollmentId.isNotEmpty) {
+            final apiManager = VCareAPIManager();
+            
+            // Step 1: Activate new number
+            print('🔄 Activating new number for customer...');
+            try {
+              // Wait a bit for customer to be in dispatched status
+              await Future.delayed(const Duration(seconds: 3));
+              
+              final activationTransactionId = VCareAPIManager.generateRandomTransactionId();
+              
+              // Get IMEI from order if available (needed for certain carriers)
+              final imei = orderData['imei'] as String?;
+              
+              // Activate new number
+              final activationResponse = await apiManager.activateNewNumber(
+                enrollmentId: enrollmentId,
+                zipCode: viewModel.zip,
+                sim: null, // For eSIM orders, sim might not be available yet
+                imei: imei,
+                agentId: 'Sushil', // TODO: Get from user settings or configuration
+                source: 'WEBSITE',
+                externalTransactionId: activationTransactionId,
+              );
+
+              // Save phone number (MDN) to order
+              if (activationResponse.data != null && activationResponse.data!.mdn != null) {
+                final phoneNumber = activationResponse.data!.mdn!.toString();
+                print('✅ New number activated: $phoneNumber');
+                
+                await orderManager.saveStepProgress(
+                  userId: viewModel.userId!,
+                  orderId: viewModel.orderId!,
+                  step: 6,
+                  data: {'mdn': phoneNumber},
+                );
+                print('✅ Successfully saved phone number to order');
+              }
+            } catch (e, stackTrace) {
+              print('❌ Failed to activate new number: $e');
+              print('   Stack trace: $stackTrace');
+              // Continue - might already be activated or will be activated later
+            }
+            
+            // Step 2: For eSIM orders, assign eSIM after number activation
+            if (viewModel.simType == 'eSIM') {
+              print('🔄 Calling assign_esim API for eSIM order...');
+              try {
+                // Wait a bit after number activation for eSIM processing
+                await Future.delayed(const Duration(seconds: 5));
+                
+                final assignTransactionId = VCareAPIManager.generateRandomTransactionId();
+                final assignEsimResponse = await apiManager.assignEsim(
+                  enrollmentId: enrollmentId,
+                  agentId: 'Sushil', // TODO: Get from user settings or configuration
+                  source: 'WEBSITE',
+                  externalTransactionId: assignTransactionId,
+                );
+
+                // Check if eSIM allocation was successful
+                if (assignEsimResponse.statusCode == '00' && 
+                    assignEsimResponse.esimAllocationSuccess == 'Y') {
+                  print('✅ eSIM allocated successfully');
+                  
+                  // Save eSIM details to order
+                  final esimData = <String, dynamic>{
+                    'esim_qr_activation_code': assignEsimResponse.qrActivationCode,
+                    'esim_iccid': assignEsimResponse.iccid,
+                    'esim_activation_code': assignEsimResponse.activationCode,
+                    'esim_smdp_address': assignEsimResponse.smdpAddress,
+                    'esim_enroll_id': assignEsimResponse.enrollId,
+                    'esim_allocation_success': assignEsimResponse.esimAllocationSuccess,
+                  };
+
+                  await orderManager.saveStepProgress(
+                    userId: viewModel.userId!,
+                    orderId: viewModel.orderId!,
+                    step: 6,
+                    data: esimData,
+                  );
+                  print('✅ Successfully saved eSIM data to order');
+                  
+                  // Small delay to ensure Firestore has committed the write
+                  await Future.delayed(const Duration(milliseconds: 500));
+                } else {
+                  print('⚠️ eSIM allocation was not successful');
+                  print('   Status Code: ${assignEsimResponse.statusCode}');
+                  print('   Description: ${assignEsimResponse.description}');
+                }
+              } catch (e, stackTrace) {
+                print('❌ Failed to assign eSIM: $e');
+                print('   Stack trace: $stackTrace');
+                // Continue - eSIM might be assigned later or already assigned
+              }
+            }
+          }
+        }
+      } catch (e) {
+        print('❌ Error in new number activation flow: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isCompleting = false;
+          });
+        }
+      }
+    }
     
     // Show appropriate sheet based on SIM type and device selection
     // IMPORTANT: For eSIM, never show shipping sheet
@@ -881,7 +1007,7 @@ class _NumberPortingViewState extends State<NumberPortingView> {
 }
 
 // QR Code Sheet Widget
-class _QRCodeSheet extends StatelessWidget {
+class _QRCodeSheet extends StatefulWidget {
   final UserRegistrationViewModel viewModel;
   final VoidCallback onReturn;
 
@@ -889,6 +1015,57 @@ class _QRCodeSheet extends StatelessWidget {
     required this.viewModel,
     required this.onReturn,
   });
+
+  @override
+  State<_QRCodeSheet> createState() => __QRCodeSheetState();
+}
+
+class __QRCodeSheetState extends State<_QRCodeSheet> {
+  String? _qrActivationCode;
+  String? _iccid;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEsimData();
+  }
+
+  Future<void> _loadEsimData() async {
+    if (widget.viewModel.userId == null || widget.viewModel.orderId == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final orderManager = FirebaseOrderManager();
+      final orderData = await orderManager.fetchOrderDocument(
+        widget.viewModel.userId!,
+        widget.viewModel.orderId!,
+      );
+
+      if (orderData != null && mounted) {
+        setState(() {
+          _qrActivationCode = orderData['esim_qr_activation_code']?.toString();
+          _iccid = orderData['esim_iccid']?.toString();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('❌ Failed to load eSIM data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -917,16 +1094,20 @@ class _QRCodeSheet extends StatelessWidget {
             ),
             SizedBox(height: 24),
             
-            // QR Code Image
+            // QR Code Display
+            if (_isLoading)
+              Container(
+                width: 250,
+                height: 250,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_qrActivationCode != null && _qrActivationCode!.isNotEmpty)
+              // Display actual QR code using qr_flutter package
             Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                color: AppTheme.getComponentBackgroundColor(
-                  context,
-                  'orderCard_background',
-                  fallback: Colors.white,
-                ),
+                  color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.borderColor),
                 boxShadow: [
@@ -941,6 +1122,28 @@ class _QRCodeSheet extends StatelessWidget {
                   ),
                 ],
               ),
+                padding: EdgeInsets.all(16),
+                child: QrImageView(
+                  data: _qrActivationCode!,
+                  version: QrVersions.auto,
+                  size: 218.0,
+                  backgroundColor: Colors.white,
+                ),
+              )
+            else
+              // Fallback to static image if QR code not available
+              Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  color: AppTheme.getComponentBackgroundColor(
+                    context,
+                    'orderCard_background',
+                    fallback: Colors.white,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.borderColor),
+                ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
@@ -950,9 +1153,38 @@ class _QRCodeSheet extends StatelessWidget {
               ),
             ),
             
+            // Show activation code as text if available
+            if (_qrActivationCode != null && _qrActivationCode!.isNotEmpty) ...[
             SizedBox(height: 16),
             Text(
-              'Order #: ${viewModel.orderId ?? "N/A"}',
+                'Activation Code:',
+                style: AppTheme.bodySmallStyle.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 4),
+              SelectableText(
+                _qrActivationCode!,
+              style: AppTheme.bodySmallStyle,
+                textAlign: TextAlign.center,
+              ),
+            ],
+            
+            // Show ICCID if available
+            if (_iccid != null && _iccid!.isNotEmpty) ...[
+              SizedBox(height: 8),
+              Text(
+                'ICCID: $_iccid',
+                style: AppTheme.bodySmallStyle.copyWith(
+                  color: AppTheme.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            
+            SizedBox(height: 16),
+            Text(
+              'Order #: ${widget.viewModel.orderId ?? "N/A"}',
               style: AppTheme.bodySmallStyle,
             ),
             
@@ -987,7 +1219,7 @@ class _QRCodeSheet extends StatelessWidget {
             
             GradientButton(
               text: 'Return to Dashboard',
-              onPressed: onReturn,
+              onPressed: widget.onReturn,
             ),
           ],
         ),

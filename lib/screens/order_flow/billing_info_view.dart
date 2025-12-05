@@ -750,6 +750,9 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         }
       }
 
+      // Note: New number activation and eSIM assignment are handled in Step 6
+      // to allow time for customer to be in dispatched status
+      
       // Note: Port-in APIs (get_list, submit_portin, query_portin) are NOT called here
       // because port-in details are collected in step 6 (porting view), not step 5 (billing)
       // The port-in APIs will be called in number_porting_view.dart after user fills port-in details

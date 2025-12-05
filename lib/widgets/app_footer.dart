@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../providers/navigation_state.dart';
 import 'package:provider/provider.dart';
@@ -15,54 +16,74 @@ class AppFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = AppTheme.getComponentShadowColor(context, 'appFooter_shadow', fallback: Colors.black.withOpacity(0.1));
+    final mainBlue = AppTheme.mainBlueDynamic(context);
     
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.getComponentBackgroundColor(context, 'appFooter_background', fallback: Colors.white),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(22),
+        topRight: Radius.circular(22),
       ),
-      child: Container(
-        height: 60 + MediaQuery.of(context).padding.bottom,
-        padding: EdgeInsets.only(
-          left: 16.0,
-          right: 16.0,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Plans first
-            _buildTabItem(
-              context,
-              icon: Icons.list_alt,
-              label: 'Plans',
-              tab: FooterTab.plans,
-              isSelected: currentTab == FooterTab.plans,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          height: 96,
+          decoration: BoxDecoration(
+            color: mainBlue.withOpacity(0.9),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 14,
+                offset: const Offset(0, -4),
+                color: Colors.black.withOpacity(0.15),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                // Plans first
+                _buildTabItem(
+                  context,
+                  icon: Icons.assignment,
+                  iconOutlined: Icons.list_alt,
+                  label: 'Plans',
+                  tab: FooterTab.plans,
+                  isSelected: currentTab == FooterTab.plans,
+                ),
+                // Home in the middle
+                _buildTabItem(
+                  context,
+                  icon: Icons.home_rounded,
+                  iconOutlined: Icons.home_outlined,
+                  label: 'Home',
+                  tab: FooterTab.home,
+                  isSelected: currentTab == FooterTab.home,
+                ),
+                // Chat
+                _buildTabItem(
+                  context,
+                  icon: Icons.chat_bubble,
+                  iconOutlined: Icons.chat_bubble_outline,
+                  label: 'Chat',
+                  tab: FooterTab.chat,
+                  isSelected: currentTab == FooterTab.chat,
+                ),
+                // Profile last
+                _buildTabItem(
+                  context,
+                  icon: Icons.person,
+                  iconOutlined: Icons.person_outline,
+                  label: 'Profile',
+                  tab: FooterTab.profile,
+                  isSelected: currentTab == FooterTab.profile,
+                ),
+              ],
+              ),
             ),
-            // Home in the middle
-            _buildTabItem(
-              context,
-              icon: Icons.home,
-              label: 'Home',
-              tab: FooterTab.home,
-              isSelected: currentTab == FooterTab.home,
-            ),
-            // Chat last
-            _buildTabItem(
-              context,
-              icon: Icons.chat_bubble_outline,
-              label: 'Chat',
-              tab: FooterTab.chat,
-              isSelected: currentTab == FooterTab.chat,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -71,44 +92,42 @@ class AppFooter extends StatelessWidget {
   Widget _buildTabItem(
     BuildContext context, {
     required IconData icon,
+    required IconData iconOutlined,
     required String label,
     required FooterTab tab,
     required bool isSelected,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          if (onTabChanged != null) {
-            onTabChanged!(tab);
-          } else {
-            _handleTabNavigation(context, tab);
-          }
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
+    final accentGold = AppTheme.accentGold;
+    
+    return InkWell(
+      onTap: () {
+        if (onTabChanged != null) {
+          onTabChanged!(tab);
+        } else {
+          _handleTabNavigation(context, tab);
+        }
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isSelected ? icon : iconOutlined,
+            size: 26,
+            color: isSelected
+                ? accentGold // Yellow accent
+                : Colors.white,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
               color: isSelected
-                  ? AppTheme.getComponentIconColor(context, 'appFooter_tabIcon_selected', fallback: AppTheme.accentGold)
-                  : AppTheme.getComponentIconColor(context, 'appFooter_tabIcon', fallback: Colors.grey),
-              size: 24,
+                  ? accentGold
+                  : Colors.white,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected
-                    ? AppTheme.getComponentTextColor(context, 'appFooter_tabLabel_selected', fallback: AppTheme.accentGold)
-                    : AppTheme.getComponentTextColor(context, 'appFooter_tabLabel', fallback: Colors.grey),
-                fontWeight: isSelected
-                    ? FontWeight.w600
-                    : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -124,6 +143,4 @@ class AppFooter extends StatelessWidget {
       navigationState.navigateTo(Destination.startNewOrder);
     }
   }
-
 }
-

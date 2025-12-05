@@ -586,7 +586,6 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                     'deviceCompatibility_button_background',
                     fallback: AppTheme.accentGold,
                   ),
-                  disabledBackgroundColor: AppTheme.disabledBackground,
                   padding: EdgeInsets.symmetric(vertical: AppTheme.paddingButtonVertical),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),

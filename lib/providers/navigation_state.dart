@@ -4,6 +4,7 @@ enum FooterTab {
   home,
   plans,
   chat,
+  profile,
 }
 
 enum Destination {
@@ -45,6 +46,9 @@ class NavigationState extends ChangeNotifier {
   String? lastAppliedResumeForOrderId;
   Destination currentDestination = Destination.startNewOrder;
   FooterTab currentFooterTab = FooterTab.home;
+  
+  // Callback for programmatic tab navigation
+  Function(FooterTab)? onNavigateToTab;
 
   void navigateTo(Destination destination) {
     currentDestination = destination;
@@ -66,6 +70,13 @@ class NavigationState extends ChangeNotifier {
   void setFooterTab(FooterTab tab) {
     currentFooterTab = tab;
     notifyListeners();
+  }
+  
+  void navigateToTab(FooterTab tab) {
+    setFooterTab(tab);
+    if (onNavigateToTab != null) {
+      onNavigateToTab!(tab);
+    }
   }
 
   void resetNavigation() {

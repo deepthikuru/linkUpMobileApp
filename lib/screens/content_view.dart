@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/user_registration_view_model.dart';
 import '../providers/navigation_state.dart' show NavigationState, Destination, FooterTab;
+import '../providers/plans_provider.dart';
 import '../services/firebase_order_manager.dart';
+import '../utils/constants.dart';
 import 'home/start_order_view.dart';
 import 'order_flow/contact_info_view.dart';
 import 'order_flow/device_compatibility_view.dart';
@@ -62,6 +64,11 @@ class _ContentViewState extends State<ContentView> {
   Future<void> _checkContactInfo() async {
     final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
     await viewModel.loadUserData();
+    
+    // Initialize plans when user data is loaded
+    final plansProvider = Provider.of<PlansProvider>(context, listen: false);
+    final zipCode = viewModel.zip.isNotEmpty ? viewModel.zip : AppConstants.defaultZipCode;
+    await plansProvider.loadPlans(zipCode);
     
     setState(() {
       _hasContactInfo = viewModel.firstName.isNotEmpty && viewModel.lastName.isNotEmpty;
