@@ -2,10 +2,10 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:../../linkUpMobileApp/ios/Runner.xcodeproj">
+      location = "container:../linkUpMobileApp/ios/Runner.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../../linkUpMobileApp/ios/Pods/Pods.xcodeproj">
+      location = "container:../linkUpMobileApp/ios/Pods/Pods.xcodeproj">
    </FileRef>
 </Workspace>
 
