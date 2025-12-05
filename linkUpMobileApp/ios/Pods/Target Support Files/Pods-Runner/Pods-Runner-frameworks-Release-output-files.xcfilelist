@@ -1,0 +1,4 @@
+# Placeholder file - will be replaced by 'pod install'
+# This file exists to prevent Xcode build description phase errors
+# when Pods haven't been installed yet. The build phase script will
+# install Pods and overwrite this with the real file.

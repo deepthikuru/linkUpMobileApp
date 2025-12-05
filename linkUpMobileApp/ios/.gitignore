@@ -11,6 +11,9 @@
 **/DerivedData/
 Icon?
 **/Pods/
+# Exception: Allow placeholder xcfilelist files to be committed
+# These are needed to prevent build errors before pod install runs
+!Pods/Target Support Files/Pods-Runner/*.xcfilelist
 **/.symlinks/
 profile
 xcuserdata
