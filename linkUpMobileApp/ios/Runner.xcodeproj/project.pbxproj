@@ -288,7 +288,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+			shellScript = "if [ -z \"$FLUTTER_ROOT\" ]; then\n  # Try to read FLUTTER_ROOT from Generated.xcconfig\n  if [ -f \"${SRCROOT}/Flutter/Generated.xcconfig\" ]; then\n    FLUTTER_ROOT=\"$(grep '^FLUTTER_ROOT=' \"${SRCROOT}/Flutter/Generated.xcconfig\" | cut -d '=' -f2 | tr -d ' ')\"\n    export FLUTTER_ROOT\n  fi\n  # Fallback to common installation paths\n  if [ -z \"$FLUTTER_ROOT\" ] || [ ! -d \"$FLUTTER_ROOT\" ]; then\n    if [ -d \"/Users/local/flutter\" ]; then\n      export FLUTTER_ROOT=\"/Users/local/flutter\"\n    elif [ -d \"$HOME/flutter\" ]; then\n      export FLUTTER_ROOT=\"$HOME/flutter\"\n    elif [ -f \"$HOME/.flutter_path\" ]; then\n      source \"$HOME/.flutter_path\"\n      if command -v flutter >/dev/null 2>&1; then\n        export FLUTTER_ROOT=\"$(dirname \"$(dirname \"$(which flutter)\")\")\"\n      fi\n    fi\n  fi\nfi\n# Verify FLUTTER_ROOT is set and valid\nif [ -z \"$FLUTTER_ROOT\" ] || [ ! -d \"$FLUTTER_ROOT\" ]; then\n  echo \"error: FLUTTER_ROOT not set or invalid. Expected Flutter installation directory.\" >&2\n  exit 1\nfi\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
 		};
 		768832E27223ED34B1AA07AF /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -320,7 +320,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+			shellScript = "if [ -z \"$FLUTTER_ROOT\" ]; then\n  # Try to read FLUTTER_ROOT from Generated.xcconfig\n  if [ -f \"${SRCROOT}/Flutter/Generated.xcconfig\" ]; then\n    FLUTTER_ROOT=\"$(grep '^FLUTTER_ROOT=' \"${SRCROOT}/Flutter/Generated.xcconfig\" | cut -d '=' -f2 | tr -d ' ')\"\n    export FLUTTER_ROOT\n  fi\n  # Fallback to common installation paths\n  if [ -z \"$FLUTTER_ROOT\" ] || [ ! -d \"$FLUTTER_ROOT\" ]; then\n    if [ -d \"/Users/local/flutter\" ]; then\n      export FLUTTER_ROOT=\"/Users/local/flutter\"\n    elif [ -d \"$HOME/flutter\" ]; then\n      export FLUTTER_ROOT=\"$HOME/flutter\"\n    elif [ -f \"$HOME/.flutter_path\" ]; then\n      source \"$HOME/.flutter_path\"\n      if command -v flutter >/dev/null 2>&1; then\n        export FLUTTER_ROOT=\"$(dirname \"$(dirname \"$(which flutter)\")\")\"\n      fi\n    fi\n  fi\nfi\n# Verify FLUTTER_ROOT is set and valid\nif [ -z \"$FLUTTER_ROOT\" ] || [ ! -d \"$FLUTTER_ROOT\" ]; then\n  echo \"error: FLUTTER_ROOT not set or invalid. Expected Flutter installation directory.\" >&2\n  exit 1\nfi\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
 		9FC71651C6115FE08C0E90AB /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
