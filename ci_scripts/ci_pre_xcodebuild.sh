@@ -6,7 +6,41 @@
 set -e
 set -x  # Enable debug output to see what's failing
 
-echo "🚀 Starting Xcode Cloud pre-build script..."
+# Logging functions for better visibility in Xcode Cloud
+log_info() {
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "ℹ️  $1"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+log_section() {
+    echo ""
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+    echo "📋 $1"
+    echo "═══════════════════════════════════════════════════════════════════════════════"
+}
+
+log_success() {
+    echo "✅ $1"
+}
+
+log_error() {
+    echo "❌ ERROR: $1" >&2
+}
+
+log_warning() {
+    echo "⚠️  WARNING: $1" >&2
+}
+
+log_step() {
+    echo "  → $1"
+}
+
+# Start script with clear header
+log_section "XCODE CLOUD PRE-BUILD SCRIPT"
+echo "Script: ci_pre_xcodebuild.sh"
+echo "Started: $(date)"
+echo ""
 
 # Determine project root
 # In Xcode Cloud, CI_WORKSPACE points to the workspace root
@@ -16,69 +50,102 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 FLUTTER_PROJECT_DIR="$REPO_ROOT/linkUpMobileApp"
 IOS_DIR="$FLUTTER_PROJECT_DIR/ios"
 
-echo "📂 Repository root: $REPO_ROOT"
-echo "📂 Flutter project directory: $FLUTTER_PROJECT_DIR"
-echo "📂 iOS directory: $IOS_DIR"
-echo "📂 Current PATH: $PATH"
-echo "📂 HOME: $HOME"
+log_section "ENVIRONMENT SETUP"
+log_step "Repository root: $REPO_ROOT"
+log_step "Flutter project directory: $FLUTTER_PROJECT_DIR"
+log_step "iOS directory: $IOS_DIR"
+log_step "Current working directory: $(pwd)"
+log_step "HOME: $HOME"
+log_step "PATH: $PATH"
 
 # Source Flutter path if set by post-clone script
+log_step "Checking for Flutter path from post-clone script..."
 if [ -f "$HOME/.flutter_path" ]; then
   source "$HOME/.flutter_path"
-  echo "✅ Loaded Flutter path from post-clone script"
+  log_success "Loaded Flutter path from post-clone script"
+else
+  log_warning "Flutter path file not found (this is OK if post-clone script didn't run)"
 fi
 
 # Navigate to Flutter project root
 cd "$FLUTTER_PROJECT_DIR"
 
 # Check if we're in the right directory
+log_step "Verifying Flutter project structure..."
 if [ ! -f "pubspec.yaml" ]; then
-  echo "❌ Error: pubspec.yaml not found. Current directory: $(pwd)"
+  log_error "pubspec.yaml not found. Current directory: $(pwd)"
+  log_error "Expected Flutter project at: $FLUTTER_PROJECT_DIR"
   exit 1
 fi
+log_success "Found pubspec.yaml at: $(pwd)/pubspec.yaml"
 
 # Find Flutter command (should be installed by ci_post_clone.sh)
+log_section "FLUTTER SETUP"
+log_step "Locating Flutter command..."
 FLUTTER_CMD=""
 if command -v flutter >/dev/null 2>&1; then
   FLUTTER_CMD="flutter"
-  echo "✅ Found Flutter: $(which flutter)"
+  log_success "Found Flutter in PATH: $(which flutter)"
 elif [ -d "$HOME/flutter/bin" ]; then
   FLUTTER_CMD="$HOME/flutter/bin/flutter"
   export PATH="$HOME/flutter/bin:$PATH"
-  echo "✅ Found Flutter at: $FLUTTER_CMD"
+  log_success "Found Flutter at: $FLUTTER_CMD"
 else
-  echo "❌ Flutter not found. Make sure ci_post_clone.sh installed Flutter."
-  echo "Current PATH: $PATH"
+  log_error "Flutter not found. Make sure ci_post_clone.sh installed Flutter."
+  log_error "Current PATH: $PATH"
+  log_error "Checked locations:"
+  log_error "  - PATH: $(which flutter 2>&1 || echo 'not found')"
+  log_error "  - $HOME/flutter/bin/flutter: $([ -f "$HOME/flutter/bin/flutter" ] && echo 'exists' || echo 'not found')"
   exit 1
 fi
 
 # Verify Flutter is working
+log_step "Verifying Flutter installation..."
 if ! "$FLUTTER_CMD" --version >/dev/null 2>&1; then
-  echo "❌ Flutter command is not working: $FLUTTER_CMD"
+  log_error "Flutter command is not working: $FLUTTER_CMD"
   "$FLUTTER_CMD" --version || true
   exit 1
 fi
+FLUTTER_VERSION=$("$FLUTTER_CMD" --version | head -1)
+log_success "Flutter is working: $FLUTTER_VERSION"
 
-echo "📦 Getting Flutter dependencies..."
-"$FLUTTER_CMD" pub get
+log_section "FLUTTER DEPENDENCIES"
+log_step "Getting Flutter dependencies (flutter pub get)..."
+if "$FLUTTER_CMD" pub get; then
+  log_success "Flutter dependencies retrieved successfully"
+else
+  log_error "Failed to get Flutter dependencies"
+  exit 1
+fi
 
-echo "🔧 Precaching iOS artifacts..."
-"$FLUTTER_CMD" precache --ios
+log_step "Precaching iOS artifacts (flutter precache --ios)..."
+if "$FLUTTER_CMD" precache --ios; then
+  log_success "iOS artifacts precached successfully"
+else
+  log_warning "iOS precache had issues (continuing anyway)"
+fi
 
 # Navigate to iOS directory
 cd "$IOS_DIR"
 
-# Check if Podfile exists
+log_section "COCOAPODS SETUP"
+log_step "Verifying Podfile exists..."
 if [ ! -f "Podfile" ]; then
-  echo "❌ Error: Podfile not found in ios directory"
+  log_error "Podfile not found in ios directory: $IOS_DIR"
+  log_error "Current directory: $(pwd)"
   exit 1
 fi
+log_success "Podfile found at: $IOS_DIR/Podfile"
 
 # Clean previous pod installs to ensure fresh state
-echo "🧹 Cleaning previous CocoaPods installation..."
-rm -rf Pods
-rm -rf .symlinks
-rm -f Podfile.lock
+log_step "Cleaning previous CocoaPods installation..."
+log_step "  Removing: Pods/"
+rm -rf Pods 2>/dev/null || true
+log_step "  Removing: .symlinks/"
+rm -rf .symlinks 2>/dev/null || true
+log_step "  Removing: Podfile.lock"
+rm -f Podfile.lock 2>/dev/null || true
+log_success "Previous CocoaPods installation cleaned"
 
 # Navigate back to project root to generate Flutter plugin symlinks
 cd "$FLUTTER_PROJECT_DIR"
@@ -86,9 +153,13 @@ cd "$FLUTTER_PROJECT_DIR"
 # Generate Flutter plugin symlinks by running a config-only build
 # This ensures all plugin symlinks are created before pod install
 # This also generates Flutter/Generated.xcconfig which is required for the build
-echo "🔗 Generating Flutter plugin symlinks and configuration files..."
-"$FLUTTER_CMD" build ios --config-only --no-codesign || {
-  echo "⚠️  Flutter build ios --config-only failed, trying alternative method..."
+log_section "FLUTTER CONFIGURATION GENERATION"
+log_step "Generating Flutter plugin symlinks and configuration files..."
+log_step "Running: flutter build ios --config-only --no-codesign"
+if "$FLUTTER_CMD" build ios --config-only --no-codesign; then
+  log_success "Flutter configuration generated successfully"
+else
+  log_warning "Flutter build ios --config-only failed, trying alternative method..."
   # Alternative: Force plugin symlink generation
   cd "$IOS_DIR"
   if [ -d ".symlinks" ]; then
@@ -98,143 +169,154 @@ echo "🔗 Generating Flutter plugin symlinks and configuration files..."
   "$FLUTTER_CMD" pub get
   # Try to trigger symlink generation by checking for plugins
   "$FLUTTER_CMD" precache --ios
-}
+  log_warning "Used alternative method to generate configuration"
+fi
 
 # Navigate back to iOS directory
 cd "$IOS_DIR"
 
 # CRITICAL: Verify Flutter/Generated.xcconfig exists
 # This file is required by Release.xcconfig and Debug.xcconfig
+log_step "Verifying Flutter/Generated.xcconfig exists..."
 if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
-  echo "❌ Error: Flutter/Generated.xcconfig not found after build ios --config-only"
-  echo "Attempting to generate manually..."
+  log_error "Flutter/Generated.xcconfig not found after build ios --config-only"
+  log_step "Attempting to generate manually..."
   cd "$FLUTTER_PROJECT_DIR"
   "$FLUTTER_CMD" pub get
   "$FLUTTER_CMD" precache --ios
   cd "$IOS_DIR"
   
   if [ ! -f "$IOS_DIR/Flutter/Generated.xcconfig" ]; then
-    echo "❌ Error: Flutter/Generated.xcconfig still not found"
-    echo "Current directory: $(pwd)"
-    echo "Listing Flutter directory:"
-    ls -la "$IOS_DIR/Flutter/" || echo "Flutter directory does not exist"
+    log_error "Flutter/Generated.xcconfig still not found"
+    log_error "Current directory: $(pwd)"
+    log_error "Expected at: $IOS_DIR/Flutter/Generated.xcconfig"
+    log_error "Listing Flutter directory:"
+    ls -la "$IOS_DIR/Flutter/" || log_error "Flutter directory does not exist"
     exit 1
   fi
 fi
-
-echo "✅ Flutter/Generated.xcconfig verified at $IOS_DIR/Flutter/Generated.xcconfig"
+log_success "Flutter/Generated.xcconfig verified at $IOS_DIR/Flutter/Generated.xcconfig"
 
 # Verify .symlinks directory exists
+log_step "Verifying .symlinks directory exists..."
 if [ ! -d ".symlinks" ]; then
-  echo "❌ Error: .symlinks directory not found. Flutter plugin symlinks were not generated."
-  echo "Attempting to create symlinks manually..."
+  log_error ".symlinks directory not found. Flutter plugin symlinks were not generated."
+  log_step "Attempting to create symlinks manually..."
   cd "$FLUTTER_PROJECT_DIR"
   "$FLUTTER_CMD" pub get
   cd "$IOS_DIR"
   
   # Check again
   if [ ! -d ".symlinks" ]; then
-    echo "❌ Error: .symlinks directory still not found after retry."
+    log_error ".symlinks directory still not found after retry."
+    log_error "Current directory: $(pwd)"
+    log_error "Expected at: $IOS_DIR/.symlinks"
     exit 1
   fi
 fi
-
-echo "✅ Flutter plugin symlinks verified in .symlinks directory"
+log_success "Flutter plugin symlinks verified in .symlinks directory"
 
 # Find pod command
+log_step "Locating CocoaPods (pod) command..."
 POD_CMD=""
 if command -v pod >/dev/null 2>&1; then
   POD_CMD="pod"
-  echo "✅ Found CocoaPods: $(which pod)"
+  log_success "Found CocoaPods in PATH: $(which pod)"
 elif [ -f "$HOME/.gem/bin/pod" ]; then
   POD_CMD="$HOME/.gem/bin/pod"
   export PATH="$HOME/.gem/bin:$PATH"
-  echo "✅ Found CocoaPods at: $POD_CMD"
+  log_success "Found CocoaPods at: $POD_CMD"
 else
-  echo "❌ CocoaPods (pod) not found in PATH"
-  echo "Current PATH: $PATH"
-  echo "Attempting to find pod in common locations..."
+  log_error "CocoaPods (pod) not found in PATH"
+  log_error "Current PATH: $PATH"
+  log_error "Attempting to find pod in common locations..."
   which -a pod || true
   exit 1
 fi
 
-echo "📱 Installing CocoaPods dependencies..."
-echo "📍 Current directory before pod install: $(pwd)"
-echo "📍 IOS_DIR variable: $IOS_DIR"
-echo "📍 Checking if we're in the right directory..."
+log_section "COCOAPODS INSTALLATION"
+log_step "Verifying working directory..."
+log_step "  Current directory: $(pwd)"
+log_step "  Expected iOS directory: $IOS_DIR"
 if [ "$(pwd)" != "$IOS_DIR" ]; then
-  echo "⚠️  Warning: Not in iOS directory, changing to $IOS_DIR"
+  log_warning "Not in iOS directory, changing to $IOS_DIR"
   cd "$IOS_DIR"
-  echo "📍 Changed to: $(pwd)"
+  log_step "Changed to: $(pwd)"
 fi
 
 # Use --repo-update to ensure we have the latest pod specs
-echo "🔧 Running: $POD_CMD install --repo-update"
-"$POD_CMD" install --repo-update
-POD_INSTALL_EXIT_CODE=$?
-echo "📍 Pod install exit code: $POD_INSTALL_EXIT_CODE"
+log_step "Installing CocoaPods dependencies..."
+log_step "Running: $POD_CMD install --repo-update"
+if "$POD_CMD" install --repo-update; then
+  POD_INSTALL_EXIT_CODE=0
+  log_success "CocoaPods dependencies installed successfully"
+else
+  POD_INSTALL_EXIT_CODE=$?
+  log_error "CocoaPods installation failed with exit code: $POD_INSTALL_EXIT_CODE"
+  exit 1
+fi
 
 # Verify Pods were installed correctly
-echo "🔍 Verifying Pods installation..."
-echo "📍 Current directory: $(pwd)"
-echo "📍 Checking for Pods directory..."
+log_section "VERIFYING PODS INSTALLATION"
+log_step "Current directory: $(pwd)"
+log_step "Checking for Pods directory..."
 if [ ! -d "Pods" ]; then
-  echo "❌ Error: Pods directory not found after pod install"
-  echo "📍 Listing current directory contents:"
-  ls -la || echo "Failed to list directory"
-  echo "📍 Checking if Pods exists at absolute path: $IOS_DIR/Pods"
+  log_error "Pods directory not found after pod install"
+  log_step "Listing current directory contents:"
+  ls -la || log_error "Failed to list directory"
+  log_step "Checking if Pods exists at absolute path: $IOS_DIR/Pods"
   if [ -d "$IOS_DIR/Pods" ]; then
-    echo "⚠️  Pods directory exists at $IOS_DIR/Pods but not in current directory"
-    echo "📍 Changing to $IOS_DIR"
+    log_warning "Pods directory exists at $IOS_DIR/Pods but not in current directory"
+    log_step "Changing to $IOS_DIR"
     cd "$IOS_DIR"
   else
-    echo "❌ Pods directory does not exist at $IOS_DIR/Pods either"
+    log_error "Pods directory does not exist at $IOS_DIR/Pods either"
     exit 1
   fi
 else
-  echo "✅ Pods directory found at: $(pwd)/Pods"
+  log_success "Pods directory found at: $(pwd)/Pods"
 fi
 
 # CRITICAL: Verify xcfilelist files exist
 # These files are required by Xcode for the build process
-echo "🔍 Verifying xcfilelist files..."
-echo "📍 Current directory: $(pwd)"
-echo "📍 IOS_DIR: $IOS_DIR"
+log_section "VERIFYING XCFILELIST FILES"
+log_step "Current directory: $(pwd)"
+log_step "IOS_DIR: $IOS_DIR"
 
 # Determine the correct path to Pods directory
 if [ -d "Pods" ]; then
   PODS_DIR="$(pwd)/Pods"
-  echo "✅ Found Pods directory at: $PODS_DIR"
+  log_success "Found Pods directory at: $PODS_DIR"
 elif [ -d "$IOS_DIR/Pods" ]; then
   PODS_DIR="$IOS_DIR/Pods"
-  echo "✅ Found Pods directory at: $PODS_DIR"
+  log_success "Found Pods directory at: $PODS_DIR"
 else
-  echo "❌ Error: Cannot find Pods directory"
-  echo "📍 Searched in: $(pwd)/Pods"
-  echo "📍 Searched in: $IOS_DIR/Pods"
+  log_error "Cannot find Pods directory"
+  log_error "Searched in: $(pwd)/Pods"
+  log_error "Searched in: $IOS_DIR/Pods"
   exit 1
 fi
 
 XC_FILELIST_DIR="$PODS_DIR/Target Support Files/Pods-Runner"
-echo "📍 Checking xcfilelist directory: $XC_FILELIST_DIR"
+log_step "Checking xcfilelist directory: $XC_FILELIST_DIR"
 
 if [ ! -d "$XC_FILELIST_DIR" ]; then
-  echo "❌ Error: Pods-Runner Target Support Files directory not found at $XC_FILELIST_DIR"
-  echo "📍 Listing Pods directory structure:"
-  ls -la "$PODS_DIR" || echo "Cannot list Pods directory"
+  log_error "Pods-Runner Target Support Files directory not found at $XC_FILELIST_DIR"
+  log_step "Listing Pods directory structure:"
+  ls -la "$PODS_DIR" || log_error "Cannot list Pods directory"
   if [ -d "$PODS_DIR/Target Support Files" ]; then
-    echo "📍 Listing Target Support Files directory:"
-    ls -la "$PODS_DIR/Target Support Files/" || echo "Cannot list Target Support Files"
+    log_step "Listing Target Support Files directory:"
+    ls -la "$PODS_DIR/Target Support Files/" || log_error "Cannot list Target Support Files"
   else
-    echo "❌ Target Support Files directory does not exist"
+    log_error "Target Support Files directory does not exist"
   fi
   exit 1
 fi
 
-echo "✅ xcfilelist directory found at: $XC_FILELIST_DIR"
+log_success "xcfilelist directory found at: $XC_FILELIST_DIR"
 
 # Check for required xcfilelist files
-echo "🔍 Checking for required xcfilelist files..."
+log_step "Checking for required xcfilelist files..."
 REQUIRED_FILES=(
   "Pods-Runner-frameworks-Release-input-files.xcfilelist"
   "Pods-Runner-frameworks-Release-output-files.xcfilelist"
@@ -242,32 +324,38 @@ REQUIRED_FILES=(
   "Pods-Runner-resources-Release-output-files.xcfilelist"
 )
 
-echo "📍 Listing all files in xcfilelist directory:"
-ls -la "$XC_FILELIST_DIR" || echo "Cannot list xcfilelist directory"
+log_step "Listing all files in xcfilelist directory:"
+ls -la "$XC_FILELIST_DIR" || log_error "Cannot list xcfilelist directory"
 
 MISSING_FILES=()
 for file in "${REQUIRED_FILES[@]}"; do
   FILE_PATH="$XC_FILELIST_DIR/$file"
-  echo "📍 Checking for: $file"
+  log_step "Checking for: $file"
   if [ ! -f "$FILE_PATH" ]; then
-    echo "❌ Missing: $file"
+    log_error "Missing: $file"
     MISSING_FILES+=("$file")
   else
-    echo "✅ Found: $file"
+    # Verify file has content
+    if [ -s "$FILE_PATH" ]; then
+      LINE_COUNT=$(wc -l < "$FILE_PATH")
+      log_success "Found: $file ($LINE_COUNT lines)"
+    else
+      log_warning "Found but empty: $file"
+    fi
   fi
 done
 
 if [ ${#MISSING_FILES[@]} -gt 0 ]; then
-  echo "❌ Error: Missing required xcfilelist files:"
+  log_error "Missing required xcfilelist files:"
   for file in "${MISSING_FILES[@]}"; do
-    echo "   - $file"
+    log_error "   - $file"
   done
-  echo "📍 Full directory listing:"
-  ls -la "$XC_FILELIST_DIR" || echo "Directory does not exist"
+  log_step "Full directory listing:"
+  ls -la "$XC_FILELIST_DIR" || log_error "Directory does not exist"
   exit 1
 fi
 
-echo "✅ All required xcfilelist files verified"
+log_success "All required xcfilelist files verified and have content"
 
 # CRITICAL: Verify PODS_ROOT will be set correctly
 # Check that the xcconfig files define PODS_ROOT
@@ -609,16 +697,18 @@ else
 fi
 
 # Check if Pods directory is accessible
+log_section "FINAL VERIFICATION FROM WORKSPACE LOCATION"
+log_step "Verifying Pods directory is accessible from workspace location..."
 if [ -d "Pods" ]; then
-  echo "✅ Pods directory accessible from workspace location"
+  log_success "Pods directory accessible from workspace location"
   if [ -L "Pods" ]; then
-    echo "   (via symlink: $(readlink -f Pods))"
+    log_step "  (via symlink: $(readlink -f Pods))"
   fi
   
   # Verify xcfilelist files are accessible
   XCFILELIST_DIR="Pods/Target Support Files/Pods-Runner"
   if [ -d "$XCFILELIST_DIR" ]; then
-    echo "✅ Pods-Runner Target Support Files accessible"
+    log_success "Pods-Runner Target Support Files accessible"
     REQUIRED_FILES=(
       "Pods-Runner-frameworks-Release-input-files.xcfilelist"
       "Pods-Runner-frameworks-Release-output-files.xcfilelist"
@@ -629,55 +719,55 @@ if [ -d "Pods" ]; then
     for file in "${REQUIRED_FILES[@]}"; do
       FILE_PATH="$XCFILELIST_DIR/$file"
       if [ -f "$FILE_PATH" ]; then
-        echo "✅ Found: $file"
         # Verify file is readable and has content
         if [ -s "$FILE_PATH" ]; then
-          echo "   ✅ File has content ($(wc -l < "$FILE_PATH") lines)"
+          LINE_COUNT=$(wc -l < "$FILE_PATH")
+          log_success "Found: $file ($LINE_COUNT lines)"
         else
-          echo "   ⚠️  WARNING: File is empty"
+          log_warning "Found but empty: $file"
         fi
       else
-        echo "❌ ERROR: Missing: $file"
-        echo "   Full path: $(pwd)/$FILE_PATH"
+        log_error "Missing: $file"
+        log_error "  Full path: $(pwd)/$FILE_PATH"
         ALL_FILES_FOUND=false
       fi
     done
     
     if [ "$ALL_FILES_FOUND" = false ]; then
-      echo "❌ ERROR: Some required xcfilelist files are missing"
-      echo "   Listing directory contents:"
-      ls -la "$XCFILELIST_DIR" || echo "   Cannot list directory"
+      log_error "Some required xcfilelist files are missing"
+      log_step "Listing directory contents:"
+      ls -la "$XCFILELIST_DIR" || log_error "Cannot list directory"
       exit 1
     fi
   else
-    echo "❌ ERROR: Pods-Runner Target Support Files not accessible"
-    echo "   Expected at: $(pwd)/$XCFILELIST_DIR"
-    echo "   Checking if Pods directory structure is correct..."
+    log_error "Pods-Runner Target Support Files not accessible"
+    log_error "  Expected at: $(pwd)/$XCFILELIST_DIR"
+    log_step "Checking if Pods directory structure is correct..."
     if [ -d "Pods/Target Support Files" ]; then
-      echo "   Target Support Files directory exists, listing:"
-      ls -la "Pods/Target Support Files" || echo "   Cannot list"
+      log_step "Target Support Files directory exists, listing:"
+      ls -la "Pods/Target Support Files" || log_error "Cannot list"
     else
-      echo "   Target Support Files directory does not exist"
+      log_error "Target Support Files directory does not exist"
     fi
     exit 1
   fi
 else
-  echo "❌ ERROR: Pods directory NOT accessible from workspace location"
-  echo "   Current directory: $(pwd)"
-  echo "   Expected Pods at: $(pwd)/Pods"
-  echo "   Checking if symlink should have been created..."
+  log_error "Pods directory NOT accessible from workspace location"
+  log_error "  Current directory: $(pwd)"
+  log_error "  Expected Pods at: $(pwd)/Pods"
+  log_step "Checking if symlink should have been created..."
   if [ -d "$IOS_DIR/Pods" ]; then
-    echo "   Pods exists at: $IOS_DIR/Pods"
-    echo "   Symlink should have been created at: $(pwd)/Pods"
+    log_error "  Pods exists at: $IOS_DIR/Pods"
+    log_error "  Symlink should have been created at: $(pwd)/Pods"
   fi
   exit 1
 fi
 
-echo "✅ Pre-build verification completed"
+log_success "Pre-build verification completed"
 
 # CRITICAL: Create a script that fixes PODS_ROOT if it resolves incorrectly
 # This script will be sourced by Xcode build phases if needed
-echo "🔧 Creating PODS_ROOT fix script..."
+log_step "Creating PODS_ROOT fix script (for future use if needed)..."
 PODS_ROOT_FIX_SCRIPT="$REPO_ROOT/ios/fix_pods_root.sh"
 cat > "$PODS_ROOT_FIX_SCRIPT" <<'EOF'
 #!/bin/bash
@@ -719,21 +809,22 @@ else
 fi
 EOF
 chmod +x "$PODS_ROOT_FIX_SCRIPT"
-echo "✅ Created PODS_ROOT fix script at: $PODS_ROOT_FIX_SCRIPT"
+log_success "Created PODS_ROOT fix script at: $PODS_ROOT_FIX_SCRIPT"
 
 # Final summary
+log_section "PRE-BUILD SCRIPT SUMMARY"
+log_info "All pre-build tasks completed successfully"
+log_step "Repository root: $REPO_ROOT"
+log_step "Flutter project: $FLUTTER_PROJECT_DIR"
+log_step "iOS directory: $IOS_DIR"
+log_step "Pods directory: $PODS_DIR"
+log_step "Generated.xcconfig: $GENERATED_XCCONFIG"
+log_step "Workspace: $IOS_DIR/Runner.xcworkspace"
+log_step "PODS_ROOT fix script: $PODS_ROOT_FIX_SCRIPT"
+log_step "Script completed at: $(date)"
 echo ""
-echo "═══════════════════════════════════════════════════════════"
-echo "✅ PRE-BUILD SCRIPT SUMMARY"
-echo "═══════════════════════════════════════════════════════════"
-echo "📍 Repository root: $REPO_ROOT"
-echo "📍 Flutter project: $FLUTTER_PROJECT_DIR"
-echo "📍 iOS directory: $IOS_DIR"
-echo "📍 Pods directory: $PODS_DIR"
-echo "📍 Generated.xcconfig: $GENERATED_XCCONFIG"
-echo "📍 Workspace: $IOS_DIR/Runner.xcworkspace"
-echo "📍 PODS_ROOT fix script: $PODS_ROOT_FIX_SCRIPT"
-echo "═══════════════════════════════════════════════════════════"
-echo "✅ Pre-build script completed successfully!"
-echo "═══════════════════════════════════════════════════════════"
+log_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+log_success "PRE-BUILD SCRIPT COMPLETED SUCCESSFULLY"
+log_success "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
