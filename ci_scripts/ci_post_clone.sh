@@ -44,17 +44,34 @@ echo "Started: $(date)"
 echo ""
 
 # Get the repository root (where this script is located)
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# In Xcode Cloud, scripts are run from repository root
+# Try multiple methods to find repo root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ "$SCRIPT_DIR" == */ci_scripts ]]; then
+    REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    # Fallback: try CI_WORKSPACE if available (Xcode Cloud environment variable)
+    REPO_ROOT="${CI_WORKSPACE:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+fi
 FLUTTER_PROJECT_DIR="$REPO_ROOT/linkUpMobileApp"
 
 log_section "ENVIRONMENT SETUP"
 log_step "Repository root: $REPO_ROOT"
 log_step "Flutter project directory: $FLUTTER_PROJECT_DIR"
+log_step "CI_WORKSPACE: ${CI_WORKSPACE:-not set}"
+log_step "Current directory: $(pwd)"
+log_step "Script directory: $SCRIPT_DIR"
+
+# List repository structure for debugging
+log_step "Repository structure:"
+ls -la "$REPO_ROOT" | head -20 || true
 
 # Check if Flutter project exists
 log_step "Verifying Flutter project directory exists..."
 if [ ! -d "$FLUTTER_PROJECT_DIR" ]; then
   log_error "Flutter project directory not found at $FLUTTER_PROJECT_DIR"
+  log_step "Available directories in repository root:"
+  ls -la "$REPO_ROOT" || true
   exit 1
 fi
 log_success "Flutter project directory found"
@@ -74,11 +91,16 @@ log_success "pubspec.yaml found"
 log_section "FLUTTER INSTALLATION"
 FLUTTER_INSTALLED=false
 if command -v flutter >/dev/null 2>&1; then
-  log_success "Flutter already available: $(which flutter)"
+  FLUTTER_PATH=$(which flutter)
+  log_success "Flutter already available: $FLUTTER_PATH"
   FLUTTER_INSTALLED=true
 elif [ -d "$HOME/flutter/bin" ] && [ -f "$HOME/flutter/bin/flutter" ]; then
   log_success "Flutter found at $HOME/flutter/bin/flutter"
   export PATH="$HOME/flutter/bin:$PATH"
+  FLUTTER_INSTALLED=true
+elif [ -d "/usr/local/share/flutter/bin" ] && [ -f "/usr/local/share/flutter/bin/flutter" ]; then
+  log_success "Flutter found at /usr/local/share/flutter/bin/flutter"
+  export PATH="/usr/local/share/flutter/bin:$PATH"
   FLUTTER_INSTALLED=true
 fi
 
@@ -127,7 +149,19 @@ flutter doctor || log_warning "flutter doctor had issues (continuing anyway)"
 log_step "Verifying workspace exists at expected location..."
 if [ ! -d "$REPO_ROOT/ios/Runner.xcworkspace" ]; then
   log_warning "Workspace not found at $REPO_ROOT/ios/Runner.xcworkspace"
-  log_warning "Make sure the workspace is committed to the repository"
+  log_step "Checking for workspace in Flutter project directory..."
+  if [ -d "$FLUTTER_PROJECT_DIR/ios/Runner.xcworkspace" ]; then
+    log_success "Workspace found in Flutter project directory"
+    log_step "Creating workspace symlink at repository root..."
+    mkdir -p "$REPO_ROOT/ios"
+    if [ ! -e "$REPO_ROOT/ios/Runner.xcworkspace" ]; then
+      ln -sf "$FLUTTER_PROJECT_DIR/ios/Runner.xcworkspace" "$REPO_ROOT/ios/Runner.xcworkspace"
+      log_success "Created workspace symlink"
+    fi
+  else
+    log_warning "Workspace not found in Flutter project directory either"
+    log_warning "Workspace will need to be created or configured"
+  fi
 else
   log_success "Workspace found at expected location: $REPO_ROOT/ios/Runner.xcworkspace"
 fi

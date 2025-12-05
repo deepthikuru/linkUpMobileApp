@@ -46,7 +46,12 @@ echo ""
 # In Xcode Cloud, CI_WORKSPACE points to the workspace root
 # The script is located at ci_scripts/ci_pre_xcodebuild.sh
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ "$SCRIPT_DIR" == */ci_scripts ]]; then
+    REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+else
+    # Fallback: try CI_WORKSPACE if available (Xcode Cloud environment variable)
+    REPO_ROOT="${CI_WORKSPACE:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+fi
 FLUTTER_PROJECT_DIR="$REPO_ROOT/linkUpMobileApp"
 IOS_DIR="$FLUTTER_PROJECT_DIR/ios"
 
