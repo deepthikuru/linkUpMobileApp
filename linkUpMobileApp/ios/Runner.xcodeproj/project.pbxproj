@@ -358,7 +358,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "# Ensure Pods are installed if they don't exist\nPODS_DIR=\"${PODS_PODFILE_DIR_PATH}/Pods\"\nif [ ! -d \"$PODS_DIR\" ] || [ ! -f \"$PODS_DIR/Manifest.lock\" ]; then\n    echo \"⚠️  Pods not found. Installing Pods...\"\n    cd \"${PODS_PODFILE_DIR_PATH}\"\n    if command -v pod >/dev/null 2>&1; then\n        pod install\n    elif [ -f \"$HOME/.gem/bin/pod\" ]; then\n        \"$HOME/.gem/bin/pod\" install\n    else\n        echo \"error: CocoaPods not found. Please install CocoaPods.\" >&2\n        exit 1\n    fi\nfi\n\n# Check Pods Manifest lock (only if both files exist)\nif [ -f \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" ] && [ -f \"${PODS_ROOT}/Manifest.lock\" ]; then\n    diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\n    if [ $? != 0 ] ; then\n        # print error to STDERR\n        echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n        exit 1\n    fi\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E60B7660571E43539D5BA172 /* [CP] Check Pods Manifest.lock */ = {
