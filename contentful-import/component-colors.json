@@ -1,0 +1,1579 @@
+{
+  "entries": [
+    {
+      "sys": {
+        "id": "main_elevatedButton_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "main_elevatedButton_background" },
+        "backgroundColor": { "en-US": "#014D7D" }
+      }
+    },
+    {
+      "sys": {
+        "id": "main_elevatedButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "main_elevatedButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_scaffold_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_scaffold_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_title_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_title_text" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_subtitle_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_subtitle_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_sectionTitle_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_sectionTitle_text" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_description_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_description_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_signOutButton_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_signOutButton_background" },
+        "backgroundColor": { "en-US": "#FF0000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "home_signOutButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "home_signOutButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_scaffold_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_scaffold_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_title_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_title_text" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_inputHint_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_inputHint_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_input_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_input_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_signInButton_disabledBackground",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_signInButton_disabledBackground" },
+        "backgroundColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_signInButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_signInButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_loadingIndicator_color",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_loadingIndicator_color" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_separator_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_separator_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_googleButton_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_googleButton_background" },
+        "backgroundColor": { "en-US": "#FF0000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_googleButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_googleButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_googleButton_icon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_googleButton_icon" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_appleButton_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_appleButton_background" },
+        "backgroundColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_appleButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_appleButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_appleButton_icon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_appleButton_icon" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_footerText_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_footerText_text" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_errorSnackbar_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_errorSnackbar_background" },
+        "backgroundColor": { "en-US": "#FF0000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "login_successSnackbar_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "login_successSnackbar_background" },
+        "backgroundColor": { "en-US": "#4CAF50" }
+      }
+    },
+    {
+      "sys": {
+        "id": "splash_scaffold_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "splash_scaffold_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "splash_loadingIndicator_color",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "splash_loadingIndicator_color" },
+        "iconColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "gradientButton_gradientStart",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "gradientButton_gradientStart" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "gradientButton_gradientEnd",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "gradientButton_gradientEnd" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "gradientButton_disabledBackground",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "gradientButton_disabledBackground" },
+        "backgroundColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "gradientButton_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "gradientButton_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "gradientButton_loadingIndicator",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "gradientButton_loadingIndicator" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_border",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_border" },
+        "borderColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_borderSelected",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_borderSelected" },
+        "borderColor": { "en-US": "#014D7D" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeGradientStart",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeGradientStart" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeGradientEnd",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeGradientEnd" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeBackground",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeBackground" },
+        "backgroundColor": { "en-US": "#E3F2FD" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeBorder",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeBorder" },
+        "borderColor": { "en-US": "#66B3FF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeTextSelected",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeTextSelected" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_badgeText",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_badgeText" },
+        "textColor": { "en-US": "#014D7D" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_price_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_price_text" },
+        "textColor": { "en-US": "#014D7D" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_planNameSmall_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_planNameSmall_text" },
+        "textColor": { "en-US": "#424242" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_planName_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_planName_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_divider",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_divider" },
+        "borderColor": { "en-US": "#E0E0E0" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_featureIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_featureIcon" },
+        "iconColor": { "en-US": "#014D7D" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCard_featureLabel_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCard_featureLabel_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_gradientStart",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_gradientStart" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_gradientEnd",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_gradientEnd" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_backIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_backIcon" },
+        "iconColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_backIcon_gradient",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_backIcon_gradient" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_titleText",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_titleText" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_titleText_gradient",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_titleText_gradient" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_zipCodeText",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_zipCodeText" },
+        "textColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_zipCodeText_gradient",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_zipCodeText_gradient" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_zipIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_zipIcon" },
+        "iconColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_zipIcon_gradient",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_zipIcon_gradient" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_menuIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_menuIcon" },
+        "iconColor": { "en-US": "#000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appHeader_menuIcon_gradient",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appHeader_menuIcon_gradient" },
+        "iconColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_shadow",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_shadow" },
+        "shadowColor": { "en-US": "#1A000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_tabIcon_selected",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_tabIcon_selected" },
+        "iconColor": { "en-US": "#FDC710" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_tabIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_tabIcon" },
+        "iconColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_tabLabel_selected",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_tabLabel_selected" },
+        "textColor": { "en-US": "#FDC710" }
+      }
+    },
+    {
+      "sys": {
+        "id": "appFooter_tabLabel",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "appFooter_tabLabel" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "bottomActionBar_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "bottomActionBar_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepIndicator_gradientStart",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepIndicator_gradientStart" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepIndicator_gradientEnd",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepIndicator_gradientEnd" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepIndicator_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepIndicator_text" },
+        "textColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepNavigation_scaffold_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepNavigation_scaffold_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepNavigation_backIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepNavigation_backIcon" },
+        "iconColor": { "en-US": "#FDC710" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepNavigation_cancelIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepNavigation_cancelIcon" },
+        "iconColor": { "en-US": "#FDC710" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepNavigation_cancelButtonText",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepNavigation_cancelButtonText" },
+        "textColor": { "en-US": "#FF0000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "stepNavigation_footer_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "stepNavigation_footer_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_border",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_border" },
+        "borderColor": { "en-US": "#E0E0E0" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_status_completed",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_status_completed" },
+        "iconColor": { "en-US": "#4CAF50" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_status_cancelled",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_status_cancelled" },
+        "iconColor": { "en-US": "#FF0000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_status_inProgress",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_status_inProgress" },
+        "iconColor": { "en-US": "#FF9800" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_date_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_date_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_phoneNumber_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_phoneNumber_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "orderCard_chevronIcon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "orderCard_chevronIcon" },
+        "iconColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCarousel_indicatorActive_gradientStart",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCarousel_indicatorActive_gradientStart" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCarousel_indicatorActive_gradientEnd",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCarousel_indicatorActive_gradientEnd" },
+        "gradientStartColor": { "en-US": "#014D7D" },
+        "gradientEndColor": { "en-US": "#0C80C3" }
+      }
+    },
+    {
+      "sys": {
+        "id": "planCarousel_indicatorInactive",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "planCarousel_indicatorInactive" },
+        "backgroundColor": { "en-US": "#E0E0E0" }
+      }
+    },
+    {
+      "sys": {
+        "id": "offlineBanner_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "offlineBanner_background" },
+        "backgroundColor": { "en-US": "#FFF9E6" }
+      }
+    },
+    {
+      "sys": {
+        "id": "offlineBanner_icon",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "offlineBanner_icon" },
+        "iconColor": { "en-US": "#FDC710" }
+      }
+    },
+    {
+      "sys": {
+        "id": "offlineBanner_text",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "offlineBanner_text" },
+        "textColor": { "en-US": "#757575" }
+      }
+    },
+    {
+      "sys": {
+        "id": "mainLayout_scaffold_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "mainLayout_scaffold_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    },
+    {
+      "sys": {
+        "id": "mainLayout_dialogBarrier",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "mainLayout_dialogBarrier" },
+        "shadowColor": { "en-US": "#88000000" }
+      }
+    },
+    {
+      "sys": {
+        "id": "mainLayout_hamburgerMenu_background",
+        "type": "Entry",
+        "contentType": {
+          "sys": {
+            "id": "componentColor",
+            "linkType": "ContentType",
+            "type": "Link"
+          }
+        }
+      },
+      "fields": {
+        "componentId": { "en-US": "mainLayout_hamburgerMenu_background" },
+        "backgroundColor": { "en-US": "#FFFFFF" }
+      }
+    }
+  ]
+}
+
