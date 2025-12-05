@@ -90,4 +90,27 @@ post_install do |installer|
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(BUILT_PRODUCTS_DIR)'
     end
   end
+  
+  # CRITICAL: Set PODS_ROOT in the Runner project's build settings
+  # This ensures PODS_ROOT resolves correctly when building from the root workspace
+  # The Runner project is at linkUpMobileApp/ios/Runner.xcodeproj
+  # Pods are at linkUpMobileApp/ios/Pods, so PODS_ROOT should be ${SRCROOT}/Pods
+  runner_project_path = File.expand_path(File.join(File.dirname(__FILE__), 'Runner.xcodeproj'))
+  if File.exist?(runner_project_path)
+    require 'xcodeproj'
+    begin
+      runner_project = Xcodeproj::Project.open(runner_project_path)
+      runner_project.targets.each do |target|
+        target.build_configurations.each do |config|
+          # Set PODS_ROOT relative to the project's SRCROOT (which is the ios directory)
+          # This ensures it works whether building from the project directly or from the root workspace
+          config.build_settings['PODS_ROOT'] = '${SRCROOT}/Pods'
+        end
+      end
+      runner_project.save
+      puts "✅ Set PODS_ROOT in Runner project build settings"
+    rescue => e
+      puts "⚠️  Warning: Could not set PODS_ROOT in Runner project: #{e.message}"
+    end
+  end
 end
