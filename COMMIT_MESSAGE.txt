@@ -1,0 +1,15 @@
+Consolidate scripts and fix Xcode Cloud build: Single source of truth
+
+- Remove duplicate CI scripts from linkUpMobileApp/ios/ci_scripts/
+- Keep only CI scripts at repository root (ci_scripts/) for Xcode Cloud
+- Make build phase script [CP] Check Pods Manifest.lock the SINGLE SOURCE OF TRUTH
+- Enhanced build phase script to handle Flutter setup and Pods installation
+- Add placeholder xcfilelist files to prevent build description phase errors
+- Update .gitignore to allow placeholder xcfilelist files to be committed
+
+This ensures:
+- No confusion about which scripts run where
+- Build phase script always runs (works even if CI scripts aren't detected)
+- Placeholder files prevent early validation errors
+- Clear logging shows what's happening during build
+
