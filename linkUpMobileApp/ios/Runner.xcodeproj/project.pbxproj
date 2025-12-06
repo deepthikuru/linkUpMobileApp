@@ -360,7 +360,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "#!/bin/bash\nset -e\nset -x\n\necho \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\necho \"🔧 [CP] Check Pods Manifest.lock - Ensuring Flutter and Pods are set up\"\necho \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\necho \"This is the SINGLE SOURCE OF TRUTH for Pods installation.\"\necho \"CI scripts at ci_scripts/ are for Xcode Cloud (if detected), but this script always runs.\"\necho \"\"\n\n# Step 0: Detect iOS directory (PODS_PODFILE_DIR_PATH may be empty in Xcode Cloud)\n# Try multiple methods to find the iOS directory where Podfile is located\nIOS_DIR=\"\"\nif [ -n \"${PODS_PODFILE_DIR_PATH}\" ]; then\n    IOS_DIR=\"${PODS_PODFILE_DIR_PATH}\"\n    echo \"📍 Using PODS_PODFILE_DIR_PATH: $IOS_DIR\"\nelif [ -n \"${SRCROOT}\" ]; then\n    IOS_DIR=\"${SRCROOT}\"\n    echo \"📍 Using SRCROOT: $IOS_DIR\"\nelse\n    # Fallback: detect from script location or workspace\n    # Xcode Cloud builds from /Volumes/workspace/repository/ios/Runner.xcworkspace\n    # but the actual project is at /Volumes/workspace/repository/linkUpMobileApp/ios/\n    if [ -f \"/Volumes/workspace/repository/linkUpMobileApp/ios/Podfile\" ]; then\n        IOS_DIR=\"/Volumes/workspace/repository/linkUpMobileApp/ios\"\n        echo \"📍 Detected iOS directory from Xcode Cloud path: $IOS_DIR\"\n    elif [ -f \"$(pwd)/Podfile\" ]; then\n        IOS_DIR=\"$(pwd)\"\n        echo \"📍 Detected iOS directory from current directory: $IOS_DIR\"\n    else\n        echo \"❌ ERROR: Cannot determine iOS directory\"\n        echo \"   PODS_PODFILE_DIR_PATH: ${PODS_PODFILE_DIR_PATH}\"\n        echo \"   SRCROOT: ${SRCROOT}\"\n        echo \"   PWD: $(pwd)\"\n        exit 1\n    fi\nfi\n\n# Verify iOS directory exists and has Podfile\nif [ ! -d \"$IOS_DIR\" ] || [ ! -f \"$IOS_DIR/Podfile\" ]; then\n    echo \"❌ ERROR: iOS directory not found or Podfile missing\"\n    echo \"   Expected Podfile at: $IOS_DIR/Podfile\"\n    exit 1\nfi\n\nPROJECT_ROOT=\"$(cd \"$IOS_DIR/..\" && pwd)\"\nPODS_DIR=\"$IOS_DIR/Pods\"\n\necho \"📍 Project root: $PROJECT_ROOT\"\necho \"📍 iOS directory: $IOS_DIR\"\necho \"📍 Pods directory: $PODS_DIR\"\necho \"\"\n\n# Step 1: Setup Flutter (MUST happen before pod install)\nif [ ! -f \"$IOS_DIR/Flutter/Generated.xcconfig\" ] || [ ! -d \"$IOS_DIR/.symlinks\" ]; then\n    echo \"🔧 Flutter setup needed. Running Flutter commands...\"\n    \n    # Find Flutter - check multiple locations and install if needed\n    FLUTTER_CMD=\"\"\n    if command -v flutter >/dev/null 2>&1; then\n        FLUTTER_CMD=\"flutter\"\n        echo \"  ✅ Found Flutter in PATH: $(which flutter)\"\n    elif [ -d \"$HOME/flutter/bin\" ] && [ -f \"$HOME/flutter/bin/flutter\" ]; then\n        FLUTTER_CMD=\"$HOME/flutter/bin/flutter\"\n        export PATH=\"$HOME/flutter/bin:$PATH\"\n        echo \"  ✅ Found Flutter at $HOME/flutter/bin\"\n    elif [ -f \"$HOME/.flutter_path\" ]; then\n        source \"$HOME/.flutter_path\"\n        if command -v flutter >/dev/null 2>&1; then\n            FLUTTER_CMD=\"flutter\"\n            echo \"  ✅ Found Flutter from .flutter_path: $(which flutter)\"\n        fi\n    fi\n    \n    # If Flutter still not found, install it (CI scripts may not have run)\n    if [ -z \"$FLUTTER_CMD\" ]; then\n        echo \"  ⚠️  Flutter not found. Installing Flutter...\"\n        if [ -d \"$HOME/flutter\" ]; then\n            echo \"  → Flutter directory exists, adding to PATH...\"\n            export PATH=\"$HOME/flutter/bin:$PATH\"\n            if [ -f \"$HOME/flutter/bin/flutter\" ]; then\n                FLUTTER_CMD=\"$HOME/flutter/bin/flutter\"\n                echo \"  ✅ Using existing Flutter installation\"\n            fi\n        else\n            echo \"  → Cloning Flutter repository (stable branch)...\"\n            cd \"$HOME\"\n            if git clone https://github.com/flutter/flutter.git -b stable --depth 1 2>/dev/null; then\n                export PATH=\"$HOME/flutter/bin:$PATH\"\n                FLUTTER_CMD=\"$HOME/flutter/bin/flutter\"\n                echo \"  ✅ Flutter cloned successfully\"\n            else\n                echo \"  ❌ Failed to clone Flutter repository\"\n            fi\n        fi\n        \n        # Verify Flutter installation\n        if [ -n \"$FLUTTER_CMD\" ] && \"$FLUTTER_CMD\" --version >/dev/null 2>&1; then\n            echo \"  ✅ Flutter verified: $($FLUTTER_CMD --version | head -1)\"\n        elif [ -n \"$FLUTTER_CMD\" ]; then\n            echo \"  ⚠️  Flutter installed but verification failed, continuing anyway...\"\n        fi\n    fi\n    \n    if [ -n \"$FLUTTER_CMD\" ]; then\n        cd \"$PROJECT_ROOT\"\n        echo \"  → Running: flutter pub get\"\n        if \"$FLUTTER_CMD\" pub get; then\n            echo \"  ✅ flutter pub get succeeded\"\n        else\n            echo \"  ⚠️  flutter pub get had issues (continuing anyway)\"\n        fi\n        \n        echo \"  → Running: flutter build ios --config-only --no-codesign\"\n        if \"$FLUTTER_CMD\" build ios --config-only --no-codesign; then\n            echo \"  ✅ Flutter build succeeded\"\n        else\n            echo \"  ⚠️  Flutter build failed, trying to regenerate...\"\n            cd \"$IOS_DIR\"\n            rm -rf .symlinks Flutter/Generated.xcconfig 2>/dev/null || true\n            cd \"$PROJECT_ROOT\"\n            \"$FLUTTER_CMD\" pub get\n            \"$FLUTTER_CMD\" build ios --config-only --no-codesign || {\n                echo \"  ❌ Flutter setup failed - pod install will fail\"\n                exit 1\n            }\n        fi\n        echo \"  ✅ Flutter setup completed\"\n    else\n        echo \"  ❌ Flutter not found - cannot continue\"\n        echo \"  ❌ Podfile requires Flutter/Generated.xcconfig to exist\"\n        echo \"  ❌ Build will fail without Flutter setup\"\n        exit 1\n    fi\nelse\n    echo \"✅ Flutter files already exist (Generated.xcconfig and .symlinks)\"\nfi\n\necho \"\"\n\n# Step 2: Ensure Pods are installed (CRITICAL - this must happen)\ncd \"$IOS_DIR\"\n\nif [ ! -d \"$PODS_DIR\" ] || [ ! -f \"$PODS_DIR/Manifest.lock\" ]; then\n    echo \"📱 Pods not found. Installing Pods (this is required)...\"\n    \n    # Find pod command\n    POD_CMD=\"\"\n    if command -v pod >/dev/null 2>&1; then\n        POD_CMD=\"pod\"\n        echo \"  ✅ Found CocoaPods in PATH: $(which pod)\"\n    elif [ -f \"$HOME/.gem/bin/pod\" ]; then\n        POD_CMD=\"$HOME/.gem/bin/pod\"\n        export PATH=\"$HOME/.gem/bin:$PATH\"\n        echo \"  ✅ Found CocoaPods at $HOME/.gem/bin/pod\"\n    fi\n    \n    if [ -n \"$POD_CMD\" ]; then\n        echo \"  → Running: $POD_CMD install\"\n        if \"$POD_CMD\" install; then\n            echo \"  ✅ Pods installed successfully\"\n        else\n            echo \"  ❌ Pod install failed - this will cause build to fail\"\n            exit 1\n        fi\n    else\n        echo \"  ❌ CocoaPods not found. Cannot install Pods.\"\n        echo \"  ❌ Build will fail without Pods installed.\"\n        exit 1\n    fi\nelse\n    echo \"✅ Pods directory exists\"\nfi\n\necho \"\"\n\n# Step 3: Verify xcfilelist files exist (they should exist now after pod install)\nXCFILELIST_DIR=\"$PODS_DIR/Target Support Files/Pods-Runner\"\nif [ ! -d \"$XCFILELIST_DIR\" ]; then\n    echo \"  ❌ ERROR: Pods-Runner Target Support Files not found\"\n    echo \"  Expected at: $XCFILELIST_DIR\"\n    echo \"  This means pod install did not complete successfully\"\n    exit 1\nfi\n\n# Check for Release configuration files (used by Xcode Cloud)\nREQUIRED_FILES=(\n    \"Pods-Runner-frameworks-Release-input-files.xcfilelist\"\n    \"Pods-Runner-frameworks-Release-output-files.xcfilelist\"\n    \"Pods-Runner-resources-Release-input-files.xcfilelist\"\n    \"Pods-Runner-resources-Release-output-files.xcfilelist\"\n)\n\nMISSING_FILES=()\nfor file in \"${REQUIRED_FILES[@]}\"; do\n    if [ ! -f \"$XCFILELIST_DIR/$file\" ]; then\n        echo \"  ❌ ERROR: Missing required file: $file\"\n        MISSING_FILES+=(\"$file\")\n    else\n        echo \"  ✅ Found: $file\"\n    fi\ndone\n\nif [ ${#MISSING_FILES[@]} -gt 0 ]; then\n    echo \"  ❌ ERROR: Missing ${#MISSING_FILES[@]} required xcfilelist files\"\n    echo \"  Pod install may have failed or was incomplete\"\n    exit 1\nfi\n\necho \"✅ All required xcfilelist files verified\"\necho \"\"\n\n# Step 4: Check Pods Manifest lock (original CocoaPods functionality)\nif [ -f \"$IOS_DIR/Podfile.lock\" ] && [ -f \"$PODS_DIR/Manifest.lock\" ]; then\n    if ! diff \"$IOS_DIR/Podfile.lock\" \"$PODS_DIR/Manifest.lock\" > /dev/null; then\n        echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n        exit 1\n    fi\n    echo \"✅ Podfile.lock and Manifest.lock are in sync\"\nfi\n\necho \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\necho \"✅ [CP] Check Pods Manifest.lock - Setup complete\"\necho \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\"\necho \"\"\n\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E60B7660571E43539D5BA172 /* [CP] Check Pods Manifest.lock */ = {
@@ -502,8 +502,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PODS_ROOT = "${SRCROOT}/Pods";
 				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
+				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -526,7 +528,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkmobile.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -545,7 +549,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkmobile.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -562,7 +568,9 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkmobile.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -697,8 +705,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PODS_ROOT = "${SRCROOT}/Pods";
 				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
+				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -727,8 +737,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PODS_ROOT = "${SRCROOT}/Pods";
 				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
+				PODS_PODFILE_DIR_PATH = "${SRCROOT}/.";
+				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_ROOT_ABSOLUTE = /Users/k_l_deepthi/Documents/LinkUpMobileApp/linkUpMobileApp/ios/Pods;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

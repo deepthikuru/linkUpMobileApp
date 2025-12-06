@@ -261,6 +261,134 @@ else
   exit 1
 fi
 
+# CRITICAL: Verify Pods.xcodeproj was generated correctly
+# This is the root cause of "Module 'cloud_firestore' not found" errors
+log_section "VERIFYING PODS PROJECT GENERATION"
+log_step "Checking for Pods.xcodeproj/project.pbxproj..."
+PODS_PROJECT_PATH="$IOS_DIR/Pods/Pods.xcodeproj/project.pbxproj"
+log_step "Expected path: $PODS_PROJECT_PATH"
+log_step "Current directory: $(pwd)"
+
+if [ ! -f "$PODS_PROJECT_PATH" ]; then
+  log_error "Pods.xcodeproj/project.pbxproj is MISSING!"
+  log_error "This will cause 'Module not found' errors during compilation"
+  log_step "Debugging: Checking Pods directory structure..."
+  
+  if [ -d "$IOS_DIR/Pods" ]; then
+    log_step "Pods directory exists, listing contents:"
+    ls -la "$IOS_DIR/Pods/" | head -30 || log_error "Cannot list Pods directory"
+    
+    if [ -d "$IOS_DIR/Pods/Pods.xcodeproj" ]; then
+      log_step "Pods.xcodeproj directory exists, listing contents:"
+      ls -la "$IOS_DIR/Pods/Pods.xcodeproj/" || log_error "Cannot list Pods.xcodeproj"
+      
+      # Check if project.pbxproj exists but with wrong permissions or is a symlink
+      if [ -e "$PODS_PROJECT_PATH" ]; then
+        log_error "project.pbxproj exists but is not a regular file"
+        log_step "File type: $(file "$PODS_PROJECT_PATH" 2>&1 || echo 'unknown')"
+        log_step "File permissions: $(ls -l "$PODS_PROJECT_PATH" 2>&1 || echo 'unknown')"
+      fi
+    else
+      log_error "Pods.xcodeproj directory does not exist"
+      log_step "This means pod install did not generate the Xcode project"
+    fi
+  else
+    log_error "Pods directory does not exist at all"
+  fi
+  
+  log_step "Attempting to regenerate Pods project..."
+  
+  # Clean and reinstall pods
+  cd "$IOS_DIR"
+  log_step "Cleaning Pods directory..."
+  rm -rf Pods Podfile.lock .symlinks
+  
+  # Navigate back to Flutter project to regenerate symlinks
+  cd "$FLUTTER_PROJECT_DIR"
+  log_step "Regenerating Flutter plugin symlinks..."
+  "$FLUTTER_CMD" pub get
+  "$FLUTTER_CMD" build ios --config-only --no-codesign
+  
+  # Navigate back to iOS directory
+  cd "$IOS_DIR"
+  
+  # Reinstall pods with verbose output
+  log_step "Reinstalling CocoaPods dependencies (verbose mode)..."
+  if "$POD_CMD" install --repo-update --verbose; then
+    log_success "Pods reinstalled successfully"
+  else
+    log_error "Failed to reinstall pods"
+    exit 1
+  fi
+  
+  # Verify again with detailed debugging
+  log_step "Re-verifying Pods.xcodeproj/project.pbxproj..."
+  if [ ! -f "$PODS_PROJECT_PATH" ]; then
+    log_error "Pods.xcodeproj/project.pbxproj STILL MISSING after reinstall"
+    log_error "This indicates a deeper issue with CocoaPods or the Podfile"
+    log_step "Final debugging information:"
+    log_step "  Pods directory exists: $([ -d "$IOS_DIR/Pods" ] && echo 'YES' || echo 'NO')"
+    log_step "  Pods.xcodeproj exists: $([ -d "$IOS_DIR/Pods/Pods.xcodeproj" ] && echo 'YES' || echo 'NO')"
+    log_step "  project.pbxproj exists: $([ -f "$PODS_PROJECT_PATH" ] && echo 'YES' || echo 'NO')"
+    log_step "Listing Pods directory structure:"
+    find "$IOS_DIR/Pods" -maxdepth 2 -type f -name "*.pbxproj" 2>/dev/null || log_error "No .pbxproj files found"
+    if [ -d "$IOS_DIR/Pods/Pods.xcodeproj" ]; then
+      log_step "Listing Pods.xcodeproj contents:"
+      ls -la "$IOS_DIR/Pods/Pods.xcodeproj/" || log_error "Cannot list"
+    fi
+    exit 1
+  else
+    log_success "Pods.xcodeproj/project.pbxproj now exists after reinstall"
+  fi
+else
+  log_success "Pods.xcodeproj/project.pbxproj verified at: $PODS_PROJECT_PATH"
+  
+  # Verify the project file is valid (not empty or corrupted)
+  log_step "Verifying project.pbxproj is valid..."
+  if [ ! -s "$PODS_PROJECT_PATH" ]; then
+    log_error "project.pbxproj exists but is EMPTY"
+    exit 1
+  fi
+  
+  if ! grep -q "PBXProject" "$PODS_PROJECT_PATH" 2>/dev/null; then
+    log_error "project.pbxproj exists but appears to be INVALID (missing PBXProject)"
+    log_step "First 20 lines of file:"
+    head -20 "$PODS_PROJECT_PATH" || log_error "Cannot read file"
+    exit 1
+  fi
+  
+  log_success "project.pbxproj is valid (contains PBXProject)"
+  
+  # Check file size for sanity
+  FILE_SIZE=$(wc -c < "$PODS_PROJECT_PATH" 2>/dev/null || echo "0")
+  log_step "project.pbxproj size: $FILE_SIZE bytes"
+  if [ "$FILE_SIZE" -lt 1000 ]; then
+    log_warning "project.pbxproj seems unusually small (may be incomplete)"
+  fi
+fi
+
+# Verify cloud_firestore pod was installed
+log_step "Verifying cloud_firestore pod installation..."
+CLOUDFIRESTORE_POD_PATH="$IOS_DIR/Pods/Target Support Files/cloud_firestore"
+if [ ! -d "$CLOUDFIRESTORE_POD_PATH" ]; then
+  log_error "cloud_firestore pod not found in Pods"
+  log_step "Listing installed pods:"
+  ls -la "$IOS_DIR/Pods/Target Support Files/" | head -30 || true
+  exit 1
+fi
+log_success "cloud_firestore pod verified at: $CLOUDFIRESTORE_POD_PATH"
+
+# Verify cloud_firestore framework/module will be built
+log_step "Checking cloud_firestore target in Pods project..."
+if grep -q "cloud_firestore" "$PODS_PROJECT_PATH" 2>/dev/null; then
+  log_success "cloud_firestore target found in Pods project"
+  # Count occurrences to see if it's properly integrated
+  CLOUDFIRESTORE_COUNT=$(grep -c "cloud_firestore" "$PODS_PROJECT_PATH" 2>/dev/null || echo "0")
+  log_step "cloud_firestore references in project: $CLOUDFIRESTORE_COUNT"
+else
+  log_warning "cloud_firestore target not found in Pods project (may still be OK if using frameworks)"
+fi
+
 # Verify Pods were installed correctly
 log_section "VERIFYING PODS INSTALLATION"
 log_step "Current directory: $(pwd)"
@@ -610,19 +738,60 @@ else
   exit 1
 fi
 
-# Check Pods.xcodeproj
-if [ -f "linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj" ]; then
-  echo "✅ Pods.xcodeproj accessible from workspace"
-else
-  echo "❌ ERROR: Pods.xcodeproj not accessible from workspace"
-  echo "   Expected at: linkUpMobileApp/ios/Pods/Pods.xcodeproj"
-  echo "   Current directory: $(pwd)"
-  if [ -d "linkUpMobileApp/ios/Pods" ]; then
-    echo "   Listing Pods directory:"
-    ls -la linkUpMobileApp/ios/Pods/ | head -20
-  else
-    echo "   Pods directory does not exist"
+# Check Pods.xcodeproj - CRITICAL: Must have project.pbxproj file
+log_section "VERIFYING PODS PROJECT FROM WORKSPACE LOCATION"
+PODS_PROJECT_FROM_WORKSPACE="linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj"
+log_step "Checking: $PODS_PROJECT_FROM_WORKSPACE"
+log_step "Current directory: $(pwd)"
+log_step "Absolute path would be: $(pwd)/$PODS_PROJECT_FROM_WORKSPACE"
+
+if [ -f "$PODS_PROJECT_FROM_WORKSPACE" ]; then
+  log_success "Pods.xcodeproj/project.pbxproj accessible from workspace"
+  
+  # Verify the project file is valid
+  log_step "Verifying project.pbxproj is valid..."
+  if ! grep -q "PBXProject" "$PODS_PROJECT_FROM_WORKSPACE" 2>/dev/null; then
+    log_error "Pods.xcodeproj/project.pbxproj appears to be INVALID (missing PBXProject)"
+    log_step "File size: $(wc -c < "$PODS_PROJECT_FROM_WORKSPACE" 2>/dev/null || echo 'unknown') bytes"
+    log_step "First 10 lines:"
+    head -10 "$PODS_PROJECT_FROM_WORKSPACE" 2>/dev/null || log_error "Cannot read file"
+    exit 1
   fi
+  
+  FILE_SIZE=$(wc -c < "$PODS_PROJECT_FROM_WORKSPACE" 2>/dev/null || echo "0")
+  log_success "project.pbxproj is valid (size: $FILE_SIZE bytes)"
+else
+  log_error "Pods.xcodeproj/project.pbxproj NOT accessible from workspace"
+  log_error "Expected at: $PODS_PROJECT_FROM_WORKSPACE"
+  log_error "Current directory: $(pwd)"
+  log_step "Debugging: Checking if Pods directory exists..."
+  
+  if [ -d "linkUpMobileApp/ios/Pods" ]; then
+    log_step "Pods directory exists, listing contents:"
+    ls -la linkUpMobileApp/ios/Pods/ | head -30
+    
+    if [ -d "linkUpMobileApp/ios/Pods/Pods.xcodeproj" ]; then
+      log_step "Pods.xcodeproj directory exists, listing contents:"
+      ls -la linkUpMobileApp/ios/Pods/Pods.xcodeproj/ || log_error "Cannot list"
+      
+      # Check if it's a symlink issue
+      if [ -L "linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj" ]; then
+        log_error "project.pbxproj is a symlink that may be broken"
+        log_step "Symlink target: $(readlink "linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj" 2>&1 || echo 'unknown')"
+      fi
+    else
+      log_error "Pods.xcodeproj directory does not exist"
+    fi
+  else
+    log_error "Pods directory does not exist at linkUpMobileApp/ios/Pods"
+    log_step "Checking if symlink exists:"
+    ls -la linkUpMobileApp/ios/ | grep -E "Pods|symlink" || log_error "No Pods or symlink found"
+  fi
+  
+  # Try to find project.pbxproj anywhere
+  log_step "Searching for project.pbxproj files:"
+  find linkUpMobileApp/ios -name "project.pbxproj" -type f 2>/dev/null | head -10 || log_error "No project.pbxproj files found"
+  
   exit 1
 fi
 
@@ -815,6 +984,73 @@ fi
 EOF
 chmod +x "$PODS_ROOT_FIX_SCRIPT"
 log_success "Created PODS_ROOT fix script at: $PODS_ROOT_FIX_SCRIPT"
+
+# CRITICAL: Final verification before build starts
+# This is the last chance to catch issues before xcodebuild runs
+log_section "FINAL PRE-BUILD VERIFICATION"
+log_step "This is the final check before xcodebuild starts"
+log_step "If anything fails here, the build will fail with 'Module not found' errors"
+
+# Verify Pods.xcodeproj/project.pbxproj one more time
+log_step "Final check: Pods.xcodeproj/project.pbxproj..."
+FINAL_PODS_PROJECT="$IOS_DIR/Pods/Pods.xcodeproj/project.pbxproj"
+if [ -f "$FINAL_PODS_PROJECT" ]; then
+  log_success "✅ Pods.xcodeproj/project.pbxproj exists"
+  
+  # Verify it's valid
+  if grep -q "PBXProject" "$FINAL_PODS_PROJECT" 2>/dev/null; then
+    log_success "✅ File is valid"
+    
+    # Check for cloud_firestore in the project
+    if grep -q "cloud_firestore" "$FINAL_PODS_PROJECT" 2>/dev/null; then
+      log_success "✅ cloud_firestore target found in Pods project"
+    else
+      log_warning "⚠️  cloud_firestore not found in Pods project (may use frameworks)"
+    fi
+  else
+    log_error "❌ File exists but is INVALID"
+    log_step "File size: $(wc -c < "$FINAL_PODS_PROJECT" 2>/dev/null || echo 'unknown')"
+    log_step "First 5 lines:"
+    head -5 "$FINAL_PODS_PROJECT" 2>/dev/null || log_error "Cannot read file"
+    exit 1
+  fi
+else
+  log_error "❌ Pods.xcodeproj/project.pbxproj is MISSING"
+  log_error "This will cause: Module 'cloud_firestore' not found"
+  log_step "Last chance debugging:"
+  log_step "  Checking if Pods directory exists: $([ -d "$IOS_DIR/Pods" ] && echo 'YES' || echo 'NO')"
+  log_step "  Checking if Pods.xcodeproj exists: $([ -d "$IOS_DIR/Pods/Pods.xcodeproj" ] && echo 'YES' || echo 'NO')"
+  if [ -d "$IOS_DIR/Pods/Pods.xcodeproj" ]; then
+    log_step "  Contents of Pods.xcodeproj:"
+    ls -la "$IOS_DIR/Pods/Pods.xcodeproj/" || log_error "Cannot list"
+  fi
+  exit 1
+fi
+
+# Verify cloud_firestore framework will be available
+log_step "Final check: cloud_firestore framework/module..."
+CLOUDFIRESTORE_FRAMEWORK="$IOS_DIR/Pods/cloud_firestore"
+if [ -d "$CLOUDFIRESTORE_FRAMEWORK" ] || [ -d "$IOS_DIR/Pods/Target Support Files/cloud_firestore" ]; then
+  log_success "✅ cloud_firestore pod files found"
+else
+  log_error "❌ cloud_firestore pod files not found"
+  log_step "Searching for cloud_firestore:"
+  find "$IOS_DIR/Pods" -name "*cloud_firestore*" -type d 2>/dev/null | head -5 || log_error "Not found"
+  exit 1
+fi
+
+# Verify workspace can access Pods project
+log_step "Final check: Workspace can access Pods project..."
+cd "$REPO_ROOT"
+if [ -f "linkUpMobileApp/ios/Pods/Pods.xcodeproj/project.pbxproj" ]; then
+  log_success "✅ Workspace can access Pods project"
+else
+  log_error "❌ Workspace cannot access Pods project"
+  log_error "This will cause Xcode to fail loading the workspace"
+  exit 1
+fi
+
+log_success "All final verifications passed - build should succeed"
 
 # Final summary
 log_section "PRE-BUILD SCRIPT SUMMARY"
