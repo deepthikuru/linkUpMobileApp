@@ -317,6 +317,8 @@
 			);
 			name = "Run Script";
 			outputPaths = (
+				"${SRCROOT}/Runner/GeneratedPluginRegistrant.h",
+				"${SRCROOT}/Runner/GeneratedPluginRegistrant.m",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
