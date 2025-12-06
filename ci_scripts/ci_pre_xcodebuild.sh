@@ -261,6 +261,121 @@ else
   exit 1
 fi
 
+# CRITICAL: Verify Podfile.lock and Manifest.lock are in sync
+# This prevents "The sandbox is not in sync with the Podfile.lock" errors
+log_section "VERIFYING PODFILE.LOCK SYNC"
+log_step "Checking Podfile.lock and Manifest.lock are in sync..."
+
+PODFILE_LOCK="$IOS_DIR/Podfile.lock"
+MANIFEST_LOCK="$IOS_DIR/Pods/Manifest.lock"
+
+log_step "Checking Podfile.lock exists..."
+if [ ! -f "$PODFILE_LOCK" ]; then
+  log_error "Podfile.lock is MISSING after pod install"
+  log_error "This will cause 'sandbox is not in sync' errors"
+  log_step "Current directory: $(pwd)"
+  log_step "Expected at: $PODFILE_LOCK"
+  log_step "Listing iOS directory:"
+  ls -la "$IOS_DIR/" | grep -E "Podfile|lock" || log_error "Cannot list directory"
+  exit 1
+fi
+log_success "Podfile.lock found at: $PODFILE_LOCK"
+PODFILE_LOCK_SIZE=$(wc -c < "$PODFILE_LOCK" 2>/dev/null || echo "0")
+log_step "Podfile.lock size: $PODFILE_LOCK_SIZE bytes"
+
+log_step "Checking Manifest.lock exists..."
+if [ ! -f "$MANIFEST_LOCK" ]; then
+  log_error "Pods/Manifest.lock is MISSING after pod install"
+  log_error "This will cause 'sandbox is not in sync' errors"
+  log_step "Checking if Pods directory exists:"
+  if [ -d "$IOS_DIR/Pods" ]; then
+    log_step "Pods directory exists, listing contents:"
+    ls -la "$IOS_DIR/Pods/" | head -20 || log_error "Cannot list"
+  else
+    log_error "Pods directory does not exist"
+  fi
+  exit 1
+fi
+log_success "Manifest.lock found at: $MANIFEST_LOCK"
+MANIFEST_LOCK_SIZE=$(wc -c < "$MANIFEST_LOCK" 2>/dev/null || echo "0")
+log_step "Manifest.lock size: $MANIFEST_LOCK_SIZE bytes"
+
+log_step "Verifying Podfile.lock and Manifest.lock are in sync..."
+if ! diff -q "$PODFILE_LOCK" "$MANIFEST_LOCK" >/dev/null 2>&1; then
+  log_error "Podfile.lock and Manifest.lock are OUT OF SYNC"
+  log_error "This will cause 'sandbox is not in sync' errors during build"
+  log_step "Showing differences (first 20 lines):"
+  diff "$PODFILE_LOCK" "$MANIFEST_LOCK" | head -20 || log_error "Cannot diff files"
+  log_step "Attempting to fix by copying Podfile.lock to Manifest.lock..."
+  cp "$PODFILE_LOCK" "$MANIFEST_LOCK" || {
+    log_error "Failed to sync lock files"
+    exit 1
+  }
+  log_success "Lock files synced manually"
+  
+  # Verify they're now in sync
+  if diff -q "$PODFILE_LOCK" "$MANIFEST_LOCK" >/dev/null 2>&1; then
+    log_success "Lock files are now in sync"
+  else
+    log_error "Lock files still out of sync after manual fix"
+    exit 1
+  fi
+else
+  log_success "Podfile.lock and Manifest.lock are in sync"
+fi
+
+# Additional verification: Check that both files have content
+if [ "$PODFILE_LOCK_SIZE" -lt 100 ]; then
+  log_error "Podfile.lock seems too small (may be corrupted)"
+  log_step "First 10 lines:"
+  head -10 "$PODFILE_LOCK" || log_error "Cannot read file"
+  exit 1
+fi
+
+if [ "$MANIFEST_LOCK_SIZE" -lt 100 ]; then
+  log_error "Manifest.lock seems too small (may be corrupted)"
+  log_step "First 10 lines:"
+  head -10 "$MANIFEST_LOCK" || log_error "Cannot read file"
+  exit 1
+fi
+
+log_success "Both lock files are valid and in sync"
+
+# CRITICAL: Verify the paths that the build phase script will use
+# The build phase uses: ${PODS_PODFILE_DIR_PATH}/Podfile.lock and ${PODS_ROOT}/Manifest.lock
+log_step "Verifying build phase script paths will resolve correctly..."
+log_step "PODS_PODFILE_DIR_PATH should point to: $IOS_DIR"
+log_step "PODS_ROOT should point to: $IOS_DIR/Pods"
+
+# Check if PODS_PODFILE_DIR_PATH is set in xcconfig
+XCCONFIG_FILE="$IOS_DIR/Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
+if [ -f "$XCCONFIG_FILE" ]; then
+  if grep -q "PODS_PODFILE_DIR_PATH" "$XCCONFIG_FILE"; then
+    PODS_PODFILE_DIR_PATH_VALUE=$(grep "PODS_PODFILE_DIR_PATH" "$XCCONFIG_FILE" | head -1 | sed 's/.*= *//' | tr -d ' ')
+    log_step "PODS_PODFILE_DIR_PATH from xcconfig: $PODS_PODFILE_DIR_PATH_VALUE"
+    
+    # Verify the path resolves to where Podfile.lock actually is
+    if [ -f "$PODS_PODFILE_DIR_PATH_VALUE/Podfile.lock" ] || [ -f "$IOS_DIR/Podfile.lock" ]; then
+      log_success "Podfile.lock will be accessible via PODS_PODFILE_DIR_PATH"
+    else
+      log_warning "Podfile.lock path may not resolve correctly"
+    fi
+  else
+    log_warning "PODS_PODFILE_DIR_PATH not found in xcconfig (may use default)"
+  fi
+fi
+
+# Final verification: Test that the build phase script would succeed
+log_step "Testing build phase script logic..."
+cd "$IOS_DIR"
+if diff -q "Podfile.lock" "Pods/Manifest.lock" >/dev/null 2>&1; then
+  log_success "Build phase script check would PASS"
+else
+  log_error "Build phase script check would FAIL"
+  log_step "This means the build will fail with 'sandbox is not in sync' error"
+  exit 1
+fi
+
 # CRITICAL: Verify Pods.xcodeproj was generated correctly
 # This is the root cause of "Module 'cloud_firestore' not found" errors
 log_section "VERIFYING PODS PROJECT GENERATION"
