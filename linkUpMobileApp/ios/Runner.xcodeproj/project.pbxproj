@@ -503,6 +503,7 @@
 					"@executable_path/Frameworks",
 				);
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -697,6 +698,7 @@
 					"@executable_path/Frameworks",
 				);
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -726,6 +728,7 @@
 					"@executable_path/Frameworks",
 				);
 				PODS_ROOT = "${SRCROOT}/Pods";
+				PODS_CONFIGURATION_BUILD_DIR = "${PODS_CONFIGURATION_BUILD_DIR}";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linkupmobileapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

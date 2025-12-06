@@ -6,3 +6,8 @@
 // At least one of these must exist
 #include? "${SRCROOT}/Flutter/Generated.xcconfig"
 #include? "${SRCROOT}/../linkUpMobileApp/ios/Flutter/Generated.xcconfig"
+
+// Fallback: Ensure framework search paths include Pods build directory for module resolution
+// This helps when building from workspace location where SRCROOT might resolve incorrectly
+// Note: These paths are appended to $(inherited) which includes paths from Pods xcconfig
+FRAMEWORK_SEARCH_PATHS = $(inherited) "$(PODS_CONFIGURATION_BUILD_DIR)" "$(BUILT_PRODUCTS_DIR)" "${SRCROOT}/../linkUpMobileApp/ios/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)" "${SRCROOT}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)"
