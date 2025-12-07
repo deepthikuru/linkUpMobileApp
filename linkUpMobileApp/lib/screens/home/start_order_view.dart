@@ -406,39 +406,52 @@ class _StartOrderContentState extends State<_StartOrderContent> {
               if (_totalOrdersCount == 0) ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                      // Illustration Image
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxHeight: 300,
+                          maxWidth: double.infinity,
+                        ),
+                          child: Image.asset(
+                            'assets/images/OrgCoral_Eco-01_Concept-06.jpg',
+                            width: double.infinity,
+                          fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
                         'CONNECT TO THE WORLD FOR LESS',
-                        style: TextStyle(
+                          style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
-                          letterSpacing: 0.5,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
                       const SizedBox(height: 16),
-                      Text(
+                        Text(
                         'Unlimited talk & text starting at \$10 a month',
-                        style: TextStyle(
+                          style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.accentGold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final navigationState = Provider.of<NavigationState>(context, listen: false);
-                            navigationState.navigateToTab(FooterTab.plans);
-                          },
-                          style: ElevatedButton.styleFrom(
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final navigationState = Provider.of<NavigationState>(context, listen: false);
+                              navigationState.navigateToTab(FooterTab.plans);
+                            },
+                            style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.getComponentBackgroundColor(
                               context,
                               'startOrder_seePlansButton_background',
@@ -449,21 +462,21 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               'startOrder_seePlansButton_text',
                               fallback: Colors.white,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 2,
                             ),
-                            elevation: 2,
-                          ),
-                          child: const Text(
+                            child: const Text(
                             'See plan details',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
                   ),
                 ),
               ] else ...[
