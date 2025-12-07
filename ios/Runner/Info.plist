@@ -1,5 +1,0 @@
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to autofill your shipping address.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need your location to autofill your shipping address and provide location-based services.</string>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
