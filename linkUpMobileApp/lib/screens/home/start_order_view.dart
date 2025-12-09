@@ -406,42 +406,33 @@ class _StartOrderContentState extends State<_StartOrderContent> {
               if (_totalOrdersCount == 0) ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                      // Illustration Image
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxHeight: 300,
-                          maxWidth: double.infinity,
-                        ),
-                          child: Image.asset(
-                            'assets/images/OrgCoral_Eco-01_Concept-06.jpg',
-                            width: double.infinity,
-                          fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        'assets/images/OrgCoral_Eco-01_Concept-06.jpg',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 200,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
                         'CONNECT TO THE WORLD FOR LESS',
-                          style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w900,
+                        style: AppTheme.getDoubleBoldTextStyle(
                           color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                          textAlign: TextAlign.center,
+                          fontSize: 36,
                         ),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 16),
-                        Text(
+                      Text(
                         'Unlimited talk & text starting at \$10 a month',
-                          style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                        style: AppTheme.getDoubleBoldTextStyle(
                           color: AppTheme.accentGold,
-                          ),
-                          textAlign: TextAlign.center,
+                          fontSize: 18,
                         ),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
