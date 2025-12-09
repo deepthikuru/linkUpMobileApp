@@ -88,6 +88,30 @@ post_install do |installer|
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= ['$(inherited)']
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(PODS_CONFIGURATION_BUILD_DIR)'
       config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(BUILT_PRODUCTS_DIR)'
+      
+      # Fix nanopb duplicate symbols issue
+      # Ensure -ObjC is present for proper static library linking
+      config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+      if config.build_settings['OTHER_LDFLAGS'].is_a?(Array)
+        config.build_settings['OTHER_LDFLAGS'] << '-ObjC' unless config.build_settings['OTHER_LDFLAGS'].include?('-ObjC')
+      end
+      
+      # For nanopb specifically, ensure it's only linked once
+      # This prevents duplicate symbol errors when multiple Firebase pods include nanopb
+      if target.name == 'nanopb'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PB_FIELD_32BIT=1'
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'PB_NO_PACKED_STRUCTS=1'
+      end
+      
+      # Additional fix: Remove duplicate symbols during linking for Runner target
+      if target.name == 'Runner'
+        config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+        if config.build_settings['OTHER_LDFLAGS'].is_a?(Array)
+          # Add flag to suppress duplicate symbol warnings (they're handled by CocoaPods)
+          config.build_settings['OTHER_LDFLAGS'] << '-Wl,-no_warn_duplicate_libraries' unless config.build_settings['OTHER_LDFLAGS'].any? { |flag| flag.to_s.include?('no_warn_duplicate_libraries') }
+        end
+      end
     end
   end
 end

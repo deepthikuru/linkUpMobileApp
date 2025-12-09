@@ -409,23 +409,27 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Image.asset(
+                        'assets/images/OrgCoral_Eco-01_Concept-06.jpg',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 200,
+                      ),
+                      const SizedBox(height: 24),
                       Text(
                         'CONNECT TO THE WORLD FOR LESS',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w900,
+                        style: AppTheme.getDoubleBoldTextStyle(
                           color: Colors.white,
-                          letterSpacing: 0.5,
+                          fontSize: 36,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Unlimited talk & text starting at \$10 a month',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+                        style: AppTheme.getDoubleBoldTextStyle(
                           color: AppTheme.accentGold,
+                          fontSize: 18,
                         ),
                         textAlign: TextAlign.center,
                       ),
