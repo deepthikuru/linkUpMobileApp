@@ -7,6 +7,7 @@ import '../providers/user_registration_view_model.dart';
 import '../services/firebase_order_manager.dart';
 import '../services/notification_service.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 import 'content_view.dart';
 
 class LoginPage extends StatefulWidget {
@@ -41,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please enter your email address'),
+          content: Text(FallbackValues.errorPleaseEnterEmail),
           backgroundColor: errorBg,
         ),
       );
@@ -53,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Password reset email sent. Please check your inbox.'),
+            content: Text(FallbackValues.successPasswordResetSent),
             backgroundColor: successBg,
           ),
         );
@@ -62,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('${FallbackValues.errorFailedToSave}: ${e.toString()}'),
             backgroundColor: errorBg,
           ),
         );
@@ -161,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Please enter email and password'),
+            content: Text(FallbackValues.errorPleaseEnterEmail),
             backgroundColor: errorBg,
           ),
         );
@@ -184,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Successfully signed in!'),
+            content: Text(FallbackValues.successSignedIn),
             backgroundColor: successBg,
           ),
         );
@@ -199,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
           'snackbar-error',
           fallback: Colors.red,
         );
-        String errorMessage = 'Error signing in';
+        String errorMessage = FallbackValues.errorFailedToSave;
         
         if (e.toString().contains('user-not-found')) {
           errorMessage = 'No account found with this email';
@@ -208,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
         } else if (e.toString().contains('invalid-email')) {
           errorMessage = 'Invalid email address';
         } else {
-          errorMessage = 'Error: ${e.toString()}';
+          errorMessage = '${FallbackValues.errorFailedToSave}: ${e.toString()}';
         }
         
         ScaffoldMessenger.of(context).showSnackBar(
@@ -271,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Successfully signed in with Google!'),
+            content: Text(FallbackValues.successSignedIn),
             backgroundColor: successBg,
           ),
         );
@@ -296,7 +297,7 @@ class _LoginPageState extends State<LoginPage> {
               '1. SHA-1 fingerprint is added to Firebase Console\n'
               '2. Google Sign-In is enabled in Firebase Authentication';
         } else {
-          errorMessage = 'Error: ${e.toString()}';
+          errorMessage = '${FallbackValues.errorFailedToSave}: ${e.toString()}';
         }
         
         ScaffoldMessenger.of(context).showSnackBar(
@@ -322,87 +323,87 @@ class _LoginPageState extends State<LoginPage> {
     final screenBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_scaffold_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final titleColor = AppTheme.getComponentTextColor(
       context,
       'login_title_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final hintColor = AppTheme.getComponentTextColor(
       context,
       'login_inputHint_text',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     final inputBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_input_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final linkColor = AppTheme.getComponentTextColor(
       context,
       'link-primary',
-      fallback: AppTheme.yellowAccentDynamic(context),
+      fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
     );
     final primaryButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_signInButton_disabledBackground',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     final primaryButtonText = AppTheme.getComponentTextColor(
       context,
       'login_signInButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final googleButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_googleButton_background',
-      fallback: Colors.red,
+      fallback: Color(int.parse(FallbackValues.redAccent.replaceFirst('#', '0xFF'))),
     );
     final googleButtonText = AppTheme.getComponentTextColor(
       context,
       'login_googleButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final googleButtonIcon = AppTheme.getComponentIconColor(
       context,
       'login_googleButton_icon',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final appleButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_appleButton_background',
-      fallback: Colors.black,
+      fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
     );
     final appleButtonText = AppTheme.getComponentTextColor(
       context,
       'login_appleButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final appleButtonIcon = AppTheme.getComponentIconColor(
       context,
       'login_appleButton_icon',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final buttonText = AppTheme.getComponentTextColor(
       context,
       'button-text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final bodyText = AppTheme.getComponentTextColor(
       context,
       'login_footerText_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final dividerColor = AppTheme.getComponentTextColor(
       context,
       'login_separator_text',
-      fallback: Colors.grey[600]!,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     final loadingIndicatorColor = AppTheme.getComponentIconColor(
       context,
       'login_loadingIndicator_color',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
 
     return Scaffold(
@@ -425,9 +426,9 @@ class _LoginPageState extends State<LoginPage> {
                       // Sign In Title - Centered, white with double bold style
                       Center(
                         child: Text(
-                          'Sign In',
+                          FallbackValues.buttonSignIn,
                           style: AppTheme.getDoubleBoldTextStyle(
-                            color: Colors.white,
+                            color: titleColor,
                             fontSize: 32,
                           ),
                         ),
@@ -437,7 +438,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          hintText: 'Email address',
+                          hintText: FallbackValues.labelEmail,
                           hintStyle: TextStyle(color: hintColor),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -500,9 +501,9 @@ class _LoginPageState extends State<LoginPage> {
                                     valueColor: AlwaysStoppedAnimation<Color>(loadingIndicatorColor),
                                   ),
                                 )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              : Text(
+                                  FallbackValues.buttonSignIn,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                                 ),
                         ),
                       ),
@@ -625,8 +626,8 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         // Navigate to create account - can be implemented later
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Create account feature coming soon'),
+                          SnackBar(
+                            content: const Text('Create account feature coming soon'),
                           ),
                         );
                       },

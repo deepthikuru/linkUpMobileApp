@@ -9,6 +9,7 @@ import '../../widgets/order_step_header.dart';
 import '../../utils/formatters.dart';
 import '../../utils/validators.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class BillingInfoView extends StatefulWidget {
   final int currentStep;
@@ -114,11 +115,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       ),
       child: Column(
         children: [
-          _buildPricingRow('Plan', _planName, isBold: false),
-          _buildPricingRow('Plan Price', '\$${_planPrice.toStringAsFixed(2)}', isBold: false),
-          _buildPricingRow('Plan Tax', '\$${tax.toStringAsFixed(2)}', isBold: false),
+          _buildPricingRow(FallbackValues.labelPlan, _planName, isBold: false),
+          _buildPricingRow(FallbackValues.labelPlanPrice, '\$${_planPrice.toStringAsFixed(2)}', isBold: false),
+          _buildPricingRow(FallbackValues.labelPlanTax, '\$${tax.toStringAsFixed(2)}', isBold: false),
           Divider(),
-          _buildPricingRow('Total', '\$${total.toStringAsFixed(2)}', isBold: true),
+          _buildPricingRow(FallbackValues.labelTotal, '\$${total.toStringAsFixed(2)}', isBold: true),
         ],
       ),
     );
@@ -154,7 +155,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         // Card Number
         TextFormField(
           controller: _cardNumberController,
-          decoration: AppTheme.inputDecoration('Card Number'),
+          decoration: AppTheme.inputDecoration(FallbackValues.labelCardNumber),
           keyboardType: TextInputType.number,
           inputFormatters: [CreditCardFormatter()],
           validator: Validators.creditCard,
@@ -166,7 +167,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
             Expanded(
               child: TextFormField(
                 controller: _expiryController,
-                decoration: AppTheme.inputDecoration('MM/YY'),
+                decoration: AppTheme.inputDecoration(FallbackValues.labelExpiry),
                 keyboardType: TextInputType.number,
                 inputFormatters: [ExpiryDateFormatter()],
                 validator: Validators.expiryDate,
@@ -176,7 +177,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
             Expanded(
               child: TextFormField(
                 controller: _cvvController,
-                decoration: AppTheme.inputDecoration('CVV'),
+                decoration: AppTheme.inputDecoration(FallbackValues.labelCvv),
                 keyboardType: TextInputType.number,
                 obscureText: true,
                 validator: Validators.cvv,
@@ -186,7 +187,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         ),
         SizedBox(height: AppTheme.spacingItem),
         CheckboxListTile(
-          title: Text('Same as Shipping Address', style: AppTheme.bodyStyle),
+          title: Text(FallbackValues.labelSameAsShipping, style: AppTheme.bodyStyle),
           value: _useShippingAddress,
           onChanged: (value) {
             setState(() {
@@ -198,9 +199,9 @@ class _BillingInfoViewState extends State<BillingInfoView> {
           SizedBox(height: AppTheme.spacingItem),
           TextFormField(
             controller: _billingAddressController,
-            decoration: AppTheme.inputDecoration('Billing Address *'),
+            decoration: AppTheme.inputDecoration(FallbackValues.labelBillingAddress),
             maxLines: 2,
-            validator: (value) => Validators.required(value, fieldName: 'Billing address'),
+            validator: (value) => Validators.required(value, fieldName: FallbackValues.labelBillingAddress),
           ),
         ],
       ],
@@ -221,7 +222,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: Text(
-              'I authorize Telgoo5 Mobile LLC to charge my card on a recurring basis.',
+              FallbackValues.checkboxRecurringCharge,
               style: AppTheme.captionStyle,
             ),
             value: _recurringChargeAgreement,
@@ -235,7 +236,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
             contentPadding: EdgeInsets.zero,
             dense: true,
             title: Text(
-              'I agree to the Privacy Policy and Terms of Use.',
+              FallbackValues.checkboxPrivacyTerms,
               style: AppTheme.captionStyle,
             ),
             value: _privacyTermsAgreement,
@@ -258,7 +259,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'BROADBAND FACTS',
+              FallbackValues.sectionBroadbandFacts,
               style: AppTheme.bodyStyle.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -307,19 +308,19 @@ class _BillingInfoViewState extends State<BillingInfoView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Mobile Broadband Consumer Disclosure',
+                            FallbackValues.sectionMobileBroadbandDisclosure,
                             style: AppTheme.bodySmallStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Monthly Price: \$${_planPrice.toStringAsFixed(2)}',
+                            FallbackValues.replacePlaceholder(FallbackValues.sectionMonthlyPrice, {'price': _planPrice.toStringAsFixed(2)}),
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Not an introductory rate and does not require a contract.',
+                            FallbackValues.sectionNotIntroductoryRate,
                             style: AppTheme.captionStyle.copyWith(
                               color: AppTheme.textSecondary,
                             ),
@@ -333,24 +334,24 @@ class _BillingInfoViewState extends State<BillingInfoView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Speeds Provided with Plan',
+                            FallbackValues.sectionSpeedsProvided,
                             style: AppTheme.bodySmallStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Typical Download: 10-50 Mbps',
+                            FallbackValues.sectionTypicalDownload,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Typical Upload Speed: 1-10 Mbps',
+                            FallbackValues.sectionTypicalUpload,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Typical Latency: 19-37 ms',
+                            FallbackValues.sectionTypicalLatency,
                             style: AppTheme.captionStyle,
                           ),
                         ],
@@ -368,29 +369,29 @@ class _BillingInfoViewState extends State<BillingInfoView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Provider Monthly Fees',
+                            FallbackValues.sectionProviderFees,
                             style: AppTheme.bodySmallStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'One-Time Fee: \$0',
+                            FallbackValues.sectionOneTimeFee,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Device Connection Charge: \$0',
+                            FallbackValues.sectionDeviceConnectionCharge,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Early Termination Fee: \$0',
+                            FallbackValues.sectionEarlyTerminationFee,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Government Taxes: Varies by Location',
+                            FallbackValues.sectionGovernmentTaxes,
                             style: AppTheme.captionStyle,
                           ),
                         ],
@@ -402,24 +403,24 @@ class _BillingInfoViewState extends State<BillingInfoView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Unlimited Data Included with Monthly Price',
+                            FallbackValues.sectionUnlimitedData,
                             style: AppTheme.bodySmallStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'With first 20GB at high speed',
+                            FallbackValues.sectionFirst20GB,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Charges for Additional Data Usage: \$0',
+                            FallbackValues.sectionChargesAdditionalData,
                             style: AppTheme.captionStyle,
                           ),
                           SizedBox(height: 4),
                           Text(
-                            '*Residential, non-commercial use only.',
+                            FallbackValues.sectionResidentialUse,
                             style: AppTheme.captionStyle.copyWith(
                               color: AppTheme.textSecondary,
                               fontStyle: FontStyle.italic,
@@ -445,7 +446,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
 
     if (!_recurringChargeAgreement || !_privacyTermsAgreement) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept all agreements')),
+        SnackBar(content: Text(FallbackValues.errorPleaseAcceptAgreements)),
       );
       return;
     }
@@ -472,8 +473,8 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         step: 5,
       );
       
-      // After payment is completed, call create_customer_prepaid_multiline API
-      await _createCustomerOrder(viewModel.userId!, viewModel.orderId!, viewModel);
+      // NEW FLOW: Step 5 - Check service availability and create customer
+      await _processStep5Enrollment(viewModel.userId!, viewModel.orderId!, viewModel);
       
       // If this is a porting order, mark as pending port-in instead of completed
       final isPortingOrder = viewModel.numberType == 'Existing';
@@ -486,12 +487,12 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       _isSaving = false;
     });
 
-    if (success && mounted) {
-      widget.onStepChanged(6);
-    } else if (mounted) {
+    // DON'T proceed to step 6 - keep user on step 5
+    // The success/error message will be shown via the API processing
+    if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.errorMessage ?? 'Failed to save billing info'),
+          content: Text(viewModel.errorMessage ?? FallbackValues.errorFailedToSaveBillingInfo),
           backgroundColor: AppTheme.getComponentBackgroundColor(
             context,
             'login_errorSnackbar_background',
@@ -502,21 +503,20 @@ class _BillingInfoViewState extends State<BillingInfoView> {
     }
   }
 
-  Future<void> _createCustomerOrder(String userId, String orderId, UserRegistrationViewModel viewModel) async {
+  Future<void> _processStep5Enrollment(String userId, String orderId, UserRegistrationViewModel viewModel) async {
     try {
-      // Fetch order document to get enrollment_id, plan_id, and other data
+      // Fetch order document to get plan_id and other data
       final orderManager = FirebaseOrderManager();
       final orderData = await orderManager.fetchOrderDocument(userId, orderId);
       
       if (orderData == null) {
         print('❌ Order document not found');
-        return;
-      }
-
-      // Extract required data from order
-      final enrollmentId = orderData['enrollment_id'] as String?;
-      if (enrollmentId == null || enrollmentId.isEmpty) {
-        print('❌ Missing enrollment_id in order document');
+        if (mounted) {
+          _showErrorDialog(
+            'Order Not Found',
+            'Order not found. Please try again.',
+          );
+        }
         return;
       }
 
@@ -530,11 +530,16 @@ class _BillingInfoViewState extends State<BillingInfoView> {
 
       if (planId == null) {
         print('❌ Missing plan_id in order document');
+        if (mounted) {
+          _showErrorDialog(
+            'Plan Information Missing',
+            'Plan information not found. Please try again.',
+          );
+        }
         return;
       }
 
       // Get order_id from payment (if available)
-      // Try different possible field names
       int? paymentOrderId;
       if (orderData['payment_order_id'] is int) {
         paymentOrderId = orderData['payment_order_id'] as int;
@@ -546,227 +551,265 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         paymentOrderId = int.tryParse(orderData['order_id'] as String);
       }
 
-      // Determine activation type
-      // Only use PORTIN if port-in details are already available
-      // Otherwise, create with NEWACTIVATION and submit port-in later in step 6
+      // Determine if this is a port-in order
       final isPortInOrder = viewModel.numberType == 'Existing';
-      final hasPortInDetails = isPortInOrder &&
-          viewModel.portInAccountNumber.isNotEmpty &&
-          viewModel.portInPin.isNotEmpty &&
-          viewModel.portInCurrentCarrier.isNotEmpty &&
-          viewModel.portInAccountHolderName.isNotEmpty &&
-          viewModel.selectedPhoneNumber.isNotEmpty;
       
-      final activationType = hasPortInDetails ? 'PORTIN' : 'NEWACTIVATION';
-
-      // Determine enrollment type (SHIPMENT or HANDOVER)
-      final enrollmentType = viewModel.simType == 'eSIM' ? 'SHIPMENT' : 'SHIPMENT'; // eSIM always uses SHIPMENT
-
-      // Determine is_esim
+      // Determine enrollment type and SIM type
       final isEsim = viewModel.simType == 'eSIM' ? 'Y' : 'N';
+      final enrollmentType = isEsim == 'Y' ? 'SHIPMENT' : 
+          (isPortInOrder ? 'HANDOVER' : 'SHIPMENT');
 
       // Get carrier from order or use default
       final carrier = orderData['carrier'] as String? ?? 'TMBRLY';
 
-      // Build customer info dictionary
-      final customerInfo = <String, dynamic>{
-        'activation_type': activationType,
-        'enrollment_type': enrollmentType,
-        'is_esim': isEsim,
-        'carrier': carrier,
-        'email': viewModel.email,
-        'first_name': viewModel.firstName,
-        'last_name': viewModel.lastName,
-        'service_address_one': viewModel.street,
-        'service_address_two': viewModel.aptNumber,
-        'service_city': viewModel.city,
-        'service_state': viewModel.state,
-        'service_zip': viewModel.zip,
-        'billing_address_one': viewModel.street, // Use same as service for now
-        'billing_address_two': viewModel.aptNumber,
-        'billing_city': viewModel.city,
-        'billing_state': viewModel.state,
-        'billing_zip': viewModel.zip,
-        'notify_bill_via_text': 'Y',
-        'notify_bill_via_email': 'Y',
-      };
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('🔄 STEP 5: ENROLLMENT PROCESSING');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('📋 Order Details:');
+      print('   Order ID: $orderId');
+      print('   Plan ID: $planId');
+      print('   Zip Code: ${viewModel.zip}');
+      print('   SIM Type: ${viewModel.simType}');
+      print('   Number Type: ${viewModel.numberType}');
+      print('   Enrollment Type: $enrollmentType');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // Add password if available
-      if (viewModel.password.isNotEmpty) {
-        customerInfo['password'] = viewModel.password;
-      }
-
-      // Add alternate phone number if available
-      if (viewModel.phoneNumber.isNotEmpty) {
-        customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
-      }
-
-      // Add port-in information ONLY if activation type is PORTIN AND details are available
-      // According to API docs, port-in fields are REQUIRED when activation_type is PORTIN
-      if (activationType == 'PORTIN' && hasPortInDetails) {
-        customerInfo['port_current_carrier'] = viewModel.portInCurrentCarrier;
-        customerInfo['port_account_number'] = viewModel.portInAccountNumber;
-        customerInfo['port_account_password'] = viewModel.portInPin;
-        customerInfo['port_number'] = viewModel.selectedPhoneNumber;
-
-        // Port-in name (split if available)
-        final portName = viewModel.portInAccountHolderName;
-        if (portName.isNotEmpty) {
-          final portNameParts = portName.split(' ');
-          if (portNameParts.length >= 2) {
-            customerInfo['port_first_name'] = portNameParts[0];
-            customerInfo['port_last_name'] = portNameParts.sublist(1).join(' ');
-          } else if (portNameParts.length == 1) {
-            customerInfo['port_first_name'] = portNameParts[0];
-            customerInfo['port_last_name'] = '';
-          }
-        }
-
-        // Use service address for port-in address (as per typical flow)
-        customerInfo['port_address_one'] = viewModel.street;
-        customerInfo['port_address_two'] = viewModel.aptNumber;
-        customerInfo['port_city'] = viewModel.city;
-        customerInfo['port_state'] = viewModel.state;
-        customerInfo['port_zip_code'] = viewModel.zip;
-      }
-      
-      // Log activation type decision
-      if (isPortInOrder && !hasPortInDetails) {
-        print('⚠️ Port-in order detected but port-in details not yet collected.');
-        print('   Creating customer with NEWACTIVATION. Port-in will be submitted in step 6.');
-      }
-
-      // Call create_customer_prepaid_multiline API
-      print('🔄 Calling create_customer_prepaid_multiline API...');
-      // Generate unique transaction ID for this API call
-      final transactionId = VCareAPIManager.generateTransactionId(orderId, 'CREATE');
-      
+      // STEP 1: Check service availability to get enrollment_id
+      print('📋 Step 1: Checking service availability...');
       final apiManager = VCareAPIManager();
-      final response = await apiManager.createCustomerPrepaidMultiline(
-        enrollmentId: enrollmentId,
-        orderId: paymentOrderId,
-        planId: planId,
-        customerInfo: customerInfo,
-        agentId: 'Sushil', // TODO: Get from user settings or configuration
+      final checkTransactionId = VCareAPIManager.generateTransactionId(orderId, 'CHECK');
+      
+      final availabilityData = await apiManager.checkServiceAvailability(
+        zipCode: viewModel.zip,
+        enrollmentType: 'NON_LIFELINE',
+        isEnrollment: 'Y',
+        agentId: 'Sushil',
         source: 'WEBSITE',
-        externalTransactionId: transactionId,
+        externalTransactionId: checkTransactionId,
       );
 
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      print('✅ CUSTOMER CREATED SUCCESSFULLY');
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      print('📋 API Response Details:');
-      print('   Message: ${response.msg}');
-      print('   Message Code: ${response.msgCode}');
-      if (response.externalTransactionId != null) {
-        print('   External Transaction ID: ${response.externalTransactionId}');
+      if (availabilityData.enrollmentId == null || availabilityData.enrollmentId!.isEmpty) {
+        print('❌ Failed to get enrollment_id from service availability check');
+        if (mounted) {
+          _showErrorDialog(
+            'Enrollment Failed',
+            'Failed to create enrollment. Please try again.',
+          );
+        }
+        return;
       }
 
-      // Log line details
-      if (response.data != null && response.data!.isNotEmpty) {
-        print('   Number of Lines: ${response.data!.length}');
+      final enrollmentId = availabilityData.enrollmentId!;
+      print('✅ Received enrollment_id: $enrollmentId');
 
-        for (var i = 0; i < response.data!.length; i++) {
-          final lineResponse = response.data![i];
-          print('   ──────────────────────────────────────');
-          print('   Line ${i + 1}:');
-          print('      Message: ${lineResponse.msg}');
-          print('      Message Code: ${lineResponse.msgCode}');
+      // Save enrollment_id to order
+      await orderManager.saveStepProgress(
+        userId: userId,
+        orderId: orderId,
+        step: 5,
+        data: {'enrollment_id': enrollmentId},
+      );
 
-          if (lineResponse.data != null) {
-            final lineData = lineResponse.data!;
+      // STEP 2: If not a port-in order, create customer using new API
+      if (!isPortInOrder) {
+        print('📋 Step 2: Creating customer (non-port-in order)...');
+        
+        // Build customer info
+        final customerInfo = <String, dynamic>{
+          'enrollment_type': enrollmentType,
+          'is_esim': isEsim,
+          'carrier': carrier,
+          'email': viewModel.email,
+          'first_name': viewModel.firstName,
+          'last_name': viewModel.lastName,
+          'service_address_one': viewModel.street,
+          'service_address_two': viewModel.aptNumber,
+          'service_city': viewModel.city,
+          'service_state': viewModel.state,
+          'service_zip': viewModel.zip,
+          'billing_address_one': viewModel.street,
+          'billing_address_two': viewModel.aptNumber,
+          'billing_city': viewModel.city,
+          'billing_state': viewModel.state,
+          'billing_zip': viewModel.zip,
+          'is_portin': 'N',
+        };
+
+        if (viewModel.password.isNotEmpty) {
+          customerInfo['password'] = viewModel.password;
+        }
+
+        if (viewModel.phoneNumber.isNotEmpty) {
+          customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
+        }
+
+        final createTransactionId = VCareAPIManager.generateTransactionId(orderId, 'CREATE');
+        final responseData = await apiManager.createPrepaidPostpaidCustomerV2(
+          enrollmentId: enrollmentId,
+          orderId: paymentOrderId,
+          planId: planId,
+          customerInfo: customerInfo,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+          externalTransactionId: createTransactionId,
+        );
+
+        final response = responseData['response'] as CreateCustomerResponse;
+        final rawJson = responseData['rawJson'] as Map<String, dynamic>;
+
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('✅ CUSTOMER CREATED SUCCESSFULLY');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('📋 API Response Details:');
+        print('   Message: ${response.msg}');
+        print('   Message Code: ${response.msgCode}');
+        if (response.externalTransactionId != null) {
+          print('   External Transaction ID: ${response.externalTransactionId}');
+        }
+
+        // Handle response based on order type
+        if (response.data != null && response.data!.isNotEmpty) {
+          final firstLine = response.data!.first;
+          if (firstLine.data != null) {
+            final lineData = firstLine.data!;
+            
+            // Extract eSIM data from raw JSON if available
+            Map<String, dynamic>? esimData;
+            if (rawJson['data'] != null && rawJson['data'] is List && (rawJson['data'] as List).isNotEmpty) {
+              final firstDataItem = (rawJson['data'] as List)[0];
+              if (firstDataItem is Map && firstDataItem['data'] is Map) {
+                final dataMap = firstDataItem['data'] as Map<String, dynamic>;
+                if (dataMap['esim'] != null && dataMap['esim'] is Map) {
+                  esimData = dataMap['esim'] as Map<String, dynamic>;
+                  print('✅ eSIM data found in response');
+                }
+              }
+            }
+            
+            // Save customer data to order
+            final updateData = <String, dynamic>{};
             if (lineData.custId != null) {
-              print('      Customer ID: ${lineData.custId}');
+              updateData['cust_id'] = lineData.custId;
             }
             if (lineData.customerId != null) {
-              print('      Customer ID (alt): ${lineData.customerId}');
+              updateData['customer_id'] = lineData.customerId;
             }
             if (lineData.enrollmentId != null) {
-              print('      Enrollment ID: ${lineData.enrollmentId}');
-            }
-            if (lineData.enrollmentType != null) {
-              print('      Enrollment Type: ${lineData.enrollmentType}');
+              updateData['enrollment_id'] = lineData.enrollmentId;
             }
             if (lineData.mdn != null && lineData.mdn!.isNotEmpty) {
-              print('      MDN (Phone Number): ${lineData.mdn}');
+              updateData['mdn'] = lineData.mdn;
             }
-            if (lineData.msid != null && lineData.msid!.isNotEmpty) {
-              print('      MSID: ${lineData.msid}');
+            if (lineData.enrollmentType != null) {
+              updateData['enrollment_type'] = lineData.enrollmentType;
             }
-            if (lineData.msl != null && lineData.msl!.isNotEmpty) {
-              print('      MSL: ${lineData.msl}');
-            }
-            if (lineData.invoiceNumber != null && lineData.invoiceNumber!.isNotEmpty) {
-              print('      Invoice Number: ${lineData.invoiceNumber}');
-            }
-          } else {
-            print('      ⚠️ No line data in response');
-          }
-        }
-      } else {
-        print('   ⚠️ No lines data in response');
-      }
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // Save customer ID and other response data to order if needed
-      // Also track the enrollment_id from response for port-in submission
-      String? finalEnrollmentId = enrollmentId; // Default to original
-      
-      if (response.data != null && response.data!.isNotEmpty) {
-        final firstLine = response.data!.first;
-        if (firstLine.data != null) {
-          final lineData = firstLine.data!;
-          final updateData = <String, dynamic>{};
+            // Save eSIM data if available
+            if (esimData != null) {
+              updateData['esim_qr_activation_code'] = esimData['QR_ACTIVATION_CODE']?.toString();
+              updateData['esim_activation_code'] = esimData['ACTIVATION_CODE']?.toString();
+              updateData['esim_iccid'] = esimData['ICCID']?.toString();
+              updateData['esim_smdp_address'] = esimData['SMDPADDRESS']?.toString() ?? '';
+              updateData['esim_enroll_id'] = esimData['ENROLL_ID']?.toString();
+              updateData['esim_allocation_success'] = esimData['ESIM_ALLOCATION_SUCCESS']?.toString();
+              updateData['esim_status_code'] = esimData['STATUSCODE']?.toString();
+              updateData['esim_description'] = esimData['DESCRIPTION']?.toString();
+              print('💾 Saving eSIM data to order');
+            }
 
-          if (lineData.custId != null) {
-            updateData['cust_id'] = lineData.custId;
-            print('💾 Saving cust_id: ${lineData.custId} to order');
-          }
-          if (lineData.customerId != null) {
-            updateData['customer_id'] = lineData.customerId;
-            print('💾 Saving customer_id: ${lineData.customerId} to order');
-          }
-          if (lineData.mdn != null && lineData.mdn!.isNotEmpty) {
-            updateData['mdn'] = lineData.mdn;
-            print('💾 Saving MDN: ${lineData.mdn} to order');
-          }
-          if (lineData.enrollmentId != null) {
-            updateData['enrollment_id'] = lineData.enrollmentId;
-            // Use enrollment_id from response if available (important for port-in)
-            finalEnrollmentId = lineData.enrollmentId;
-            print('💾 Saving enrollment_id: ${lineData.enrollmentId} to order');
-            print('📋 Using enrollment_id from create customer response: $finalEnrollmentId');
-          }
-
-          if (updateData.isNotEmpty) {
             await orderManager.saveStepProgress(
               userId: userId,
               orderId: orderId,
               step: 5,
               data: updateData,
             );
-            print('✅ Successfully saved customer data to order');
+
+            // Handle response based on SIM type
+            if (isEsim == 'Y') {
+              // eSIM order - print eSIM data to terminal
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('📱 eSIM ORDER - ALL RESPONSE VALUES:');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('Customer ID: ${lineData.custId ?? "N/A"}');
+              print('Customer ID (alt): ${lineData.customerId ?? "N/A"}');
+              print('Enrollment ID: ${lineData.enrollmentId ?? "N/A"}');
+              print('Enrollment Type: ${lineData.enrollmentType ?? "N/A"}');
+              if (esimData != null) {
+                print('QR Activation Code: ${esimData['QR_ACTIVATION_CODE'] ?? "N/A"}');
+                print('Activation Code: ${esimData['ACTIVATION_CODE'] ?? "N/A"}');
+                print('ICCID: ${esimData['ICCID'] ?? "N/A"}');
+                print('SMDP Address: ${esimData['SMDPADDRESS'] ?? "N/A"}');
+                print('Enroll ID: ${esimData['ENROLL_ID'] ?? "N/A"}');
+                print('eSIM Allocation Success: ${esimData['ESIM_ALLOCATION_SUCCESS'] ?? "N/A"}');
+                print('Status Code: ${esimData['STATUSCODE'] ?? "N/A"}');
+                print('Description: ${esimData['DESCRIPTION'] ?? "N/A"}');
+              }
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            } else {
+              // Physical SIM order - print all values to terminal
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('📦 PHYSICAL SIM ORDER - ALL RESPONSE VALUES:');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('Customer ID: ${lineData.custId ?? "N/A"}');
+              print('Customer ID (alt): ${lineData.customerId ?? "N/A"}');
+              print('Enrollment ID: ${lineData.enrollmentId ?? "N/A"}');
+              print('Enrollment Type: ${lineData.enrollmentType ?? "N/A"}');
+              print('MDN (Phone Number): ${lineData.mdn ?? "N/A"}');
+              print('MSID: ${lineData.msid ?? "N/A"}');
+              print('MSL: ${lineData.msl ?? "N/A"}');
+              print('Invoice Number: ${lineData.invoiceNumber ?? "N/A"}');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            }
+            
+            // On success, proceed to step 6
+            if (mounted) {
+              widget.onStepChanged(6);
+            }
           }
+        }
+      } else {
+        // Port-in order - handle handover/shipment
+        print('📋 Step 2: Port-in order detected...');
+        print('   Enrollment Type: $enrollmentType');
+        print('   Port-in details will be submitted in step 6');
+        
+        // On success, proceed to step 6
+        if (mounted) {
+          widget.onStepChanged(6);
         }
       }
 
-      // Note: New number activation and eSIM assignment are handled in Step 6
-      // to allow time for customer to be in dispatched status
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      print('✅ STEP 5 COMPLETED SUCCESSFULLY');
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       
-      // Note: Port-in APIs (get_list, submit_portin, query_portin) are NOT called here
-      // because port-in details are collected in step 6 (porting view), not step 5 (billing)
-      // The port-in APIs will be called in number_porting_view.dart after user fills port-in details
-      // 
-      // IMPORTANT: Customer is created with activation_type: 'PORTIN' ONLY if port-in details
-      // are already available. Otherwise, customer is created with 'NEWACTIVATION' and port-in
-      // will be submitted later in step 6 using submit_portin API. This is because the API
-      // requires all port-in fields to be present when activation_type is 'PORTIN'.
     } catch (e, stackTrace) {
-      print('❌ Failed to create customer: $e');
+      print('❌ Failed to process step 5 enrollment: $e');
       print('   Stack trace: $stackTrace');
-      // Continue to next step even if customer creation fails (order is saved locally)
-      // You may want to show an alert to the user here
+      if (mounted) {
+        _showErrorDialog('Failed to process enrollment', e.toString());
+      }
     }
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _handleBack() {
@@ -789,7 +832,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
     return StepNavigationContainer(
       currentStep: widget.currentStep,
       totalSteps: 6,
-      nextButtonText: 'Complete Order',
+      nextButtonText: FallbackValues.buttonComplete,
       nextButtonAction: _handleNext,
       backButtonAction: _handleBack,
       cancelAction: () {
@@ -810,7 +853,7 @@ class _BillingInfoViewState extends State<BillingInfoView> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               OrderStepHeader(
-                title: 'Billing Information',
+                title: FallbackValues.titleBillingInfo,
               ),
               SizedBox(height: AppTheme.spacingSection),
               

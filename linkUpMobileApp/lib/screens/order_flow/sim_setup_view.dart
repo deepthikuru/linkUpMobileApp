@@ -5,6 +5,7 @@ import '../../providers/navigation_state.dart';
 import '../../widgets/step_navigation_container.dart';
 import '../../widgets/order_step_header.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class SimSetupView extends StatelessWidget {
   final int currentStep;
@@ -38,7 +39,7 @@ class SimSetupView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             OrderStepHeader(
-              title: 'SIM Card Setup',
+              title: FallbackValues.titleSimSetup,
               subtitle: isPhysicalSim ? 'Physical SIM Card' : 'eSIM',
             ),
             SizedBox(height: AppTheme.spacingSection),
@@ -52,7 +53,7 @@ class SimSetupView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
-                isPhysicalSim ? Icons.sim_card : Icons.qr_code_2,
+                isPhysicalSim ? Icons.sim_card : Icons.memory,
                 color: AppTheme.accentGold,
                 size: 60,
               ),
@@ -61,7 +62,7 @@ class SimSetupView extends StatelessWidget {
 
             // Status Text
             Text(
-              isPhysicalSim ? 'Shipping will be initiated' : 'eSIM Ready for Activation',
+              isPhysicalSim ? FallbackValues.messageShippingInitiated : FallbackValues.messageEsimReady,
               style: AppTheme.sectionTitleStyle.copyWith(
                 color: AppTheme.accentGold,
               ),
@@ -85,7 +86,7 @@ class SimSetupView extends StatelessWidget {
                         SizedBox(width: AppTheme.spacingSmall),
                         Expanded(
                           child: Text(
-                          'Your physical SIM card will be shipped to:',
+                          FallbackValues.messagePhysicalSimShipping,
                           maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           style: AppTheme.bodyStyle.copyWith(
@@ -134,38 +135,38 @@ class SimSetupView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.access_time, color: AppTheme.accentGold),
-                        SizedBox(width: AppTheme.spacingSmall),
-                        Text(
-                          'Delivery Information:',
-                          style: AppTheme.bodyStyle.copyWith(
-                            fontWeight: FontWeight.w600,
+                      Row(
+                        children: [
+                          Icon(Icons.access_time, color: AppTheme.accentGold),
+                          SizedBox(width: AppTheme.spacingSmall),
+                          Text(
+                            FallbackValues.messageDeliveryInfo,
+                            style: AppTheme.bodyStyle.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: AppTheme.spacingItem),
-                    _buildBulletPoint('Shipping within 2-3 business days'),
-                    SizedBox(height: AppTheme.spacingItem),
-                    _buildBulletPoint('Tracking information will be emailed to you'),
-                    SizedBox(height: AppTheme.spacingItem),
-                    _buildBulletPoint('Activate your SIM once received'),
+                        ],
+                      ),
+                      SizedBox(height: AppTheme.spacingItem),
+                      _buildBulletPoint(FallbackValues.messageShippingDays),
+                      SizedBox(height: AppTheme.spacingItem),
+                      _buildBulletPoint(FallbackValues.messageTrackingEmail),
+                      SizedBox(height: AppTheme.spacingItem),
+                      _buildBulletPoint(FallbackValues.messageActivateSim),
                   ],
                 ),
               ),
             ] else ...[
               // eSIM Device Selection Section
               Text(
-                'eSIM Activation',
+                FallbackValues.messageEsimActivation,
                 style: AppTheme.sectionTitleStyle.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: AppTheme.spacingSmall),
               Text(
-                'Is this eSIM for this device or another device?',
+                FallbackValues.messageEsimForDevice,
                 textAlign: TextAlign.center,
                 style: AppTheme.bodyStyle,
               ),
@@ -177,7 +178,7 @@ class SimSetupView extends StatelessWidget {
                   // "This Device" button
                   _buildDeviceSelectionButton(
                     context: context,
-                    title: 'This Device',
+                    title: FallbackValues.messageThisDevice,
                     icon: Icons.phone_android,
                     isSelected: viewModel.isForThisDevice == true,
                     onTap: () {
@@ -191,7 +192,7 @@ class SimSetupView extends StatelessWidget {
                   // "Another Device" button
                   _buildDeviceSelectionButton(
                     context: context,
-                    title: 'Another Device',
+                    title: FallbackValues.messageAnotherDevice,
                     icon: Icons.qr_code_2,
                     isSelected: viewModel.isForThisDevice == false,
                     onTap: () {
@@ -222,7 +223,7 @@ class SimSetupView extends StatelessWidget {
                       SizedBox(width: AppTheme.spacingSmall),
                       Expanded(
                         child: Text(
-                          'eSIM will be activated directly on this device after order completion.',
+                          FallbackValues.messageEsimActivatedDirectly,
                           style: AppTheme.bodySmallStyle,
                           textAlign: TextAlign.center,
                         ),
@@ -251,7 +252,7 @@ class SimSetupView extends StatelessWidget {
                           Icon(Icons.info_outline, color: AppTheme.accentGold),
                           SizedBox(width: AppTheme.spacingSmall),
                           Text(
-                            'eSIM Activation:',
+                            FallbackValues.messageEsimInfo,
                             style: AppTheme.bodyStyle.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -259,13 +260,13 @@ class SimSetupView extends StatelessWidget {
                         ],
                       ),
                       SizedBox(height: AppTheme.spacingItem),
-                      _buildBulletPoint('QR code will be emailed to you instantly'),
+                      _buildBulletPoint(FallbackValues.messageQrCodeEmailed),
                       SizedBox(height: AppTheme.spacingItem),
-                      _buildBulletPoint('Scan the QR code to activate your eSIM'),
+                      _buildBulletPoint(FallbackValues.messageScanQrCode),
                       SizedBox(height: AppTheme.spacingItem),
-                      _buildBulletPoint('Activation takes just a few minutes'),
+                      _buildBulletPoint(FallbackValues.messageActivationMinutes),
                       SizedBox(height: AppTheme.spacingItem),
-                      _buildBulletPoint('Make sure your device supports eSIM'),
+                      _buildBulletPoint(FallbackValues.messageDeviceSupportsEsim),
                     ],
                   ),
                 ),
@@ -289,7 +290,7 @@ class SimSetupView extends StatelessWidget {
       return StepNavigationContainer(
         currentStep: currentStep,
         totalSteps: 6,
-        nextButtonText: 'Complete Order',
+        nextButtonText: FallbackValues.buttonComplete,
         nextButtonAction: () => _handleNext(context),
         backButtonAction: () => _handleBack(context),
         cancelAction: () {

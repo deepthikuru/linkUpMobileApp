@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/app_header.dart';
 import '../widgets/mesh_scaffold.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 import 'login_page.dart';
 import 'home/plans_view.dart';
 
@@ -17,37 +18,37 @@ class HomePage extends StatelessWidget {
     final screenBg = AppTheme.getComponentBackgroundColor(
       context,
       'home_scaffold_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final titleColor = AppTheme.getComponentTextColor(
       context,
       'home_title_text',
-      fallback: Colors.black,
+      fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
     );
     final bodyColor = AppTheme.getComponentTextColor(
       context,
       'home_description_text',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     final buttonBg = AppTheme.getComponentBackgroundColor(
       context,
       'home_signOutButton_background',
-      fallback: Colors.red,
+      fallback: Color(int.parse(FallbackValues.redAccent.replaceFirst('#', '0xFF'))),
     );
     final buttonText = AppTheme.getComponentTextColor(
       context,
       'home_signOutButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final seePlansButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'home_seePlansButton_background',
-      fallback: Colors.blue,
+      fallback: Color(int.parse(FallbackValues.mainBlue.replaceFirst('#', '0xFF'))),
     );
     final seePlansButtonText = AppTheme.getComponentTextColor(
       context,
       'home_seePlansButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
 
     return MeshScaffold(
@@ -65,7 +66,7 @@ class HomePage extends StatelessWidget {
                     children: [
                       const SizedBox(height: 40),
                       Text(
-                        'Welcome!',
+                        FallbackValues.messageWelcome,
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -75,7 +76,10 @@ class HomePage extends StatelessWidget {
                       const SizedBox(height: 20),
                       if (user != null) ...[
                         Text(
-                          'Signed in as: ${user.email ?? user.displayName ?? "User"}',
+                          FallbackValues.replacePlaceholder(
+                            FallbackValues.homeSignedInAs,
+                            {'email': user.email ?? user.displayName ?? 'User'},
+                          ),
                           style: TextStyle(
                             fontSize: 16,
                             color: bodyColor,
@@ -102,9 +106,9 @@ class HomePage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            'See Available Plans',
-                            style: TextStyle(
+                          child: Text(
+                            FallbackValues.buttonSeePlans,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -133,9 +137,9 @@ class HomePage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            'Sign Out',
-                            style: TextStyle(
+                          child: Text(
+                            FallbackValues.buttonSignOut,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

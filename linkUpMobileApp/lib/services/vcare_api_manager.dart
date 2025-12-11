@@ -2133,6 +2133,198 @@ class VCareAPIManager {
     }
   }
 
+  /// Create prepaid/postpaid customer v2 (new version)
+  /// This is the latest version for create_customer_prepaid_multiline API
+  /// Returns both the parsed response and the raw JSON for extracting nested data like esim
+  Future<Map<String, dynamic>> createPrepaidPostpaidCustomerV2({
+    required String enrollmentId,
+    int? orderId,
+    required int planId,
+    required Map<String, dynamic> customerInfo,
+    String agentId = 'Sushil',
+    String source = 'API',
+    String? externalTransactionId,
+  }) async {
+    // Build the lines array - for now, single line order
+    final line = <String, dynamic>{
+      'enrollment_id': enrollmentId,
+      'plan_id': planId,
+      'enrollment_type': customerInfo['enrollment_type'] ?? 'SHIPMENT',
+      'carrier': customerInfo['carrier'] ?? 'TMBRLY',
+      'email': customerInfo['email'] ?? '',
+      'first_name': customerInfo['first_name'] ?? '',
+      'last_name': customerInfo['last_name'] ?? '',
+      'service_address_one': customerInfo['service_address_one'] ?? '',
+      'service_city': customerInfo['service_city'] ?? '',
+      'service_state': customerInfo['service_state'] ?? '',
+      'service_zip': customerInfo['service_zip'] ?? '',
+      'billing_address_one': customerInfo['billing_address_one'] ?? '',
+      'billing_city': customerInfo['billing_city'] ?? '',
+      'billing_state': customerInfo['billing_state'] ?? '',
+      'billing_zip': customerInfo['billing_zip'] ?? '',
+    };
+
+    if (orderId != null) {
+      line['order_id'] = orderId;
+    }
+
+    if (customerInfo['password'] != null && (customerInfo['password'] as String).isNotEmpty) {
+      line['password'] = customerInfo['password'];
+    }
+
+    if (customerInfo['middle_initial'] != null &&
+        (customerInfo['middle_initial'] as String).isNotEmpty) {
+      line['middle_initial'] = customerInfo['middle_initial'];
+    }
+
+    if (customerInfo['alternate_phone_number'] != null &&
+        (customerInfo['alternate_phone_number'] as String).isNotEmpty) {
+      line['alternate_phone_number'] = customerInfo['alternate_phone_number'];
+    }
+
+    if (customerInfo['service_address_two'] != null &&
+        (customerInfo['service_address_two'] as String).isNotEmpty) {
+      line['service_address_two'] = customerInfo['service_address_two'];
+    }
+
+    if (customerInfo['billing_address_two'] != null &&
+        (customerInfo['billing_address_two'] as String).isNotEmpty) {
+      line['billing_address_two'] = customerInfo['billing_address_two'];
+    }
+
+    // SIM type
+    if (customerInfo['is_esim'] != null) {
+      line['is_esim'] = customerInfo['is_esim'];
+    }
+
+    // Port-in information (if is_portin is "Y")
+    if (customerInfo['is_portin'] == 'Y') {
+      if (customerInfo['port_current_carrier'] != null) {
+        line['port_current_carrier'] = customerInfo['port_current_carrier'];
+      }
+      if (customerInfo['port_first_name'] != null) {
+        line['port_first_name'] = customerInfo['port_first_name'];
+      }
+      if (customerInfo['port_last_name'] != null) {
+        line['port_last_name'] = customerInfo['port_last_name'];
+      }
+      if (customerInfo['port_address_one'] != null) {
+        line['port_address_one'] = customerInfo['port_address_one'];
+      }
+      if (customerInfo['port_address_two'] != null) {
+        line['port_address_two'] = customerInfo['port_address_two'];
+      }
+      if (customerInfo['port_city'] != null) {
+        line['port_city'] = customerInfo['port_city'];
+      }
+      if (customerInfo['port_state'] != null) {
+        line['port_state'] = customerInfo['port_state'];
+      }
+      if (customerInfo['port_zip_code'] != null) {
+        line['port_zip_code'] = customerInfo['port_zip_code'];
+      }
+      if (customerInfo['port_account_number'] != null) {
+        line['port_account_number'] = customerInfo['port_account_number'];
+      }
+      if (customerInfo['port_account_password'] != null) {
+        line['port_account_password'] = customerInfo['port_account_password'];
+      }
+      if (customerInfo['port_number'] != null) {
+        line['port_number'] = customerInfo['port_number'];
+      }
+    }
+
+    // PIN for port out
+    if (customerInfo['pin'] != null && (customerInfo['pin'] as String).isNotEmpty) {
+      line['pin'] = customerInfo['pin'];
+    }
+
+    // Build request parameters
+    final parameters = <String, dynamic>{
+      'lines': [line],
+      'parent_enrollment_id': enrollmentId,
+      'action': 'create_prepaid_postpaid_customer_v2',
+      'source': source,
+      'sub_source': 'plans',
+      'request_name': 'customer',
+      'agent_id': agentId,
+    };
+
+    if (externalTransactionId != null) {
+      parameters['external_transaction_id'] = externalTransactionId;
+    }
+
+    if (customerInfo['coupon_code'] != null &&
+        (customerInfo['coupon_code'] as String).isNotEmpty) {
+      parameters['coupon_code'] = customerInfo['coupon_code'];
+    }
+
+    try {
+      // Create request with 50 second timeout
+      final token = await authenticate();
+      final uri = Uri.parse('$_baseURL/customer');
+
+      // Print request for debugging
+      print('📡 Create Customer V2 API Request:');
+      print(jsonEncode(parameters));
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final request = http.Request('POST', uri);
+      request.headers['Content-Type'] = 'application/json';
+      request.headers['token'] = token;
+      request.body = jsonEncode(parameters);
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 50));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+            'API request failed with status code: ${response.statusCode}');
+      }
+
+      // Print raw response
+      final responseString = response.body;
+      print('📡 Create Customer V2 API Raw Response:');
+      print(responseString);
+      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // Parse response
+      final json = jsonDecode(responseString) as Map<String, dynamic>;
+      final createResponse = CreateCustomerResponse.fromJson(json);
+
+      print('✅ Create Customer V2 API Response:');
+      print('   msg_code: ${createResponse.msgCode}');
+      print('   msg: ${createResponse.msg}');
+
+      if (createResponse.msgCode == 'RESTAPI000') {
+        if (createResponse.data != null) {
+          for (var i = 0; i < createResponse.data!.length; i++) {
+            final lineResponse = createResponse.data![i];
+            if (lineResponse.data != null) {
+              print('   Line ${i + 1}:');
+              print('      cust_id: ${lineResponse.data!.custId ?? -1}');
+              print('      enrollment_id: ${lineResponse.data!.enrollmentId ?? "nil"}');
+              print('      mdn: ${lineResponse.data!.mdn ?? "nil"}');
+            }
+          }
+        }
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // Return both parsed response and raw JSON
+        return {
+          'response': createResponse,
+          'rawJson': json,
+        };
+      } else {
+        print('❌ Create Customer V2 API Error: ${createResponse.msg}');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        throw Exception(createResponse.msg);
+      }
+    } catch (e) {
+      print('❌ Failed to create customer v2: $e');
+      rethrow;
+    }
+  }
+
   /// Assign eSIM to customer
   /// This API is used to retry eSIM allocation when it fails during customer creation
   Future<AssignEsimResponse> assignEsim({

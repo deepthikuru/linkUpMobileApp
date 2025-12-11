@@ -18,6 +18,8 @@ import 'address_info_sheet.dart';
 import '../order_flow/contact_info_view.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
+import '../../utils/text_helper.dart';
 import '../../screens/profile/previous_orders_view.dart';
 import '../../providers/navigation_state.dart';
 import '../order_flow/order_detail_view.dart';
@@ -195,14 +197,14 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     
     if (portInAccountNumber.isEmpty || portInPin.isEmpty || 
         portInCurrentCarrier.isEmpty || portInAccountHolderName.isEmpty) {
-      tasks.add('Complete number porting information');
+      tasks.add(AppText.getString(context, 'orderCompletePortingInfo'));
     }
     
     final creditCardNumber = orderData['creditCardNumber'] as String? ?? '';
     final billingDetails = orderData['billingDetails'] as String? ?? '';
     
     if (creditCardNumber.isEmpty || billingDetails.isEmpty) {
-      tasks.add('Complete billing information');
+      tasks.add(AppText.getString(context, 'orderCompleteBillingInfo'));
     }
     
     final firstName = orderData['firstName'] as String? ?? '';
@@ -210,16 +212,16 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final street = orderData['street'] as String? ?? '';
     
     if (firstName.isEmpty || lastName.isEmpty || street.isEmpty) {
-      tasks.add('Complete contact and shipping information');
+      tasks.add(AppText.getString(context, 'orderCompleteContactShipping'));
     }
     
-    return tasks.isEmpty ? ['Complete remaining order steps'] : tasks;
+    return tasks.isEmpty ? [AppText.getString(context, 'orderCompleteRemainingSteps')] : tasks;
   }
 
   Future<void> _createNewOrder() async {
     if (_selectedPlan == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a plan')),
+        SnackBar(content: Text(AppText.getString(context, 'errorPleaseSelectPlan'))),
       );
       return;
     }
@@ -229,7 +231,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User not logged in')),
+        SnackBar(content: Text(AppText.getString(context, 'errorUserNotLoggedIn'))),
       );
       return;
     }
@@ -290,7 +292,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating order: $e')),
+          SnackBar(content: Text(AppText.getString(context, 'errorCreatingOrder').replaceAll('{error}', e.toString()))),
         );
       }
     }
@@ -328,12 +330,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
       final loadingColor = AppTheme.getComponentIconColor(
         context,
         'startOrder_loadingIndicator_color',
-        fallback: AppTheme.accentGold,
+        fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
       );
       final loadingTextColor = AppTheme.getComponentTextColor(
         context,
         'startOrder_loadingText_text',
-        fallback: Colors.grey,
+        fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
       );
       
       return _isLoading
@@ -346,7 +348,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Loading...',
+                            AppText.getString(context, 'messageLoading'),
                             style: TextStyle(
                               fontSize: 16,
                               color: loadingTextColor,
@@ -375,7 +377,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final heroTitleColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_heroTitle_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final heroSubtitleGradient = AppTheme.getComponentGradient(
       context,
@@ -387,12 +389,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final welcomeTitleColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_welcomeTitle_text',
-      fallback: Colors.black,
+      fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
     );
     final welcomeSubtitleColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_welcomeSubtitle_text',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     
     return ConstrainedBox(
@@ -417,18 +419,18 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'CONNECT TO THE WORLD FOR LESS',
+                        AppText.getString(context, 'startOrderHeroTitle'),
                         style: AppTheme.getDoubleBoldTextStyle(
-                          color: Colors.white,
+                          color: heroTitleColor,
                           fontSize: 36,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Unlimited talk & text starting at \$10 a month',
+                        AppText.getString(context, 'startOrderHeroSubtitle'),
                         style: AppTheme.getDoubleBoldTextStyle(
-                          color: AppTheme.accentGold,
+                          color: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
                           fontSize: 18,
                         ),
                         textAlign: TextAlign.center,
@@ -446,21 +448,21 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                             backgroundColor: AppTheme.getComponentBackgroundColor(
                               context,
                               'startOrder_seePlansButton_background',
-                              fallback: AppTheme.redAccent,
+                              fallback: Color(int.parse(FallbackValues.redAccent.replaceFirst('#', '0xFF'))),
                             ),
                             foregroundColor: AppTheme.getComponentTextColor(
                               context,
                               'startOrder_seePlansButton_text',
-                              fallback: Colors.white,
+                              fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                             ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               elevation: 2,
                             ),
-                            child: const Text(
-                            'See plan details',
-                              style: TextStyle(
+                            child: Text(
+                            AppText.getString(context, 'startOrderSeePlanDetails'),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -475,7 +477,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   builder: (context, viewModel, _) {
                     final heading = viewModel.homeHeadingForExistingUser.isNotEmpty
                         ? viewModel.homeHeadingForExistingUser
-                        : 'Welcome back!';
+                        : AppText.getString(context, 'startOrderWelcomeBack');
                     
                     return Padding(
                       padding: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
@@ -486,16 +488,16 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               heading,
                             textAlign: TextAlign.center,
                             style: AppTheme.getDoubleBoldTextStyle(
-                              color: Colors.white,
+                              color: heroTitleColor,
                               fontSize: 32,
                             ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Here\'s your dashboard.',
+                              AppText.getString(context, 'startOrderDashboardSubtitle'),
                             textAlign: TextAlign.center,
                               style: AppTheme.getDoubleBoldTextStyle(
-                                color: AppTheme.accentGold,
+                                color: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
                                 fontSize: 16,
                               ),
                           ),
@@ -512,21 +514,21 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                 backgroundColor: AppTheme.getComponentBackgroundColor(
                                   context,
                                   'startOrder_seePlansButton_background',
-                                  fallback: AppTheme.redAccent,
+                                  fallback: Color(int.parse(FallbackValues.redAccent.replaceFirst('#', '0xFF'))),
                               ),
                                 foregroundColor: AppTheme.getComponentTextColor(
                                   context,
                                   'startOrder_seePlansButton_text',
-                                  fallback: Colors.white,
+                                  fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                         ),
                                 elevation: 2,
                               ),
-                              child: const Text(
-                                'See plan details',
-                                style: TextStyle(
+                              child: Text(
+                                AppText.getString(context, 'startOrderSeePlanDetails'),
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -548,22 +550,22 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                             final completeSetupBg = AppTheme.getComponentBackgroundColor(
                               context,
                               'startOrder_completeSetup_background',
-                              fallback: Color.lerp(AppTheme.accentGold, Colors.white, 0.85) ?? AppTheme.accentGold,
+                              fallback: Color.lerp(Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))), Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))), 0.85) ?? Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
                             );
                             final completeSetupBorder = AppTheme.getComponentBorderColor(
                               context,
                               'startOrder_completeSetup_border',
-                              fallback: AppTheme.accentGold,
+                              fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
                             );
                             final completeSetupTitleColor = AppTheme.getComponentTextColor(
                               context,
                               'startOrder_completeSetup_title_text',
-                              fallback: Colors.black87,
+                              fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                             );
                             final completeSetupSubtitleColor = AppTheme.getComponentTextColor(
                               context,
                               'startOrder_completeSetup_subtitle_text',
-                              fallback: Colors.grey,
+                              fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                             );
                             
                             return Container(
@@ -580,7 +582,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Complete Your Setup',
+                                AppText.getString(context, 'startOrderCompleteSetup'),
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
@@ -589,7 +591,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'You have orders that need completion to activate your SIM:',
+                                AppText.getString(context, 'startOrderCompleteSetupSubtitle'),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: completeSetupSubtitleColor,
@@ -626,7 +628,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                         color: AppTheme.getComponentBackgroundColor(
                                           context,
                                           'startOrder_completeSetup_indicator',
-                                          fallback: AppTheme.accentGold,
+                                          fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
                                         ),
                                       ),
                                     ),
@@ -649,17 +651,17 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                             final recentOrdersBg = AppTheme.getComponentBackgroundColor(
                               context,
                               'startOrder_recentOrders_background',
-                              fallback: Colors.grey[100],
+                              fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
                             );
                             final recentOrdersTitleColor = AppTheme.getComponentTextColor(
                               context,
                               'startOrder_recentOrders_title_text',
-                              fallback: Colors.black,
+                              fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                             );
                             final recentOrdersCountColor = AppTheme.getComponentTextColor(
                               context,
                               'startOrder_recentOrders_count_text',
-                              fallback: Colors.grey,
+                              fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                             );
                             
                             return Container(
@@ -675,7 +677,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Recent Orders',
+                                    AppText.getString(context, 'startOrderRecentOrders'),
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -683,7 +685,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                     ),
                                   ),
                                   Text(
-                                    '$_totalOrdersCount total',
+                                    '$_totalOrdersCount ${AppText.getString(context, 'startOrderTotal')}',
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: recentOrdersCountColor,
@@ -740,7 +742,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'View all orders',
+                                        AppText.getString(context, 'startOrderViewAllOrders'),
                                         style: TextStyle(
                                           color: viewAllOrdersTextColor,
                                           fontSize: 14,
@@ -780,11 +782,11 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Colors.grey[300]!,
+          color: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
           width: 1,
         ),
       ),
@@ -808,10 +810,10 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   ),
                   child: Text(
                     plan.displayName!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -836,7 +838,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey[700],
+                    color: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                   ),
                 ),
               ),
@@ -914,12 +916,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final incompleteOrderBg = AppTheme.getComponentBackgroundColor(
       context,
       'startOrder_incompleteOrder_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final incompleteOrderBorder = AppTheme.getComponentBorderColor(
       context,
       'startOrder_incompleteOrder_border',
-      fallback: Colors.grey[300]!,
+      fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
     );
     final incompleteOrderShadow = AppTheme.getComponentShadowColor(
       context,
@@ -929,12 +931,12 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final incompleteOrderTitleColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_incompleteOrder_title_text',
-      fallback: Colors.black87,
+      fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
     );
     final incompleteOrderDateColor = AppTheme.getComponentTextColor(
       context,
       'startOrder_incompleteOrder_date_text',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
     final incompleteOrderBadgeBg = AppTheme.getComponentBackgroundColor(
       context,
@@ -974,17 +976,17 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final viewDetailsButtonBg = AppTheme.getComponentBackgroundColor(
       context,
       'startOrder_viewDetailsButton_background',
-      fallback: AppTheme.redAccent
+      fallback: Color(int.parse(FallbackValues.redAccent.replaceFirst('#', '0xFF')))
     );
     final viewDetailsButtonText = AppTheme.getComponentTextColor(
       context,
       'startOrder_viewDetailsButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final viewDetailsButtonIcon = AppTheme.getComponentIconColor(
       context,
       'startOrder_viewDetailsButton_icon',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     final completeSetupButtonGradient = AppTheme.getComponentGradient(
       context,
@@ -996,7 +998,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     final completeSetupButtonText = AppTheme.getComponentTextColor(
       context,
       'startOrder_completeSetupButton_text',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
     );
     
     return Padding(
@@ -1033,7 +1035,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #${order.id.substring(0, 8)}',
+                        '${FallbackValues.startOrderOrderNumber}${order.id.substring(0, 8)}',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -1044,7 +1046,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Started: ${_formatDate(createdAt)}',
+                        '${FallbackValues.startOrderStarted} ${_formatDate(createdAt)}',
                         style: TextStyle(
                           fontSize: 12,
                           color: incompleteOrderDateColor,
@@ -1062,7 +1064,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Incomplete',
+                    FallbackValues.startOrderIncomplete,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -1084,7 +1086,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   const SizedBox(width: 8),
                   Expanded(
                       child: Text(
-                      'Number: $phoneNumber',
+                      '${FallbackValues.startOrderNumber} $phoneNumber',
                       style: TextStyle(
                         fontSize: 14,
                         color: incompleteOrderInfoTextColor,
@@ -1107,7 +1109,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'SIM Type: $simType',
+                    '${FallbackValues.startOrderSimType} $simType',
                     style: TextStyle(
                       fontSize: 14,
                       color: incompleteOrderInfoTextColor,
@@ -1130,7 +1132,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Device: $deviceBrand $deviceModel',
+                      '${FallbackValues.startOrderDevice} $deviceBrand $deviceModel',
                       style: TextStyle(
                         fontSize: 14,
                         color: incompleteOrderInfoTextColor,
@@ -1145,7 +1147,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
             if (missingTasks.isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
-                'Tasks to Complete:',
+                FallbackValues.startOrderTasksToComplete,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -1208,7 +1210,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     },
                     icon: Icon(Icons.info_outline, size: 18, color: viewDetailsButtonIcon),
                     label: Text(
-                      'View Details',
+                      FallbackValues.buttonViewDetails,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1291,7 +1293,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     },
                     icon: const Icon(Icons.check_circle, size: 18),
                     label: Text(
-                      'Complete Setup',
+                      FallbackValues.buttonCompleteSetup,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

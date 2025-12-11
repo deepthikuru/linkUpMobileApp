@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 import '../utils/constants.dart';
 import 'step_indicator.dart';
 import 'gradient_button.dart';
@@ -63,7 +64,7 @@ class StepNavigationContainer extends StatelessWidget {
                   foregroundColor: AppTheme.getComponentTextColor(
                     context,
                     'stepNavigation_cancelButtonText',
-                    fallback: Colors.red,
+                    fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                   ),
                 ),
                 child: const Text('Yes, I want to cancel'),
@@ -167,7 +168,7 @@ class StepNavigationContainer extends StatelessWidget {
               color: AppTheme.getComponentBackgroundColor(
                 context,
                 'stepNavigation_footer_background',
-                fallback: Colors.white,
+                fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
               ),
             ),
             child: BottomActionBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/order_models.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
@@ -15,18 +16,18 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = order.status == OrderStatus.completed
-        ? AppTheme.getComponentIconColor(context, 'orderCard_status_completed', fallback: Colors.green)
+        ? AppTheme.getComponentIconColor(context, 'orderCard_status_completed', fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))))
         : order.status == OrderStatus.cancelled
-            ? AppTheme.getComponentIconColor(context, 'orderCard_status_cancelled', fallback: Colors.red)
+            ? AppTheme.getComponentIconColor(context, 'orderCard_status_cancelled', fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))))
             : AppTheme.getComponentIconColor(context, 'orderCard_status_inProgress', fallback: Colors.orange);
 
     return Card(
       elevation: 0,
-      color: AppTheme.getComponentBackgroundColor(context, 'orderCard_background', fallback: Colors.white),
+      color: AppTheme.getComponentBackgroundColor(context, 'orderCard_background', fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF')))),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: AppTheme.getComponentBorderColor(context, 'orderCard_border', fallback: Colors.grey[300]!),
+          color: AppTheme.getComponentBorderColor(context, 'orderCard_border', fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF')))),
           width: 1,
         ),
       ),
@@ -83,7 +84,7 @@ class OrderCard extends StatelessWidget {
                     _formatDate(order.orderDate),
                     style: TextStyle(
                       fontSize: 10,
-                      color: AppTheme.getComponentTextColor(context, 'orderCard_date_text', fallback: Colors.grey),
+                      color: AppTheme.getComponentTextColor(context, 'orderCard_date_text', fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF')))),
                     ),
                   ),
                   if (order.phoneNumber != null && order.phoneNumber!.isNotEmpty) ...[
@@ -92,7 +93,7 @@ class OrderCard extends StatelessWidget {
                       order.phoneNumber!,
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppTheme.getComponentTextColor(context, 'orderCard_phoneNumber_text', fallback: Colors.grey),
+                        color: AppTheme.getComponentTextColor(context, 'orderCard_phoneNumber_text', fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF')))),
                       ),
                     ),
                   ],
@@ -104,7 +105,7 @@ class OrderCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2.0),
                 child: Icon(
                   Icons.chevron_right,
-                  color: AppTheme.getComponentIconColor(context, 'orderCard_chevronIcon', fallback: Colors.grey),
+                  color: AppTheme.getComponentIconColor(context, 'orderCard_chevronIcon', fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF')))),
                   size: 20,
                 ),
               ),

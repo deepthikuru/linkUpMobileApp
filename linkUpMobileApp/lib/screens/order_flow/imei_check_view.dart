@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:video_player/video_player.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import '../../services/vcare_api_manager.dart';
 import '../../providers/user_registration_view_model.dart';
 
@@ -321,7 +322,7 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                               foregroundColor: AppTheme.getComponentTextColor(
                                 context,
                                 'deviceCompatibility_text',
-                                fallback: Colors.white,
+                                fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
@@ -333,7 +334,7 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                                       AppTheme.getComponentIconColor(
                                         context,
                                         'deviceCompatibility_loadingIndicator',
-                                        fallback: Colors.white,
+                                        fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                                       ),
                                     ),
                                   )
@@ -413,7 +414,7 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                             onPressed: _handleSubmit,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                               shadowColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
@@ -448,7 +449,7 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                               },
                               selectedColor: AppTheme.accentGold,
                               labelStyle: TextStyle(
-                                color: _selectedTab == 0 ? Colors.white : AppTheme.appText,
+                                color: _selectedTab == 0 ? Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))) : AppTheme.appText,
                               ),
                             ),
                           ),
@@ -462,7 +463,7 @@ class _IMEICheckViewState extends State<IMEICheckView> {
                               },
                               selectedColor: AppTheme.accentGold,
                               labelStyle: TextStyle(
-                                color: _selectedTab == 1 ? Colors.white : AppTheme.appText,
+                                color: _selectedTab == 1 ? Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))) : AppTheme.appText,
                               ),
                             ),
                           ),
@@ -652,7 +653,7 @@ class _IMEIVideoSheetState extends State<IMEIVideoSheet> {
                               borderRadius: BorderRadius.circular(AppTheme.borderRadiusCard),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))).withOpacity(0.2),
                                   blurRadius: 8,
                                   offset: Offset(0, 2),
                                 ),

@@ -4,6 +4,7 @@ import '../../providers/user_registration_view_model.dart';
 import '../../services/firebase_manager.dart';
 import '../../utils/validators.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class ContactInfoDetailView extends StatefulWidget {
   const ContactInfoDetailView({super.key});
@@ -72,7 +73,7 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
             backgroundColor: AppTheme.getComponentBackgroundColor(
               context,
               'login_successSnackbar_background',
-              fallback: Colors.green,
+              fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))),
             ),
           ),
         );
@@ -86,7 +87,7 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
             backgroundColor: AppTheme.getComponentBackgroundColor(
               context,
               'profile_errorButton_background',
-              fallback: Colors.red,
+              fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
             ),
           ),
         );
@@ -159,7 +160,7 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
                     foregroundColor: AppTheme.getComponentTextColor(
                       context,
                       'main_elevatedButton_text',
-                      fallback: Colors.white,
+                      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                     ),
                   ),
                   child: _isSaving
@@ -167,7 +168,7 @@ class _ContactInfoDetailViewState extends State<ContactInfoDetailView> {
                           color: AppTheme.getComponentTextColor(
                             context,
                             'main_elevatedButton_text',
-                            fallback: Colors.white,
+                            fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                           ),
                         )
                       : const Text('Save'),

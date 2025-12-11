@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class StepIndicator extends StatelessWidget {
   final int currentStep;
@@ -25,7 +26,7 @@ class StepIndicator extends StatelessWidget {
       child: Text(
         'Step $currentStep of $totalSteps',
         style: TextStyle(
-          color: AppTheme.getComponentTextColor(context, 'stepIndicator_text', fallback: Colors.white),
+          color: AppTheme.getComponentTextColor(context, 'stepIndicator_text', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF')))),
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),

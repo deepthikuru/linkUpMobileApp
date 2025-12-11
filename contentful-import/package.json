@@ -1,0 +1,21 @@
+{
+  "name": "contentful-import",
+  "version": "1.0.0",
+  "description": "Import fallback values (colors and text) into Contentful",
+  "main": "import-all-fallback-values.js",
+  "scripts": {
+    "import": "node import-all-fallback-values.js",
+    "import:colors": "node import-component-colors.js"
+  },
+  "keywords": [
+    "contentful",
+    "import",
+    "cms"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "contentful-management": "^10.0.0"
+  }
+}
+

@@ -7,6 +7,7 @@ import '../../services/vcare_api_manager.dart';
 import '../../widgets/step_navigation_container.dart';
 import '../../widgets/gradient_button.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import 'sim_setup_view.dart';
 import 'porting_view.dart';
 
@@ -160,7 +161,7 @@ class _NumberPortingViewState extends State<NumberPortingView> {
       final errorBg = AppTheme.getComponentBackgroundColor(
         context,
         'numberPorting_warning_background',
-        fallback: Colors.red,
+        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -216,11 +217,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
                 final errorBg = AppTheme.getComponentBackgroundColor(
                   context,
                   'snackbar-error',
-                  fallback: Colors.red,
+                  fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                 );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(viewModel.errorMessage ?? 'Failed to save port-in information'),
+                    content: Text(viewModel.errorMessage ?? FallbackValues.errorFailedToSavePortIn),
                     backgroundColor: errorBg,
                     duration: const Duration(seconds: 5),
                   ),
@@ -233,11 +234,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
               final errorBg = AppTheme.getComponentBackgroundColor(
                 context,
                 'snackbar-error',
-                fallback: Colors.red,
+                fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
               );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: const Text('Failed to submit port-in request. Please check your information and try again.'),
+                  content: Text(FallbackValues.errorFailedToSubmitPortIn),
                   backgroundColor: errorBg,
                   duration: const Duration(seconds: 5),
                 ),
@@ -253,11 +254,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         final errorBg = AppTheme.getComponentBackgroundColor(
           context,
           'snackbar-error',
-          fallback: Colors.red,
+          fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Unable to validate port-in information. Please try again.'),
+            content: Text(FallbackValues.errorUnableToValidatePortIn),
             backgroundColor: errorBg,
           ),
         );
@@ -268,11 +269,11 @@ class _NumberPortingViewState extends State<NumberPortingView> {
       final errorBg = AppTheme.getComponentBackgroundColor(
         context,
         'numberPorting_warning_background',
-        fallback: Colors.red,
+        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to save port-in information: $e'),
+          content: Text('${FallbackValues.errorFailedToSavePortIn}: $e'),
           backgroundColor: errorBg,
         ),
       );
@@ -642,132 +643,9 @@ class _NumberPortingViewState extends State<NumberPortingView> {
   Future<void> _onSimSetupComplete() async {
     final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
     
-    // For new number orders, activate the number and assign eSIM before showing sheet
-    if (viewModel.numberType == 'New' && 
-        viewModel.userId != null && 
-        viewModel.orderId != null) {
-      
-      setState(() {
-        _isCompleting = true;
-      });
-      
-      try {
-        final orderManager = FirebaseOrderManager();
-        final orderData = await orderManager.fetchOrderDocument(
-          viewModel.userId!,
-          viewModel.orderId!,
-        );
-        
-        if (orderData != null) {
-          final enrollmentId = orderData['enrollment_id'] as String?;
-          
-          if (enrollmentId != null && enrollmentId.isNotEmpty) {
-            final apiManager = VCareAPIManager();
-            
-            // Step 1: Activate new number
-            print('🔄 Activating new number for customer...');
-            try {
-              // Wait a bit for customer to be in dispatched status
-              await Future.delayed(const Duration(seconds: 3));
-              
-              final activationTransactionId = VCareAPIManager.generateRandomTransactionId();
-              
-              // Get IMEI from order if available (needed for certain carriers)
-              final imei = orderData['imei'] as String?;
-              
-              // Activate new number
-              final activationResponse = await apiManager.activateNewNumber(
-                enrollmentId: enrollmentId,
-                zipCode: viewModel.zip,
-                sim: null, // For eSIM orders, sim might not be available yet
-                imei: imei,
-                agentId: 'Sushil', // TODO: Get from user settings or configuration
-                source: 'WEBSITE',
-                externalTransactionId: activationTransactionId,
-              );
-
-              // Save phone number (MDN) to order
-              if (activationResponse.data != null && activationResponse.data!.mdn != null) {
-                final phoneNumber = activationResponse.data!.mdn!.toString();
-                print('✅ New number activated: $phoneNumber');
-                
-                await orderManager.saveStepProgress(
-                  userId: viewModel.userId!,
-                  orderId: viewModel.orderId!,
-                  step: 6,
-                  data: {'mdn': phoneNumber},
-                );
-                print('✅ Successfully saved phone number to order');
-              }
-            } catch (e, stackTrace) {
-              print('❌ Failed to activate new number: $e');
-              print('   Stack trace: $stackTrace');
-              // Continue - might already be activated or will be activated later
-            }
-            
-            // Step 2: For eSIM orders, assign eSIM after number activation
-            if (viewModel.simType == 'eSIM') {
-              print('🔄 Calling assign_esim API for eSIM order...');
-              try {
-                // Wait a bit after number activation for eSIM processing
-                await Future.delayed(const Duration(seconds: 5));
-                
-                final assignTransactionId = VCareAPIManager.generateRandomTransactionId();
-                final assignEsimResponse = await apiManager.assignEsim(
-                  enrollmentId: enrollmentId,
-                  agentId: 'Sushil', // TODO: Get from user settings or configuration
-                  source: 'WEBSITE',
-                  externalTransactionId: assignTransactionId,
-                );
-
-                // Check if eSIM allocation was successful
-                if (assignEsimResponse.statusCode == '00' && 
-                    assignEsimResponse.esimAllocationSuccess == 'Y') {
-                  print('✅ eSIM allocated successfully');
-                  
-                  // Save eSIM details to order
-                  final esimData = <String, dynamic>{
-                    'esim_qr_activation_code': assignEsimResponse.qrActivationCode,
-                    'esim_iccid': assignEsimResponse.iccid,
-                    'esim_activation_code': assignEsimResponse.activationCode,
-                    'esim_smdp_address': assignEsimResponse.smdpAddress,
-                    'esim_enroll_id': assignEsimResponse.enrollId,
-                    'esim_allocation_success': assignEsimResponse.esimAllocationSuccess,
-                  };
-
-                  await orderManager.saveStepProgress(
-                    userId: viewModel.userId!,
-                    orderId: viewModel.orderId!,
-                    step: 6,
-                    data: esimData,
-                  );
-                  print('✅ Successfully saved eSIM data to order');
-                  
-                  // Small delay to ensure Firestore has committed the write
-                  await Future.delayed(const Duration(milliseconds: 500));
-                } else {
-                  print('⚠️ eSIM allocation was not successful');
-                  print('   Status Code: ${assignEsimResponse.statusCode}');
-                  print('   Description: ${assignEsimResponse.description}');
-                }
-              } catch (e, stackTrace) {
-                print('❌ Failed to assign eSIM: $e');
-                print('   Stack trace: $stackTrace');
-                // Continue - eSIM might be assigned later or already assigned
-              }
-            }
-          }
-        }
-      } catch (e) {
-        print('❌ Error in new number activation flow: $e');
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isCompleting = false;
-          });
-        }
-      }
-    }
+    // Note: All eSIM data and customer creation is already done in step 5
+    // No need to call activateNewNumber or assignEsim APIs here
+    print('✅ Skipping API calls - eSIM data already available from step 5');
     
     // Show appropriate sheet based on SIM type and device selection
     // IMPORTANT: For eSIM, never show shipping sheet
@@ -850,7 +728,7 @@ class _NumberPortingViewState extends State<NumberPortingView> {
       final errorBg = AppTheme.getComponentBackgroundColor(
         context,
         'numberPorting_warning_background',
-        fallback: Colors.red,
+        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -891,14 +769,23 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         'startOrder_planDetails_background',
         fallback: Colors.transparent,
       ),
-      builder: (context) => _QRCodeSheet(
-        viewModel: viewModel,
-        onReturn: () {
-          Navigator.of(context).pop();
-          // Complete order and navigate back to home
-          _handleReturnToDashboard();
-        },
-      ),
+      builder: (context) {
+        final screenHeight = MediaQuery.of(context).size.height;
+        return DraggableScrollableSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) => _QRCodeSheet(
+            viewModel: viewModel,
+            scrollController: scrollController,
+            onReturn: () {
+              Navigator.of(context).pop();
+              // Complete order and navigate back to home
+              _handleReturnToDashboard();
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -1010,10 +897,12 @@ class _NumberPortingViewState extends State<NumberPortingView> {
 class _QRCodeSheet extends StatefulWidget {
   final UserRegistrationViewModel viewModel;
   final VoidCallback onReturn;
+  final ScrollController scrollController;
 
   const _QRCodeSheet({
     required this.viewModel,
     required this.onReturn,
+    required this.scrollController,
   });
 
   @override
@@ -1078,151 +967,134 @@ class __QRCodeSheetState extends State<_QRCodeSheet> {
         ),
       ),
       padding: EdgeInsets.all(24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'eSIM QR Code',
-              style: AppTheme.sectionTitleStyle,
+      child: Column(
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: AppTheme.borderColor,
+              borderRadius: BorderRadius.circular(2),
             ),
-            SizedBox(height: 16),
-            Text(
-              'Scan this QR code with your other device to activate the eSIM',
-              textAlign: TextAlign.center,
-              style: AppTheme.bodyStyle,
-            ),
-            SizedBox(height: 24),
-            
-            // QR Code Display
-            if (_isLoading)
-              Container(
-                width: 250,
-                height: 250,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (_qrActivationCode != null && _qrActivationCode!.isNotEmpty)
-              // Display actual QR code using qr_flutter package
-            Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.getComponentShadowColor(
-                      context,
-                      'orderCard_background',
-                      fallback: Colors.black.withOpacity(0.1),
-                    ),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-                padding: EdgeInsets.all(16),
-                child: QrImageView(
-                  data: _qrActivationCode!,
-                  version: QrVersions.auto,
-                  size: 218.0,
-                  backgroundColor: Colors.white,
-                ),
-              )
-            else
-              // Fallback to static image if QR code not available
-              Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  color: AppTheme.getComponentBackgroundColor(
-                    context,
-                    'orderCard_background',
-                    fallback: Colors.white,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderColor),
-                ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/images/esim_qr_code.png',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            
-            // Show activation code as text if available
-            if (_qrActivationCode != null && _qrActivationCode!.isNotEmpty) ...[
-            SizedBox(height: 16),
-            Text(
-                'Activation Code:',
-                style: AppTheme.bodySmallStyle.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 4),
-              SelectableText(
-                _qrActivationCode!,
-              style: AppTheme.bodySmallStyle,
-                textAlign: TextAlign.center,
-              ),
-            ],
-            
-            // Show ICCID if available
-            if (_iccid != null && _iccid!.isNotEmpty) ...[
-              SizedBox(height: 8),
-              Text(
-                'ICCID: $_iccid',
-                style: AppTheme.bodySmallStyle.copyWith(
-                  color: AppTheme.textSecondary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-            
-            SizedBox(height: 16),
-            Text(
-              'Order #: ${widget.viewModel.orderId ?? "N/A"}',
-              style: AppTheme.bodySmallStyle,
-            ),
-            
-            SizedBox(height: 24),
-            
-            // Setup Instructions
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.accentGold.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              controller: widget.scrollController,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Setup Instructions:',
-                    style: AppTheme.bodyStyle.copyWith(
-                      fontWeight: FontWeight.w600,
+                    'eSIM QR Code',
+                    style: AppTheme.sectionTitleStyle,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Scan this QR code with your other device to activate the eSIM',
+                    textAlign: TextAlign.center,
+                    style: AppTheme.bodyStyle,
+                  ),
+                  SizedBox(height: 24),
+                  
+                  // QR Code Display
+                  if (_isLoading)
+                    Container(
+                      width: 250,
+                      height: 250,
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (_qrActivationCode != null && _qrActivationCode!.isNotEmpty)
+                    // Display actual QR code using qr_flutter package
+                    Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.borderColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.getComponentShadowColor(
+                              context,
+                              'orderCard_background',
+                              fallback: Colors.black.withOpacity(0.1),
+                            ),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(16),
+                      child: QrImageView(
+                        data: _qrActivationCode!,
+                        version: QrVersions.auto,
+                        size: 218.0,
+                        backgroundColor: Colors.white,
+                      ),
+                    )
+                  else
+                    // Fallback to static image if QR code not available
+                    Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: AppTheme.getComponentBackgroundColor(
+                          context,
+                          'orderCard_background',
+                          fallback: Colors.white,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/esim_qr_code.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  
+                  SizedBox(height: 24),
+                  
+                  // Setup Instructions
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGold.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Setup Instructions:',
+                          style: AppTheme.bodyStyle.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        _buildInstructionStep(context, 1, 'Open Camera app on your other device'),
+                        _buildInstructionStep(context, 2, 'Point camera at this QR code'),
+                        _buildInstructionStep(context, 3, 'Tap the notification to add cellular plan'),
+                        _buildInstructionStep(context, 4, 'Follow the prompts to complete activation'),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 12),
-                  _buildInstructionStep(context, 1, 'Open Camera app on your other device'),
-                  _buildInstructionStep(context, 2, 'Point camera at this QR code'),
-                  _buildInstructionStep(context, 3, 'Tap the notification to add cellular plan'),
-                  _buildInstructionStep(context, 4, 'Follow the prompts to complete activation'),
+                  
+                  SizedBox(height: 24),
+                  
+                  GradientButton(
+                    text: 'Return to Dashboard',
+                    onPressed: widget.onReturn,
+                  ),
+                  SizedBox(height: 24), // Extra padding at bottom for scrolling
                 ],
               ),
             ),
-            
-            SizedBox(height: 24),
-            
-            GradientButton(
-              text: 'Return to Dashboard',
-              onPressed: widget.onReturn,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

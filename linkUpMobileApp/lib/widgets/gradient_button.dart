@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class GradientButton extends StatelessWidget {
   final String text;
@@ -31,7 +32,7 @@ class GradientButton extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: gradient,
         color: isDisabled 
-            ? AppTheme.getComponentBackgroundColor(context, 'gradientButton_disabledBackground', fallback: Colors.grey.shade500)
+            ? AppTheme.getComponentBackgroundColor(context, 'gradientButton_disabledBackground', fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))))
             : null,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
       ),
@@ -49,14 +50,14 @@ class GradientButton extends StatelessWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        AppTheme.getComponentIconColor(context, 'gradientButton_loadingIndicator', fallback: Colors.white),
+                        AppTheme.getComponentIconColor(context, 'gradientButton_loadingIndicator', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF')))),
                       ),
                     ),
                   )
                 : Text(
                     text,
                     style: TextStyle(
-                      color: AppTheme.getComponentTextColor(context, 'gradientButton_text', fallback: Colors.white),
+                      color: AppTheme.getComponentTextColor(context, 'gradientButton_text', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF')))),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

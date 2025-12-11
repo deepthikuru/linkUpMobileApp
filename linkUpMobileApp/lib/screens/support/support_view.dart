@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../providers/navigation_state.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
+import '../../utils/text_helper.dart';
 import '../../utils/constants.dart';
 import '../home/address_info_sheet.dart';
 
@@ -40,17 +42,17 @@ class _SupportViewBodyState extends State<SupportViewBody> {
             color: AppTheme.getComponentBackgroundColor(
               context,
               'screen-support',
-              fallback: Colors.grey[200],
+              fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
             ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
               Expanded(
-                child: _buildTabButton('Contact', 0),
+                child: _buildTabButton(AppText.getString(context, 'tabContact'), 0),
               ),
               Expanded(
-                child: _buildTabButton('Chat', 1),
+                child: _buildTabButton(AppText.getString(context, 'tabChat'), 1),
               ),
             ],
           ),
@@ -89,7 +91,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.black,
+            color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -105,10 +107,10 @@ class _SupportViewBodyState extends State<SupportViewBody> {
         children: [
           Center(
             child: Text(
-              'Contact Support',
+              AppText.getString(context, 'supportContactTitle'),
               textAlign: TextAlign.center,
               style: AppTheme.getDoubleBoldTextStyle(
-                color: Colors.white,
+                color: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                 fontSize: 24,
               ),
             ),
@@ -116,7 +118,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Get in touch with our support team',
+              AppText.getString(context, 'supportContactSubtitle'),
               textAlign: TextAlign.center,
               style: AppTheme.getDoubleBoldTextStyle(
                 fontSize: 16,
@@ -129,8 +131,8 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           _buildContactCard(
             context: context,
             icon: Icons.phone,
-            title: 'Phone',
-            subtitle: '904-596-0304',
+            title: AppText.getString(context, 'supportPhone'),
+            subtitle: AppText.getString(context, 'supportPhoneNumber'),
             onTap: () => _launchPhone('9045960304'),
           ),
           const SizedBox(height: 16),
@@ -138,8 +140,8 @@ class _SupportViewBodyState extends State<SupportViewBody> {
           _buildContactCard(
             context: context,
             icon: Icons.email,
-            title: 'Email',
-            subtitle: 'support@linkupmobile.com',
+            title: AppText.getString(context, 'supportEmail'),
+            subtitle: AppText.getString(context, 'supportEmailAddress'),
             onTap: () => _launchEmail('support@linkupmobile.com'),
           ),
         ],
@@ -191,7 +193,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
                         color: AppTheme.getComponentTextColor(
                           context,
                           'text-title',
-                          fallback: Colors.black,
+                          fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                     ),
@@ -203,7 +205,7 @@ class _SupportViewBodyState extends State<SupportViewBody> {
                         color: AppTheme.getComponentTextColor(
                           context,
                           'text-secondary',
-                          fallback: Colors.grey,
+                          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                     ),
@@ -305,12 +307,12 @@ class _SupportViewState extends State<SupportView> {
     final screenBg = AppTheme.getComponentBackgroundColor(
       context,
       'screen-support',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final tabContainerBg = AppTheme.getComponentBackgroundColor(
       context,
       'screen-support',
-      fallback: Colors.grey[200]!,
+      fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
     );
 
     return Padding(
@@ -370,7 +372,7 @@ class _SupportViewState extends State<SupportView> {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.black,
+            color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -386,10 +388,10 @@ class _SupportViewState extends State<SupportView> {
         children: [
           Center(
             child: Text(
-              'Contact Support',
+              FallbackValues.supportContactTitle,
               textAlign: TextAlign.center,
               style: AppTheme.getDoubleBoldTextStyle(
-                color: Colors.white,
+                color: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                 fontSize: 24,
               ),
             ),
@@ -397,7 +399,7 @@ class _SupportViewState extends State<SupportView> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Get in touch with our support team',
+              FallbackValues.supportContactSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -411,8 +413,8 @@ class _SupportViewState extends State<SupportView> {
           _buildContactCard(
             context: context,
             icon: Icons.phone,
-            title: 'Phone',
-            subtitle: '904-596-0304',
+            title: FallbackValues.supportPhone,
+            subtitle: FallbackValues.supportPhoneNumber,
             onTap: () => _launchPhone('9045960304'),
           ),
           const SizedBox(height: 16),
@@ -420,8 +422,8 @@ class _SupportViewState extends State<SupportView> {
           _buildContactCard(
             context: context,
             icon: Icons.email,
-            title: 'Email',
-            subtitle: 'support@linkupmobile.com',
+            title: FallbackValues.supportEmail,
+            subtitle: FallbackValues.supportEmailAddress,
             onTap: () => _launchEmail('support@linkupmobile.com'),
           ),
         ],
@@ -473,7 +475,7 @@ class _SupportViewState extends State<SupportView> {
                         color: AppTheme.getComponentTextColor(
                           context,
                           'text-title',
-                          fallback: Colors.black,
+                          fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                     ),
@@ -485,7 +487,7 @@ class _SupportViewState extends State<SupportView> {
                         color: AppTheme.getComponentTextColor(
                           context,
                           'text-secondary',
-                          fallback: Colors.grey,
+                          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                     ),

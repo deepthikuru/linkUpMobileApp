@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class AppHeader extends StatelessWidget {
   final double? logoHeight;
@@ -50,8 +51,8 @@ class AppHeader extends StatelessWidget {
                         icon: Icon(
                           Icons.arrow_back,
                           color: showGradient
-                              ? AppTheme.getComponentIconColor(context, 'appHeader_backIcon_gradient', fallback: Colors.white)
-                              : AppTheme.getComponentIconColor(context, 'appHeader_backIcon', fallback: Colors.black),
+                              ? AppTheme.getComponentIconColor(context, 'appHeader_backIcon_gradient', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))))
+                              : AppTheme.getComponentIconColor(context, 'appHeader_backIcon', fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF')))),
                         ),
                         onPressed: onBackTap,
                         iconSize: 24,
@@ -74,8 +75,8 @@ class AppHeader extends StatelessWidget {
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: showGradient
-                                ? AppTheme.getComponentTextColor(context, 'appHeader_titleText_gradient', fallback: Colors.white)
-                                : AppTheme.getComponentTextColor(context, 'appHeader_titleText', fallback: Colors.black),
+                                ? AppTheme.getComponentTextColor(context, 'appHeader_titleText_gradient', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))))
+                                : AppTheme.getComponentTextColor(context, 'appHeader_titleText', fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF')))),
                           ),
                         )
                       : zipCode != null && zipCode!.isNotEmpty
@@ -90,8 +91,8 @@ class AppHeader extends StatelessWidget {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                       color: showGradient
-                                          ? AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText_gradient', fallback: Colors.white)
-                                          : AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText', fallback: Colors.black),
+                                          ? AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText_gradient', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))))
+                                          : AppTheme.getComponentTextColor(context, 'appHeader_zipCodeText', fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF')))),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -99,8 +100,8 @@ class AppHeader extends StatelessWidget {
                                     Icons.keyboard_arrow_down,
                                     size: 20,
                                     color: showGradient
-                                        ? AppTheme.getComponentIconColor(context, 'appHeader_zipIcon_gradient', fallback: Colors.white)
-                                        : AppTheme.getComponentIconColor(context, 'appHeader_zipIcon', fallback: Colors.grey),
+                                        ? AppTheme.getComponentIconColor(context, 'appHeader_zipIcon_gradient', fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))))
+                                        : AppTheme.getComponentIconColor(context, 'appHeader_zipIcon', fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF')))),
                                   ),
                                 ],
                               ),

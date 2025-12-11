@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class InternationalLongDistanceView extends StatefulWidget {
   const InternationalLongDistanceView({super.key});
@@ -187,14 +188,14 @@ class _InternationalLongDistanceViewState
         color: AppTheme.getComponentBackgroundColor(
           context,
           'international_container_background',
-          fallback: Colors.grey[100],
+          fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
         ),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusCard),
         border: Border.all(
           color: AppTheme.getComponentBorderColor(
             context,
             'international_container_border',
-            fallback: Colors.grey[300]!,
+            fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
           ),
           width: AppTheme.borderWidthDefault,
         ),
@@ -244,14 +245,14 @@ class _InternationalLongDistanceViewState
         color: AppTheme.getComponentBackgroundColor(
           context,
           'international_container_background',
-          fallback: Colors.grey[100],
+          fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
         ),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusCard),
         border: Border.all(
           color: AppTheme.getComponentBorderColor(
             context,
             'international_container_border',
-            fallback: Colors.grey[300]!,
+            fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
           ),
           width: AppTheme.borderWidthDefault,
         ),
@@ -302,7 +303,7 @@ class _InternationalLongDistanceViewState
             color: AppTheme.getComponentBackgroundColor(
               context,
               'international_button_background',
-              fallback: Colors.white,
+              fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
             ),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
@@ -317,7 +318,7 @@ class _InternationalLongDistanceViewState
                 color: AppTheme.getComponentIconColor(
                   context,
                   'international_searchIcon',
-                  fallback: Colors.grey[600],
+                  fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -330,7 +331,7 @@ class _InternationalLongDistanceViewState
                       color: AppTheme.getComponentTextColor(
                         context,
                         'international_button_text',
-                        fallback: Colors.grey[600],
+                        fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                       ),
                       fontSize: AppTheme.fontSizeBody,
                     ),
@@ -349,10 +350,10 @@ class _InternationalLongDistanceViewState
         // Country List
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: Colors.grey[300]!,
+              color: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
               width: AppTheme.borderWidthDefault,
             ),
           ),
@@ -365,7 +366,7 @@ class _InternationalLongDistanceViewState
                     color: AppTheme.getComponentBorderColor(
                       context,
                       'international_container_border',
-                      fallback: Colors.grey[300],
+                      fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
                     ),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8),
@@ -412,7 +413,7 @@ class _InternationalLongDistanceViewState
                       color: AppTheme.getComponentBackgroundColor(
                         context,
                         'international_button_background',
-                        fallback: Colors.white,
+                        fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                       ),
                       child: Row(
                         children: [
@@ -445,7 +446,7 @@ class _InternationalLongDistanceViewState
                         color: AppTheme.getComponentBorderColor(
                           context,
                           'international_container_border',
-                          fallback: Colors.grey[300],
+                          fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                   ],
@@ -462,10 +463,10 @@ class _InternationalLongDistanceViewState
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey[300]!,
+          color: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
           width: AppTheme.borderWidthDefault,
         ),
       ),
@@ -520,7 +521,7 @@ class _InternationalLongDistanceViewState
                         color: AppTheme.getComponentIconColor(
                           context,
                           'international_phoneIcon',
-                          fallback: Colors.white,
+                          fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -532,7 +533,7 @@ class _InternationalLongDistanceViewState
                           color: AppTheme.getComponentTextColor(
                             context,
                             'international_phoneIcon',
-                            fallback: Colors.white,
+                            fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                           ),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../services/notification_service.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -58,7 +59,7 @@ class _ProfileViewState extends State<ProfileView> {
                 backgroundColor: AppTheme.getComponentBackgroundColor(
                   context,
                   'login_successSnackbar_background',
-                  fallback: Colors.green,
+                  fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))),
                 ),
               ),
             );
@@ -69,7 +70,7 @@ class _ProfileViewState extends State<ProfileView> {
                 backgroundColor: AppTheme.getComponentBackgroundColor(
                   context,
                   'profile_errorButton_background',
-                  fallback: Colors.red,
+                  fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                 ),
               ),
             );
@@ -102,7 +103,7 @@ class _ProfileViewState extends State<ProfileView> {
             backgroundColor: AppTheme.getComponentBackgroundColor(
               context,
               'snackbar-error',
-              fallback: Colors.red,
+              fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
             ),
           ),
         );
@@ -285,7 +286,7 @@ class _ProfileViewState extends State<ProfileView> {
                 color: AppTheme.getComponentTextColor(
                   context,
                   'text-secondary',
-                  fallback: Colors.grey,
+                  fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 ),
                 fontSize: 14,
               ),

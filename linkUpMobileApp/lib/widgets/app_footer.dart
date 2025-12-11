@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../providers/navigation_state.dart';
 import 'package:provider/provider.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
+import '../utils/text_helper.dart';
 
 class AppFooter extends StatelessWidget {
   final FooterTab currentTab;
@@ -33,7 +35,7 @@ class AppFooter extends StatelessWidget {
               BoxShadow(
                 blurRadius: 14,
                 offset: const Offset(0, -4),
-                color: Colors.black.withOpacity(0.15),
+                color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))).withOpacity(0.15),
               ),
             ],
           ),
@@ -49,7 +51,7 @@ class AppFooter extends StatelessWidget {
                   context,
                   icon: Icons.assignment,
                   iconOutlined: Icons.list_alt,
-                  label: 'Plans',
+                  label: AppText.getString(context, 'tabPlans'),
                   tab: FooterTab.plans,
                   isSelected: currentTab == FooterTab.plans,
                 ),
@@ -58,7 +60,7 @@ class AppFooter extends StatelessWidget {
                   context,
                   icon: Icons.home_rounded,
                   iconOutlined: Icons.home_outlined,
-                  label: 'Home',
+                  label: AppText.getString(context, 'tabHome'),
                   tab: FooterTab.home,
                   isSelected: currentTab == FooterTab.home,
                 ),
@@ -67,7 +69,7 @@ class AppFooter extends StatelessWidget {
                   context,
                   icon: Icons.chat_bubble,
                   iconOutlined: Icons.chat_bubble_outline,
-                  label: 'Chat',
+                  label: AppText.getString(context, 'tabChat'),
                   tab: FooterTab.chat,
                   isSelected: currentTab == FooterTab.chat,
                 ),
@@ -76,7 +78,7 @@ class AppFooter extends StatelessWidget {
                   context,
                   icon: Icons.person,
                   iconOutlined: Icons.person_outline,
-                  label: 'Profile',
+                  label: AppText.getString(context, 'tabProfile'),
                   tab: FooterTab.profile,
                   isSelected: currentTab == FooterTab.profile,
                 ),
@@ -115,7 +117,7 @@ class AppFooter extends StatelessWidget {
             size: 26,
             color: isSelected
                 ? accentGold // Yellow accent
-                : Colors.white,
+                : Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
           ),
           const SizedBox(height: 4),
           Text(
@@ -124,7 +126,7 @@ class AppFooter extends StatelessWidget {
               fontSize: 11,
               color: isSelected
                   ? accentGold
-                  : Colors.white,
+                  : Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
             ),
           ),
         ],

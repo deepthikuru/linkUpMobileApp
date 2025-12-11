@@ -29,6 +29,8 @@ const componentColors = [
   { componentId: 'home_description_text', textColor: '#757575' },
   { componentId: 'home_signOutButton_background', backgroundColor: '#FF0000' },
   { componentId: 'home_signOutButton_text', textColor: '#FFFFFF' },
+  { componentId: 'home_seePlansButton_background', backgroundColor: '#014D7D' },
+  { componentId: 'home_seePlansButton_text', textColor: '#FFFFFF' },
   { componentId: 'login_scaffold_background', backgroundColor: '#FFFFFF' },
   { componentId: 'login_title_text', textColor: '#000000' },
   { componentId: 'login_inputHint_text', textColor: '#757575' },
@@ -124,7 +126,6 @@ const componentColors = [
   { componentId: 'startOrder_completeSetup_title_text', textColor: '#212121' },
   { componentId: 'startOrder_completeSetup_subtitle_text', textColor: '#757575' },
   { componentId: 'startOrder_completeSetup_indicator', backgroundColor: '#FFE082' },
-  { componentId: 'startOrder_availablePlans_background', backgroundColor: '#F5F5F5' },
   { componentId: 'startOrder_availablePlans_title_text', textColor: '#000000' },
   { componentId: 'startOrder_recentOrders_background', backgroundColor: '#F5F5F5' },
   { componentId: 'startOrder_recentOrders_title_text', textColor: '#000000' },
@@ -151,6 +152,8 @@ const componentColors = [
   { componentId: 'startOrder_completeSetupButton_text', textColor: '#FFFFFF' },
   { componentId: 'startOrder_planDetails_background', backgroundColor: '#00000000' },
   { componentId: 'startOrder_planDetails_barrier', shadowColor: '#8A000000' },
+  { componentId: 'startOrder_seePlansButton_background', backgroundColor: '#FF0000' },
+  { componentId: 'startOrder_seePlansButton_text', textColor: '#FFFFFF' },
   { componentId: 'addressInfo_errorButton_background', backgroundColor: '#FF0000' },
   { componentId: 'profile_statusIndicator_active', iconColor: '#4CAF50' },
   { componentId: 'profile_statusIndicator_inactive', iconColor: '#FF0000' },
@@ -193,7 +196,10 @@ const componentColors = [
   { componentId: 'numberSelection_warningText', textColor: '#FF9800' },
   { componentId: 'numberSelection_selectedText', textColor: '#757575' },
   { componentId: 'numberSelection_button_text', textColor: '#FFFFFF' },
-  // Missing component IDs from refactored code
+  // Snackbar components
+  { componentId: 'snackbar-success', backgroundColor: '#4CAF50' },
+  { componentId: 'snackbar-error', backgroundColor: '#FF0000' },
+  // Generic screen and text components
   { componentId: 'screen-plans', backgroundColor: '#FFFFFF' },
   { componentId: 'screen-support', backgroundColor: '#FFFFFF' },
   { componentId: 'text-title', textColor: '#000000' },

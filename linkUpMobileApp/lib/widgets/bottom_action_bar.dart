@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class BottomActionBar extends StatelessWidget {
   final Widget child;
@@ -18,7 +19,7 @@ class BottomActionBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppTheme.getComponentBackgroundColor(context, 'bottomActionBar_background', fallback: Colors.white),
+        color: backgroundColor ?? AppTheme.getComponentBackgroundColor(context, 'bottomActionBar_background', fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF')))),
       ),
       child: Container(
         height: 60 + bottomPadding,

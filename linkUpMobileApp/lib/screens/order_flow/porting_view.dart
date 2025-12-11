@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../utils/validators.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import '../../widgets/order_step_header.dart';
 import '../../utils/formatters.dart';
 import '../../services/firebase_order_manager.dart';
@@ -92,11 +93,11 @@ class _PortingViewState extends State<PortingView> {
       final errorBg = AppTheme.getComponentBackgroundColor(
         context,
         'porting_warning_background',
-        fallback: Colors.red,
+        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please select a carrier'),
+          content: Text('Please select a carrier'),
           backgroundColor: errorBg,
         ),
       );
@@ -171,11 +172,11 @@ class _PortingViewState extends State<PortingView> {
       final errorBg = AppTheme.getComponentBackgroundColor(
         context,
         'porting_warning_background',
-        fallback: Colors.red,
+        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.errorMessage ?? 'Failed to save skip porting information'),
+          content: Text(viewModel.errorMessage ?? FallbackValues.errorFailedToSavePortIn),
           backgroundColor: errorBg,
         ),
       );
@@ -209,11 +210,11 @@ class _PortingViewState extends State<PortingView> {
         final errorBg = AppTheme.getComponentBackgroundColor(
           context,
           'snackbar-error',
-          fallback: Colors.red,
+          fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
         );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Please fill in all required fields correctly'),
+            content: Text('Please fill in all required fields correctly'),
             backgroundColor: errorBg,
           ),
         );
@@ -231,7 +232,7 @@ class _PortingViewState extends State<PortingView> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               OrderStepHeader(
-                title: 'Transfer Your Existing Number',
+                title: FallbackValues.titlePorting,
                 subtitle: 'Please provide the following information from your current carrier:',
               ),
               SizedBox(height: AppTheme.spacingSection),

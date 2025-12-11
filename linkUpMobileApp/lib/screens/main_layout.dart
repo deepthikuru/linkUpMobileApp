@@ -6,6 +6,7 @@ import '../widgets/app_footer.dart';
 import '../widgets/mesh_background.dart';
 import '../providers/user_registration_view_model.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 import 'home/start_order_view.dart';
 import 'home/plans_view.dart';
 import 'support/support_view.dart';

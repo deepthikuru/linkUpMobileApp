@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../screens/login_page.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import 'privacy_policy_view.dart';
 import 'terms_and_conditions_view.dart';
 import 'previous_orders_view.dart';
@@ -145,7 +146,7 @@ class HamburgerMenuView extends StatelessWidget {
                       color: AppTheme.getComponentIconColor(
                         context,
                         'hamburgerMenu_logoutIcon',
-                        fallback: Colors.red,
+                        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                       ),
                     ),
                     title: Text(
@@ -154,7 +155,7 @@ class HamburgerMenuView extends StatelessWidget {
                         color: AppTheme.getComponentTextColor(
                           context,
                           'hamburgerMenu_logoutText',
-                          fallback: Colors.red,
+                          fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                     ),

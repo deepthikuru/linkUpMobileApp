@@ -10,6 +10,7 @@ import '../../services/vcare_api_manager.dart';
 import '../../widgets/step_navigation_container.dart';
 import '../../widgets/order_step_header.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import '../../utils/formatters.dart';
 
 class NumberSelectionView extends StatefulWidget {
@@ -626,7 +627,7 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                             : AppTheme.getComponentBorderColor(
                                 context,
                                 'numberSelection_radio_unselected',
-                                fallback: Colors.grey.shade300,
+                                fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
                               ),
                         width: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10 ? 2 : 1,
                       ),
@@ -643,7 +644,7 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                             : AppTheme.getComponentBorderColor(
                                 context,
                                 'numberSelection_radio_unselected',
-                                fallback: Colors.grey.shade300,
+                                fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
                               ),
                         width: _phoneNumberController.text.replaceAll(RegExp(r'[^\d]'), '').length == 10 ? 2 : 1,
                       ),
@@ -685,7 +686,7 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                           color: AppTheme.getComponentTextColor(
                             context,
                             'numberSelection_selectedText',
-                            fallback: Colors.grey.shade600,
+                            fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                           ),
                         ),
                       ),
@@ -702,12 +703,12 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                             ? AppTheme.getComponentIconColor(
                                 context,
                                 'numberSelection_statusIcon_available',
-                                fallback: Colors.green,
+                                fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))),
                               )
                             : AppTheme.getComponentIconColor(
                                 context,
                                 'numberSelection_statusIcon_unavailable',
-                                fallback: Colors.red,
+                                fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                               ),
                         size: 20,
                       ),
@@ -723,12 +724,12 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                                 ? AppTheme.getComponentTextColor(
                                     context,
                                     'numberSelection_statusIcon_available',
-                                    fallback: Colors.green,
+                                    fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))),
                                   )
                                 : AppTheme.getComponentTextColor(
                                     context,
                                     'numberSelection_statusIcon_unavailable',
-                                    fallback: Colors.red,
+                                    fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                                   ),
                           ),
                         ),
@@ -848,7 +849,7 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
                   ? AppTheme.getComponentTextColor(
                       context,
                       'numberSelection_button_text',
-                      fallback: Colors.white,
+                      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                     )
                   : AppTheme.appText,
             ),

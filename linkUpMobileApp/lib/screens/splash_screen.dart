@@ -7,6 +7,7 @@ import '../providers/navigation_state.dart';
 import '../services/firebase_order_manager.dart';
 import '../widgets/mesh_background.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 import 'login_page.dart';
 import 'content_view.dart';
 
@@ -98,12 +99,12 @@ class _SplashScreenState extends State<SplashScreen> {
     final screenBg = AppTheme.getComponentBackgroundColor(
       context,
       'splash_scaffold_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final progressColor = AppTheme.getComponentIconColor(
       context,
       'splash_loadingIndicator_color',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
 
     return Scaffold(

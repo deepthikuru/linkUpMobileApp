@@ -6,6 +6,7 @@ import '../../services/firebase_order_manager.dart';
 import '../../widgets/step_navigation_container.dart';
 import '../../widgets/order_step_header.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class SimSelectionView extends StatefulWidget {
   final int currentStep;
@@ -227,7 +228,7 @@ class _SimSelectionViewState extends State<SimSelectionView> {
                   ? AppTheme.getComponentTextColor(
                       context,
                       'numberSelection_button_text',
-                      fallback: Colors.white,
+                      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                     )
                   : AppTheme.appText,
             ),

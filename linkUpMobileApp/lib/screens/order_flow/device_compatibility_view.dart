@@ -10,6 +10,7 @@ import '../../widgets/step_navigation_container.dart';
 import '../../widgets/order_step_header.dart';
 import '../../utils/validators.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import 'imei_check_view.dart';
 
 class DeviceCompatibilityView extends StatefulWidget {
@@ -538,8 +539,8 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             OrderStepHeader(
-              title: 'Check device compatibility',
-              subtitle: 'Let\'s double-check that your device works with Telgoo5 Mobile.',
+              title: FallbackValues.titleDeviceCompatibility,
+              subtitle: FallbackValues.titleDeviceCompatibilitySubtitle,
             ),
             SizedBox(height: AppTheme.spacingSection),
             SizedBox(
@@ -571,7 +572,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                         ),
                       ),
                 label: Text(
-                  _isReadingDevice ? 'Reading device info...' : 'Auto-detect device',
+                  _isReadingDevice ? FallbackValues.buttonReadingDevice : FallbackValues.buttonAutoDetectDevice,
                   style: AppTheme.bodyStyle.copyWith(
                     color: AppTheme.getComponentTextColor(
                       context,
@@ -596,7 +597,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
             SizedBox(height: AppTheme.spacingItem),
             DropdownButtonFormField<PhoneBrand>(
               value: _selectedBrand,
-              decoration: AppTheme.inputDecoration('Device Brand'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelDeviceBrand),
               items: PhoneBrand.values.map((brand) {
                 return DropdownMenuItem(
                   value: brand,
@@ -616,7 +617,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
             SizedBox(height: AppTheme.spacingItem),
             DropdownButtonFormField<PhoneModel>(
               value: _selectedModel,
-              decoration: AppTheme.inputDecoration('Device Model'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelDeviceModel),
               items: availableModels.map((model) {
                 return DropdownMenuItem(
                   value: model,
@@ -675,7 +676,10 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Results for ${_selectedModel!.name}',
+                                FallbackValues.replacePlaceholder(
+                                  FallbackValues.messageResultsForDevice,
+                                  {'deviceName': _selectedModel!.name},
+                                ),
                                 style: AppTheme.sectionTitleStyle,
                               ),
                               SizedBox(height: AppTheme.spacingMedium),
@@ -685,7 +689,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                     Icon(Icons.check_circle, color: AppTheme.successColor, size: AppTheme.iconSizeSmall),
                                     SizedBox(width: AppTheme.spacingSmall),
                                     Expanded(
-                                      child: Text('Device is compatible with our network.', style: AppTheme.bodyStyle),
+                                      child: Text(FallbackValues.messageDeviceCompatible, style: AppTheme.bodyStyle),
                                     ),
                                   ],
                                 ),
@@ -702,8 +706,8 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                     Expanded(
                                       child: Text(
                                         supportsESIM
-                                            ? 'Your device supports eSIM.'
-                                            : 'Your device does not support eSIM.',
+                                            ? FallbackValues.messageDeviceSupportsEsimText
+                                            : FallbackValues.messageDeviceNotSupportsEsimText,
                                         style: AppTheme.bodyStyle,
                                       ),
                                     ),
@@ -722,8 +726,8 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                     Expanded(
                                       child: Text(
                                         supportsPhysicalSIM
-                                            ? 'Your device supports physical SIM card.'
-                                            : 'Your device does not support physical SIM card.',
+                                            ? FallbackValues.messageDeviceSupportsPhysicalText
+                                            : FallbackValues.messageDeviceNotSupportsPhysicalText,
                                         style: AppTheme.bodyStyle,
                                       ),
                                     ),
@@ -744,7 +748,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                         SizedBox(width: AppTheme.spacingSmall),
                                         Expanded(
                                           child: Text(
-                                            'Your device supports both eSIM and physical SIM cards.',
+                                            FallbackValues.messageDeviceSupportsBoth,
                                             style: AppTheme.bodySmallStyle.copyWith(color: AppTheme.accentGold),
                                           ),
                                         ),
@@ -765,7 +769,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                         SizedBox(width: AppTheme.spacingSmall),
                                         Expanded(
                                           child: Text(
-                                            'Your device only supports eSIM (no physical SIM slot).',
+                                            FallbackValues.messageDeviceSupportsEsimOnly,
                                             style: AppTheme.bodySmallStyle.copyWith(color: AppTheme.accentGold),
                                           ),
                                         ),
@@ -786,7 +790,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                         SizedBox(width: AppTheme.spacingSmall),
                                         Expanded(
                                           child: Text(
-                                            'Your device only supports physical SIM cards (no eSIM).',
+                                            FallbackValues.messageDeviceSupportsPhysicalOnly,
                                             style: AppTheme.bodySmallStyle.copyWith(color: AppTheme.accentGold),
                                           ),
                                         ),
@@ -801,7 +805,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                     SizedBox(width: AppTheme.spacingSmall),
                                     Expanded(
                                       child: Text(
-                                        'Device model not found in our catalog. Your device may not be compatible with our network.',
+                                        FallbackValues.messageDeviceNotCompatible,
                                         style: AppTheme.bodyStyle,
                                       ),
                                     ),
@@ -809,7 +813,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                                 ),
                                 SizedBox(height: AppTheme.spacingSmall),
                                 Text(
-                                  'Please contact support or try checking your IMEI for compatibility verification.',
+                                  FallbackValues.messageContactSupport,
                                   style: AppTheme.bodySmallStyle,
                                 ),
                               ],
@@ -900,7 +904,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
             ),
             SizedBox(height: AppTheme.spacingSection),
             Text(
-              'Can\'t find your device in the list above?',
+              FallbackValues.messageCanFindDevice,
               style: AppTheme.bodyStyle,
               textAlign: TextAlign.center,
             ),
@@ -917,7 +921,7 @@ class _DeviceCompatibilityViewState extends State<DeviceCompatibilityView> {
                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusButton),
                   ),
                 ),
-                child: Text('Check your IMEI instead', style: AppTheme.bodyStyle.copyWith(color: AppTheme.accentGold)),
+                child: Text(FallbackValues.buttonCheckIMEI, style: AppTheme.bodyStyle.copyWith(color: AppTheme.accentGold)),
               ),
             ),
             // IMEI Compatibility Section

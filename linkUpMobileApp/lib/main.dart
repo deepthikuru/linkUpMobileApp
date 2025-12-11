@@ -12,6 +12,7 @@ import 'services/notification_service.dart';
 import 'services/contentful_service.dart';
 import 'services/app_colors_service.dart';
 import 'services/component_colors_service.dart';
+import 'services/component_texts_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,15 @@ void main() async {
     print('❌ Error initializing component colors service: $e');
     // App continues with default colors
   }
+
+  // Initialize Component Texts Service (loads from cache immediately)
+  try {
+    await ComponentTextsService().initialize();
+    print('✅ Component texts service initialized in main');
+  } catch (e) {
+    print('❌ Error initializing component texts service: $e');
+    // App continues with fallback text values
+  }
   
   runApp(const LinkMobileApp());
 }
@@ -77,7 +87,8 @@ class LinkMobileApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NavigationState()),
         ChangeNotifierProvider(create: (_) => PlansProvider()),
         ChangeNotifierProvider.value(value: AppColorsService()),
-        ChangeNotifierProvider.value(value: ComponentColorsService()), // Add ComponentColorsService
+        ChangeNotifierProvider.value(value: ComponentColorsService()),
+        ChangeNotifierProvider.value(value: ComponentTextsService()),
       ],
       child: Consumer<AppColorsService>(
         builder: (context, colorsService, _) {

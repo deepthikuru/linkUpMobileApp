@@ -14,6 +14,7 @@ import '../../widgets/order_step_header.dart';
 import '../../utils/formatters.dart';
 import '../../utils/validators.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class ContactInfoView extends StatefulWidget {
   final int currentStep;
@@ -714,7 +715,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
     return StepNavigationContainer(
       currentStep: widget.currentStep,
       totalSteps: 6,
-      nextButtonText: 'Next Step',
+      nextButtonText: FallbackValues.buttonNext,
       nextButtonAction: _handleNext,
       backButtonAction: () {
         // Step 1 has no back button, so this won't be called
@@ -736,20 +737,20 @@ class _ContactInfoViewState extends State<ContactInfoView> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             OrderStepHeader(
-              title: 'Contact information',
+              title: FallbackValues.titleContactInfo,
             ),
             SizedBox(height: AppTheme.spacingSection),
             // Contact Information Section
             TextFormField(
               controller: _firstNameController,
-              decoration: AppTheme.inputDecoration('First Name'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelFirstName),
               style: const TextStyle(color: AppTheme.appText),
               validator: (value) => Validators.required(value, fieldName: 'First name'),
             ),
             SizedBox(height: AppTheme.spacingItem),
             TextFormField(
               controller: _lastNameController,
-              decoration: AppTheme.inputDecoration('Last Name'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelLastName),
               style: const TextStyle(color: AppTheme.appText),
               validator: (value) => Validators.required(value, fieldName: 'Last name'),
             ),
@@ -762,7 +763,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
                 final isValid = phoneDigits.length == 10;
                 return TextFormField(
                   controller: _phoneController,
-                  decoration: AppTheme.inputDecoration('(000) 000-0000').copyWith(
+                  decoration: AppTheme.inputDecoration(FallbackValues.labelPhone).copyWith(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppTheme.borderRadiusInput),
                       borderSide: BorderSide(
@@ -795,7 +796,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
             SizedBox(height: AppTheme.spacingItem),
             TextFormField(
               enabled: false,
-              decoration: AppTheme.inputDecoration('Email').copyWith(
+              decoration: AppTheme.inputDecoration(FallbackValues.labelEmail).copyWith(
                 filled: true,
                 fillColor: AppTheme.disabledBackground,
               ),
@@ -805,12 +806,12 @@ class _ContactInfoViewState extends State<ContactInfoView> {
             SizedBox(height: AppTheme.spacingSection),
             // Shipping Address Section
             OrderStepHeader(
-              title: 'Shipping address',
+              title: FallbackValues.titleShippingAddress,
             ),
             SizedBox(height: AppTheme.spacingItem),
             // Checkbox for "Use your current location"
             CheckboxListTile(
-              title: Text('Use your current location', style: AppTheme.bodyStyle),
+              title: Text(FallbackValues.checkboxUseCurrentLocation, style: AppTheme.bodyStyle),
               value: _useCurrentLocation,
               onChanged: (value) {
                 if (value == true) {
@@ -834,14 +835,14 @@ class _ContactInfoViewState extends State<ContactInfoView> {
             SizedBox(height: AppTheme.spacingItem),
             TextFormField(
               controller: _streetController,
-              decoration: AppTheme.inputDecoration('Street Address'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelStreetAddress),
               style: const TextStyle(color: AppTheme.appText),
               validator: (value) => Validators.required(value, fieldName: 'Street address'),
             ),
             SizedBox(height: AppTheme.spacingItem),
             TextFormField(
               controller: _aptController,
-              decoration: AppTheme.inputDecoration('Apt, Suite, etc. (optional)'),
+              decoration: AppTheme.inputDecoration(FallbackValues.labelAptSuite),
               style: const TextStyle(color: AppTheme.appText),
             ),
             SizedBox(height: AppTheme.spacingItem),
@@ -857,7 +858,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
                 Expanded(
                   child: TextFormField(
                     controller: _stateController,
-                    decoration: AppTheme.inputDecoration('State'),
+                    decoration: AppTheme.inputDecoration(FallbackValues.labelState),
                     style: const TextStyle(color: AppTheme.appText),
                   ),
                 ),
@@ -865,7 +866,7 @@ class _ContactInfoViewState extends State<ContactInfoView> {
                 Expanded(
                   child: TextFormField(
                     controller: _zipController,
-                    decoration: AppTheme.inputDecoration('Zip Code').copyWith(
+                    decoration: AppTheme.inputDecoration(FallbackValues.labelZipCode).copyWith(
                       suffixIcon: _isLoadingCityState
                           ? SizedBox(
                               width: AppTheme.iconSizeSmall,

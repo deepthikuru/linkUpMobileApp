@@ -5,6 +5,7 @@ import '../../providers/user_registration_view_model.dart';
 import '../../providers/navigation_state.dart';
 import '../../screens/login_page.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/mesh_background.dart';
 import 'privacy_policy_view.dart';
@@ -56,10 +57,10 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
     bool isLogout = false,
   }) {
     final effectiveIconColor = iconColor ?? AppTheme.secondBlue;
-    final effectiveTextColor = textColor ?? Colors.white;
+    final effectiveTextColor = textColor ?? Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF')));
     final effectiveIconBg = iconBackgroundColor ?? 
       (isLogout 
-        ? Colors.red.withOpacity(0.15) 
+        ? Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))).withOpacity(0.15) 
         : AppTheme.secondBlue.withOpacity(0.15));
 
     return Card(
@@ -68,7 +69,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: Colors.white.withOpacity(0.95), // Solid, almost opaque white
+      color: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))).withOpacity(0.95), // Solid, almost opaque white
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -94,7 +95,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: isLogout ? effectiveTextColor : Colors.black87,
+                    color: isLogout ? effectiveTextColor : Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -104,7 +105,7 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
                 Icons.arrow_forward_ios,
                 color: isLogout 
                   ? effectiveTextColor.withOpacity(0.7)
-                  : Colors.grey[600],
+                  : Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 size: 16,
               ),
             ],
@@ -180,8 +181,8 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           context: context,
           icon: Icons.privacy_tip,
           title: 'Privacy Policy',
-          iconBackgroundColor: Colors.grey[200],
-          iconColor: Colors.grey[700],
+          iconBackgroundColor: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
+          iconColor: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -194,8 +195,8 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           context: context,
           icon: Icons.description,
           title: 'Terms and Conditions',
-          iconBackgroundColor: Colors.grey[200],
-          iconColor: Colors.grey[700],
+          iconBackgroundColor: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
+          iconColor: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -216,14 +217,14 @@ class _ProfileViewBodyState extends State<ProfileViewBody> {
           iconColor: AppTheme.getComponentIconColor(
             context,
             'hamburgerMenu_logoutIcon',
-            fallback: Colors.red,
+            fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
           ),
           textColor: AppTheme.getComponentTextColor(
             context,
             'hamburgerMenu_logoutText',
-            fallback: Colors.red,
+            fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
           ),
-          iconBackgroundColor: Colors.red.withOpacity(0.15),
+          iconBackgroundColor: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))).withOpacity(0.15),
           onTap: () => _handleLogout(context),
         ),
       ],
@@ -259,10 +260,10 @@ class ProfilePageView extends StatelessWidget {
     bool isLogout = false,
   }) {
     final effectiveIconColor = iconColor ?? AppTheme.secondBlue;
-    final effectiveTextColor = textColor ?? Colors.white;
+    final effectiveTextColor = textColor ?? Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF')));
     final effectiveIconBg = iconBackgroundColor ?? 
       (isLogout 
-        ? Colors.red.withOpacity(0.15) 
+        ? Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))).withOpacity(0.15) 
         : AppTheme.secondBlue.withOpacity(0.15));
 
     return Card(
@@ -271,7 +272,7 @@ class ProfilePageView extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      color: Colors.white.withOpacity(0.95), // Solid, almost opaque white
+      color: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))).withOpacity(0.95), // Solid, almost opaque white
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -297,7 +298,7 @@ class ProfilePageView extends StatelessWidget {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: isLogout ? effectiveTextColor : Colors.black87,
+                    color: isLogout ? effectiveTextColor : Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
@@ -307,7 +308,7 @@ class ProfilePageView extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: isLogout 
                   ? effectiveTextColor.withOpacity(0.7)
-                  : Colors.grey[600],
+                  : Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 size: 16,
               ),
             ],
@@ -400,8 +401,8 @@ class ProfilePageView extends StatelessWidget {
                       context: context,
                       icon: Icons.privacy_tip,
                       title: 'Privacy Policy',
-                      iconBackgroundColor: Colors.grey[200],
-                      iconColor: Colors.grey[700],
+                      iconBackgroundColor: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
+                      iconColor: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -414,8 +415,8 @@ class ProfilePageView extends StatelessWidget {
                       context: context,
                       icon: Icons.description,
                       title: 'Terms and Conditions',
-                      iconBackgroundColor: Colors.grey[200],
-                      iconColor: Colors.grey[700],
+                      iconBackgroundColor: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
+                      iconColor: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -436,14 +437,14 @@ class ProfilePageView extends StatelessWidget {
                       iconColor: AppTheme.getComponentIconColor(
                         context,
                         'hamburgerMenu_logoutIcon',
-                        fallback: Colors.red,
+                        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                       ),
                       textColor: AppTheme.getComponentTextColor(
                         context,
                         'hamburgerMenu_logoutText',
-                        fallback: Colors.red,
+                        fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                       ),
-                      iconBackgroundColor: Colors.red.withOpacity(0.15),
+                      iconBackgroundColor: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))).withOpacity(0.15),
                       onTap: () => _handleLogout(context),
                     ),
                   ],

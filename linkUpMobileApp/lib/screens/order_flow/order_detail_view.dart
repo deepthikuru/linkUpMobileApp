@@ -6,6 +6,7 @@ import '../../models/order_models.dart';
 import '../../providers/navigation_state.dart';
 import '../../services/firebase_order_manager.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class OrderDetailView extends StatefulWidget {
   final String orderId;
@@ -36,7 +37,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
     if (user == null) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'User not authenticated';
+        _errorMessage = FallbackValues.errorUserNotLoggedIn;
       });
       return;
     }
@@ -76,7 +77,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
       if (user == null) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'User not authenticated';
+          _errorMessage = FallbackValues.errorUserNotLoggedIn;
         });
         return;
       }
@@ -99,7 +100,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         // Handle completed order - could open YouTube or show message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This order is already completed')),
+            SnackBar(content: Text('This order is already completed')),
           );
         }
         setState(() {
@@ -130,7 +131,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Details'),
+        title: Text('Order Details'),
         backgroundColor: AppTheme.getComponentBackgroundColor(
           context,
           'appHeader_gradientStart',
@@ -155,7 +156,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
               foregroundColor: AppTheme.getComponentTextColor(
                 context,
                 'appHeader_titleText_gradient',
-                fallback: Colors.white,
+                fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
               ),
             ),
             child: const Text('Edit'),
@@ -166,7 +167,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
               foregroundColor: AppTheme.getComponentTextColor(
                 context,
                 'appHeader_titleText_gradient',
-                fallback: Colors.white,
+                fallback: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
               ),
             ),
             child: const Text('Done'),
@@ -186,7 +187,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                         color: AppTheme.getComponentIconColor(
                           context,
                           'profile_errorButton_background',
-                          fallback: Colors.red,
+                          fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -225,7 +226,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                         ],
                       ),
                     )
-                  : const Center(child: Text('No order data')),
+                  : Center(child: Text('No order data')),
     );
   }
 
@@ -237,7 +238,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         color: AppTheme.getComponentBackgroundColor(
           context,
           'orderCard_background',
-          fallback: Colors.grey[100],
+          fallback: Color(int.parse(FallbackValues.disabledBackground.replaceFirst('#', '0xFF'))),
         ),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -376,7 +377,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         color: AppTheme.getComponentBackgroundColor(
           context,
           'orderCard_background',
-          fallback: Colors.white,
+          fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
         ),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
@@ -384,7 +385,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
             color: AppTheme.getComponentShadowColor(
               context,
               'orderCard_background',
-              fallback: Colors.black.withOpacity(0.05),
+              fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))).withOpacity(0.05),
             ),
             blurRadius: 2,
             offset: const Offset(0, 1),
@@ -421,7 +422,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                     color: AppTheme.getComponentTextColor(
                       context,
                       'orderCard_date_text',
-                      fallback: Colors.grey[600],
+                      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                     ),
                   ),
             ),
@@ -447,7 +448,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         return AppTheme.getComponentIconColor(
           context,
           'orderCard_status_completed',
-          fallback: Colors.green,
+          fallback: Color(int.parse(FallbackValues.successColor.replaceFirst('#', '0xFF'))),
         );
       case 'pending':
         return AppTheme.getComponentIconColor(
@@ -459,13 +460,13 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         return AppTheme.getComponentIconColor(
           context,
           'orderCard_status_cancelled',
-          fallback: Colors.red,
+          fallback: Color(int.parse(FallbackValues.errorColor.replaceFirst('#', '0xFF'))),
         );
       case 'draft':
         return AppTheme.getComponentTextColor(
           context,
           'text-secondary',
-          fallback: Colors.grey,
+          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
         );
       case 'processing':
         return AppTheme.mainBlue;
@@ -473,7 +474,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         return AppTheme.getComponentTextColor(
           context,
           'text-secondary',
-          fallback: Colors.grey,
+          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
         );
     }
   }

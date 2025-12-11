@@ -7,6 +7,8 @@ import '../../models/plan_model.dart';
 import '../../widgets/expandable_plan_card.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
+import '../../utils/text_helper.dart';
 import '../../providers/navigation_state.dart';
 import 'address_info_sheet.dart';
 
@@ -69,7 +71,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
     if (userId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User not logged in')),
+          SnackBar(content: Text(AppText.getString(context, 'errorUserNotLoggedIn'))),
         );
       }
       return;
@@ -117,7 +119,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating order: $e')),
+          SnackBar(content: Text(FallbackValues.replacePlaceholder(FallbackValues.errorCreatingOrder, {'error': e.toString()}))),
         );
       }
     }
@@ -133,17 +135,17 @@ class _PlansViewBodyState extends State<PlansViewBody> {
         final iconColor = AppTheme.getComponentIconColor(
           context,
           'plansView_filterIcon',
-          fallback: Colors.grey,
+          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
         );
         final titleColor = AppTheme.getComponentTextColor(
           context,
           'plansView_filterTitle_text',
-          fallback: Colors.grey[700]!,
+          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
         );
         final bodyColor = AppTheme.getComponentTextColor(
           context,
           'plansView_filterSubtitle_text',
-          fallback: Colors.grey[600]!,
+          fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
         );
 
         return isLoadingPlans
@@ -162,7 +164,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No plans available',
+                            FallbackValues.plansFilterTitle,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -171,7 +173,10 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'No plans found for ZIP: ${_currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}',
+                            FallbackValues.replacePlaceholder(
+                              FallbackValues.plansFilterSubtitle,
+                              {'zipCode': _currentZipCode.isEmpty ? AppConstants.defaultZipCode : _currentZipCode}
+                            ),
                             style: TextStyle(
                               fontSize: 14,
                               color: bodyColor,
@@ -181,7 +186,7 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () => plansProvider.reloadPlans(),
-                            child: const Text('Retry'),
+                            child: Text(FallbackValues.buttonRetry),
                           ),
                         ],
                       ),
@@ -194,10 +199,10 @@ class _PlansViewBodyState extends State<PlansViewBody> {
                         padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 24.0),
                         child: Center(
                           child: Text(
-                            'Plans made for how you connect.',
+                            FallbackValues.titlePlans,
                             textAlign: TextAlign.center,
                             style: AppTheme.getDoubleBoldTextStyle(
-                              color: Colors.white,
+                              color: Color(int.parse(FallbackValues.headerText.replaceFirst('#', '0xFF'))),
                               fontSize: 24,
                             ),
                           ),

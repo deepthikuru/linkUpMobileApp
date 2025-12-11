@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 
 class TermsAndConditionsView extends StatelessWidget {
   const TermsAndConditionsView({super.key});
@@ -28,7 +29,7 @@ class TermsAndConditionsView extends StatelessWidget {
                 color: AppTheme.getComponentIconColor(
                   context,
                   'terms_icon',
-                  fallback: Colors.grey,
+                  fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 ),
               ),
             ),

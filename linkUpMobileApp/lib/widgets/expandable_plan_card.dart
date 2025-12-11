@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/plan_model.dart';
 import '../utils/theme.dart';
+import '../utils/fallback_values.dart';
 
 class ExpandablePlanCard extends StatelessWidget {
   final Plan plan;
@@ -24,7 +25,7 @@ class ExpandablePlanCard extends StatelessWidget {
     final baseColor = AppTheme.getComponentBackgroundColor(
       context,
       'planCard_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     
     // Apply subtle solid color when expanded/selected
@@ -51,7 +52,7 @@ class ExpandablePlanCard extends StatelessWidget {
               : AppTheme.getComponentBorderColor(
                   context,
                   'planCard_border',
-                  fallback: Colors.grey[500]!,
+                  fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
                 ),
           width: isExpanded ? 2.0 : 1.0,
         ),
@@ -115,7 +116,7 @@ class ExpandablePlanCard extends StatelessWidget {
                                   ? AppTheme.getComponentTextColor(
                                       context,
                                       'planCard_badgeTextSelected',
-                                      fallback: Colors.white,
+                                      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                                     )
                                   : AppTheme.getComponentTextColor(
                                       context,
@@ -150,9 +151,9 @@ class ExpandablePlanCard extends StatelessWidget {
                   // Description text - shown before expanding
                   Text(
                     _buildDescription(plan),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black87,
+                      color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                       height: 1.4,
                     ),
                   ),
@@ -184,7 +185,7 @@ class ExpandablePlanCard extends StatelessWidget {
               color: AppTheme.getComponentBorderColor(
                 context,
                 'planCard_divider',
-                fallback: Colors.grey[300],
+                fallback: Color(int.parse(FallbackValues.borderColor.replaceFirst('#', '0xFF'))),
               ),
             ),
             Padding(
@@ -210,7 +211,7 @@ class ExpandablePlanCard extends StatelessWidget {
                           foregroundColor: AppTheme.getComponentTextColor(
                             context,
                             'button-danger',
-                            fallback: Colors.white,
+                            fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -253,9 +254,9 @@ class ExpandablePlanCard extends StatelessWidget {
         ? AppTheme.getComponentTextColor(
             context,
             'planCard_featureLabel_text',
-            fallback: Colors.grey,
+            fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
           )
-        : Colors.grey;
+        : Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF')));
 
     return Column(
       children: [
@@ -522,9 +523,9 @@ class ExpandablePlanCard extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
                 height: 1.2,
               ),
             ),

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/user_registration_view_model.dart';
 import '../../widgets/order_card.dart';
 import '../../utils/theme.dart';
+import '../../utils/fallback_values.dart';
 import '../../models/order_models.dart';
 import '../../services/firebase_order_manager.dart';
 import '../order_flow/order_detail_view.dart';
@@ -59,12 +60,12 @@ class _PreviousOrdersViewState extends State<PreviousOrdersView> {
     final screenBg = AppTheme.getComponentBackgroundColor(
       context,
       'previousOrders_scaffold_background',
-      fallback: Colors.white,
+      fallback: Color(int.parse(FallbackValues.appBackground.replaceFirst('#', '0xFF'))),
     );
     final emptyTextColor = AppTheme.getComponentTextColor(
       context,
       'text-secondary',
-      fallback: Colors.grey,
+      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
 
     return Scaffold(
