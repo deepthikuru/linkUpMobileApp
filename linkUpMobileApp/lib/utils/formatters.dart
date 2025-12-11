@@ -117,19 +117,83 @@ class ExpiryDateFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final text = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    // Extract only digits from both values
+    final newText = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    final oldText = oldValue.text.replaceAll(RegExp(r'[^\d]'), '');
     
-    if (text.length <= 2) {
-      return TextEditingValue(
-        text: text,
-        selection: TextSelection.collapsed(offset: text.length),
-      );
-    } else {
-      return TextEditingValue(
-        text: '${text.substring(0, 2)}/${text.substring(2, text.length > 4 ? 4 : text.length)}',
-        selection: TextSelection.collapsed(offset: newValue.text.length),
-      );
+    // Limit to 4 digits (MM/YY)
+    if (newText.length > 4) {
+      return oldValue;
     }
+    
+    // Count how many digits are before the cursor in the old formatted text
+    int oldDigitsBeforeCursor = 0;
+    final oldCursorPos = oldValue.selection.baseOffset;
+    for (int i = 0; i < oldCursorPos && i < oldValue.text.length; i++) {
+      if (RegExp(r'\d').hasMatch(oldValue.text[i])) {
+        oldDigitsBeforeCursor++;
+      }
+    }
+    
+    // Count how many digits are before the cursor in the new raw text
+    // This tells us where the user is typing
+    int newDigitsBeforeCursor = 0;
+    final newCursorPos = newValue.selection.baseOffset;
+    for (int i = 0; i < newCursorPos && i < newValue.text.length; i++) {
+      if (RegExp(r'\d').hasMatch(newValue.text[i])) {
+        newDigitsBeforeCursor++;
+      }
+    }
+    
+    // Determine if user is deleting
+    final isDeleting = newText.length < oldText.length;
+    
+    // Calculate target digit position for cursor
+    int targetDigitPosition;
+    if (isDeleting) {
+      // When deleting, keep cursor at the same digit position (clamped)
+      targetDigitPosition = oldDigitsBeforeCursor.clamp(0, newText.length);
+    } else {
+      // When typing, the cursor should be after the newly typed digit
+      // If we're adding a digit, advance the position
+      if (newText.length > oldText.length) {
+        targetDigitPosition = newDigitsBeforeCursor.clamp(0, newText.length);
+      } else {
+        // Moving cursor without typing
+        targetDigitPosition = newDigitsBeforeCursor.clamp(0, newText.length);
+      }
+    }
+    
+    // Format the text as MM/YY
+    String formatted;
+    if (newText.isEmpty) {
+      formatted = '';
+    } else if (newText.length <= 2) {
+      formatted = newText;
+    } else {
+      formatted = '${newText.substring(0, 2)}/${newText.substring(2)}';
+    }
+    
+    // Calculate cursor position in the formatted text
+    int cursorPosition;
+    if (formatted.isEmpty) {
+      cursorPosition = 0;
+    } else if (targetDigitPosition <= 2) {
+      // Cursor is in the month part (positions 0-2)
+      cursorPosition = targetDigitPosition;
+    } else {
+      // Cursor is in the year part (after the slash)
+      // Format: "MM/YY" - positions: 0,1,2(slash),3,4
+      cursorPosition = 3 + (targetDigitPosition - 2);
+    }
+    
+    // Ensure cursor is within bounds
+    cursorPosition = cursorPosition.clamp(0, formatted.length);
+    
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: cursorPosition),
+    );
   }
 }
 
