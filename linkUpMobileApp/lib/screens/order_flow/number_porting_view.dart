@@ -369,90 +369,120 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         return false;
       }
 
-      // If no port-in records found, create one first (customer was created with NEWACTIVATION)
+      // If no port-in records found, check if customer was created with is_portin='Y'
+      // If so, the record should exist but might need a moment to propagate
       if (listResponse.records.isEmpty) {
-        print('⚠️ No port-in records found. Customer was created with NEWACTIVATION.');
-        print('   Creating port-in record using create_portin_v2 API...');
+        print('⚠️ No port-in records found on first attempt.');
+        print('   Customer was created with is_portin="Y" in step 5, so record should exist.');
+        print('   This might be a timing issue. Waiting 5 seconds and retrying...');
         
-        // Split port-in account holder name into first and last name
-        final portName = viewModel.portInAccountHolderName;
-        final portNameParts = portName.split(' ');
-        final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
-        final portLastName = portNameParts.length > 1 
-            ? portNameParts.sublist(1).join(' ') 
-            : '';
-
-        print('📋 Port-In Name Split:');
-        print('   Full Name: $portName');
-        print('   First Name: $portFirstName');
-        print('   Last Name: $portLastName');
-
-        // Get IMEI and SIM from order if available (needed for certain carriers)
-        final imei = orderData['imei'] as String?;
-        final sim = orderData['sim'] as String?;
-
-        // Clean phone number (remove non-digits)
-        final cleanPhoneNumber = viewModel.selectedPhoneNumber.replaceAll(RegExp(r'[^\d]'), '');
-
-        final createTransactionId = VCareAPIManager.generateRandomTransactionId();
-        final createResponse = await apiManager.createPortInV2WhenCreateCustomerWasCalledWithoutPortinTag(
-          enrollmentId: enrollmentId,
-          firstName: portFirstName,
-          lastName: portLastName,
-          accountNumber: viewModel.portInAccountNumber,
-          zipCode: viewModel.zip,
-          state: viewModel.state,
-          city: viewModel.city,
-          addressOne: viewModel.street,
-          addressTwo: viewModel.aptNumber,
-          passwordPin: viewModel.portInPin,
-          portNumber: cleanPhoneNumber,
-          imei: imei,
-          sim: sim,
-          currentCarrier: viewModel.portInCurrentCarrier,
-          agentId: 'Sushil',
-          source: 'WEBSITE',
-          externalTransactionId: createTransactionId,
-        );
-
-        // Check if create_portin_v2 API succeeded
-        if (createResponse.msgCode != 'RESTAPI000') {
-          print('❌ Create port-in v2 API failed:');
-          print('   Message: ${createResponse.msg}');
-          print('   Message Code: ${createResponse.msgCode}');
-          return false;
-        }
-
-        print('✅ Port-in record created successfully');
-        print('   Message: ${createResponse.msg}');
-        print('   Message Code: ${createResponse.msgCode}');
-
-        // Wait 10 seconds (as per API documentation recommendation)
-        print('⏳ Waiting 10 seconds before getting port-in list...');
-        await Future.delayed(const Duration(seconds: 10));
-
-        // Get port-in list again to retrieve port_subscriber_id
-        print('📋 Getting port-in list after creation...');
-        final listTransactionId = VCareAPIManager.generateRandomTransactionId();
+        // Wait and retry in case of timing delay
+        await Future.delayed(const Duration(seconds: 5));
+        
+        // Retry get_list API
+        final retryTransactionId = VCareAPIManager.generateRandomTransactionId();
         listResponse = await apiManager.getPortInList(
           enrollId: enrollmentId,
           agentId: 'Sushil',
           source: 'WEBSITE',
-          externalTransactionId: listTransactionId,
+          externalTransactionId: retryTransactionId,
         );
 
-        // Check if get_list API succeeded
-        if (listResponse.msgCode != 'RESTAPI000') {
-          print('❌ Get port-in list API failed after creation:');
+        // Check if get_list API succeeded on retry
+        if (listResponse.msgCode != 'RESTAPI000' && listResponse.msgCode != 'RESTAPI110') {
+          print('❌ Get port-in list API failed on retry:');
           print('   Message: ${listResponse.msg}');
           print('   Message Code: ${listResponse.msgCode}');
           return false;
         }
 
+        // If still no records after retry, create one as fallback
         if (listResponse.records.isEmpty) {
-          print('❌ No port-in records found after creating port-in record.');
-          print('   Enrollment ID used: $enrollmentId');
-          return false;
+          print('⚠️ Still no port-in records found after retry.');
+          print('   Creating port-in record using create_portin_v2 API as fallback...');
+          
+          // Split port-in account holder name into first and last name
+          final portName = viewModel.portInAccountHolderName;
+          final portNameParts = portName.split(' ');
+          final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
+          final portLastName = portNameParts.length > 1 
+              ? portNameParts.sublist(1).join(' ') 
+              : '';
+
+          print('📋 Port-In Name Split:');
+          print('   Full Name: $portName');
+          print('   First Name: $portFirstName');
+          print('   Last Name: $portLastName');
+
+          // Get IMEI and SIM from order if available (needed for certain carriers)
+          final imei = orderData['imei'] as String?;
+          final sim = orderData['sim'] as String?;
+
+          // Clean phone number (remove non-digits)
+          final cleanPhoneNumber = viewModel.selectedPhoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+
+          final createTransactionId = VCareAPIManager.generateRandomTransactionId();
+          final createResponse = await apiManager.createPortInV2WhenCreateCustomerWasCalledWithoutPortinTag(
+            enrollmentId: enrollmentId,
+            firstName: portFirstName,
+            lastName: portLastName,
+            accountNumber: viewModel.portInAccountNumber,
+            zipCode: viewModel.zip,
+            state: viewModel.state,
+            city: viewModel.city,
+            addressOne: viewModel.street,
+            addressTwo: viewModel.aptNumber,
+            passwordPin: viewModel.portInPin,
+            portNumber: cleanPhoneNumber,
+            imei: imei,
+            sim: sim,
+            currentCarrier: viewModel.portInCurrentCarrier,
+            agentId: 'Sushil',
+            source: 'WEBSITE',
+            externalTransactionId: createTransactionId,
+          );
+
+          // Check if create_portin_v2 API succeeded
+          if (createResponse.msgCode != 'RESTAPI000') {
+            print('❌ Create port-in v2 API failed:');
+            print('   Message: ${createResponse.msg}');
+            print('   Message Code: ${createResponse.msgCode}');
+            return false;
+          }
+
+          print('✅ Port-in record created successfully');
+          print('   Message: ${createResponse.msg}');
+          print('   Message Code: ${createResponse.msgCode}');
+
+          // Wait 10 seconds (as per API documentation recommendation)
+          print('⏳ Waiting 10 seconds before getting port-in list...');
+          await Future.delayed(const Duration(seconds: 10));
+
+          // Get port-in list again to retrieve port_subscriber_id
+          print('📋 Getting port-in list after creation...');
+          final listTransactionId = VCareAPIManager.generateRandomTransactionId();
+          listResponse = await apiManager.getPortInList(
+            enrollId: enrollmentId,
+            agentId: 'Sushil',
+            source: 'WEBSITE',
+            externalTransactionId: listTransactionId,
+          );
+
+          // Check if get_list API succeeded
+          if (listResponse.msgCode != 'RESTAPI000') {
+            print('❌ Get port-in list API failed after creation:');
+            print('   Message: ${listResponse.msg}');
+            print('   Message Code: ${listResponse.msgCode}');
+            return false;
+          }
+
+          if (listResponse.records.isEmpty) {
+            print('❌ No port-in records found after creating port-in record.');
+            print('   Enrollment ID used: $enrollmentId');
+            return false;
+          }
+        } else {
+          print('✅ Port-in record found after retry!');
         }
       }
 

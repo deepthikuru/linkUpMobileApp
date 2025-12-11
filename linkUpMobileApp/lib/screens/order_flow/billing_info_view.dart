@@ -483,9 +483,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       }
     }
     
-    setState(() {
-      _isSaving = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+    }
 
     // DON'T proceed to step 6 - keep user on step 5
     // The success/error message will be shown via the API processing
@@ -768,14 +770,194 @@ class _BillingInfoViewState extends State<BillingInfoView> {
           }
         }
       } else {
-        // Port-in order - handle handover/shipment
-        print('📋 Step 2: Port-in order detected...');
+        // Port-in order - create customer with port-in information
+        print('📋 Step 2: Creating customer (port-in order)...');
         print('   Enrollment Type: $enrollmentType');
-        print('   Port-in details will be submitted in step 6');
         
-        // On success, proceed to step 6
-        if (mounted) {
-          widget.onStepChanged(6);
+        // Split port-in account holder name into first and last name
+        final portName = viewModel.portInAccountHolderName;
+        final portNameParts = portName.trim().split(' ');
+        final portFirstName = portNameParts.isNotEmpty ? portNameParts[0] : '';
+        final portLastName = portNameParts.length > 1 
+            ? portNameParts.sublist(1).join(' ') 
+            : '';
+
+        print('   Port-In Name Split:');
+        print('     Full Name: $portName');
+        print('     First Name: $portFirstName');
+        print('     Last Name: $portLastName');
+        print('   Port Number: ${viewModel.selectedPhoneNumber}');
+        print('   Port Carrier: ${viewModel.portInCurrentCarrier}');
+        print('   Port Account Number: ${viewModel.portInAccountNumber}');
+        print('   Port PIN: ${viewModel.portInPin}');
+
+        // Clean phone number (remove non-digits)
+        final cleanPhoneNumber = viewModel.selectedPhoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+
+        // Build customer info with port-in information
+        final customerInfo = <String, dynamic>{
+          'enrollment_type': enrollmentType,
+          'is_esim': isEsim,
+          'carrier': carrier,
+          'email': viewModel.email,
+          'first_name': viewModel.firstName,
+          'last_name': viewModel.lastName,
+          'service_address_one': viewModel.street,
+          'service_address_two': viewModel.aptNumber,
+          'service_city': viewModel.city,
+          'service_state': viewModel.state,
+          'service_zip': viewModel.zip,
+          'billing_address_one': viewModel.street,
+          'billing_address_two': viewModel.aptNumber,
+          'billing_city': viewModel.city,
+          'billing_state': viewModel.state,
+          'billing_zip': viewModel.zip,
+          'is_portin': 'Y',
+          'port_current_carrier': viewModel.portInCurrentCarrier,
+          'port_first_name': portFirstName,
+          'port_last_name': portLastName,
+          'port_account_number': viewModel.portInAccountNumber,
+          'port_account_password': viewModel.portInPin,
+          'port_number': cleanPhoneNumber,
+          // Port address - use service address (same as billing)
+          'port_address_one': viewModel.street,
+          'port_address_two': viewModel.aptNumber,
+          'port_city': viewModel.city,
+          'port_state': viewModel.state,
+          'port_zip_code': viewModel.zip,
+        };
+
+        if (viewModel.password.isNotEmpty) {
+          customerInfo['password'] = viewModel.password;
+        }
+
+        if (viewModel.phoneNumber.isNotEmpty) {
+          customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
+        }
+
+        final createTransactionId = VCareAPIManager.generateTransactionId(orderId, 'CREATE');
+        final responseData = await apiManager.createPrepaidPostpaidCustomerV2(
+          enrollmentId: enrollmentId,
+          orderId: paymentOrderId,
+          planId: planId,
+          customerInfo: customerInfo,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+          externalTransactionId: createTransactionId,
+        );
+
+        final response = responseData['response'] as CreateCustomerResponse;
+        final rawJson = responseData['rawJson'] as Map<String, dynamic>;
+
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('✅ CUSTOMER CREATED SUCCESSFULLY (PORT-IN)');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('📋 API Response Details:');
+        print('   Message: ${response.msg}');
+        print('   Message Code: ${response.msgCode}');
+        if (response.externalTransactionId != null) {
+          print('   External Transaction ID: ${response.externalTransactionId}');
+        }
+
+        // Handle response based on order type
+        if (response.data != null && response.data!.isNotEmpty) {
+          final firstLine = response.data!.first;
+          if (firstLine.data != null) {
+            final lineData = firstLine.data!;
+            
+            // Extract eSIM data from raw JSON if available
+            Map<String, dynamic>? esimData;
+            if (rawJson['data'] != null && rawJson['data'] is List && (rawJson['data'] as List).isNotEmpty) {
+              final firstDataItem = (rawJson['data'] as List)[0];
+              if (firstDataItem is Map && firstDataItem['data'] is Map) {
+                final dataMap = firstDataItem['data'] as Map<String, dynamic>;
+                if (dataMap['esim'] != null && dataMap['esim'] is Map) {
+                  esimData = dataMap['esim'] as Map<String, dynamic>;
+                  print('✅ eSIM data found in response');
+                }
+              }
+            }
+            
+            // Save customer data to order
+            final updateData = <String, dynamic>{};
+            if (lineData.custId != null) {
+              updateData['cust_id'] = lineData.custId;
+            }
+            if (lineData.customerId != null) {
+              updateData['customer_id'] = lineData.customerId;
+            }
+            if (lineData.enrollmentId != null) {
+              updateData['enrollment_id'] = lineData.enrollmentId;
+            }
+            if (lineData.mdn != null && lineData.mdn!.isNotEmpty) {
+              updateData['mdn'] = lineData.mdn;
+            }
+            if (lineData.enrollmentType != null) {
+              updateData['enrollment_type'] = lineData.enrollmentType;
+            }
+
+            // Save eSIM data if available
+            if (esimData != null) {
+              updateData['esim_qr_activation_code'] = esimData['QR_ACTIVATION_CODE']?.toString();
+              updateData['esim_activation_code'] = esimData['ACTIVATION_CODE']?.toString();
+              updateData['esim_iccid'] = esimData['ICCID']?.toString();
+              updateData['esim_smdp_address'] = esimData['SMDPADDRESS']?.toString() ?? '';
+              updateData['esim_enroll_id'] = esimData['ENROLL_ID']?.toString();
+              updateData['esim_allocation_success'] = esimData['ESIM_ALLOCATION_SUCCESS']?.toString();
+              updateData['esim_status_code'] = esimData['STATUSCODE']?.toString();
+              updateData['esim_description'] = esimData['DESCRIPTION']?.toString();
+              print('💾 Saving eSIM data to order');
+            }
+
+            await orderManager.saveStepProgress(
+              userId: userId,
+              orderId: orderId,
+              step: 5,
+              data: updateData,
+            );
+
+            // Handle response based on SIM type
+            if (isEsim == 'Y') {
+              // eSIM order - print eSIM data to terminal
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('📱 PORT-IN eSIM ORDER - ALL RESPONSE VALUES:');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('Customer ID: ${lineData.custId ?? "N/A"}');
+              print('Customer ID (alt): ${lineData.customerId ?? "N/A"}');
+              print('Enrollment ID: ${lineData.enrollmentId ?? "N/A"}');
+              print('Enrollment Type: ${lineData.enrollmentType ?? "N/A"}');
+              if (esimData != null) {
+                print('QR Activation Code: ${esimData['QR_ACTIVATION_CODE'] ?? "N/A"}');
+                print('Activation Code: ${esimData['ACTIVATION_CODE'] ?? "N/A"}');
+                print('ICCID: ${esimData['ICCID'] ?? "N/A"}');
+                print('SMDP Address: ${esimData['SMDPADDRESS'] ?? "N/A"}');
+                print('Enroll ID: ${esimData['ENROLL_ID'] ?? "N/A"}');
+                print('eSIM Allocation Success: ${esimData['ESIM_ALLOCATION_SUCCESS'] ?? "N/A"}');
+                print('Status Code: ${esimData['STATUSCODE'] ?? "N/A"}');
+                print('Description: ${esimData['DESCRIPTION'] ?? "N/A"}');
+              }
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            } else {
+              // Physical SIM order - print all values to terminal
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('📞 PORT-IN ORDER - ALL RESPONSE VALUES:');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('Customer ID: ${lineData.custId ?? "N/A"}');
+              print('Customer ID (alt): ${lineData.customerId ?? "N/A"}');
+              print('Enrollment ID: ${lineData.enrollmentId ?? "N/A"}');
+              print('Enrollment Type: ${lineData.enrollmentType ?? "N/A"}');
+              print('MDN (Phone Number): ${lineData.mdn ?? "N/A"}');
+              print('MSID: ${lineData.msid ?? "N/A"}');
+              print('MSL: ${lineData.msl ?? "N/A"}');
+              print('Invoice Number: ${lineData.invoiceNumber ?? "N/A"}');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            }
+            
+            // On success, proceed to step 6
+            if (mounted) {
+              widget.onStepChanged(6);
+            }
+          }
         }
       }
 
