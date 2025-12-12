@@ -19,28 +19,6 @@ class PlansProvider extends ChangeNotifier {
   String get currentZipCode => _currentZipCode;
   String? get errorMessage => _errorMessage;
   
-  // Helper function to get allowed plan names
-  List<String> _getAllowedPlanNames() {
-    return [
-      'LinkUp \$50 Unlimited',
-      'LinkUp \$40 30GB',
-      'LinkUp \$30 12GB',
-      'LinkUp \$20 Unlimited Talk &amp; Text + 3GB Data',
-      'LinkUp \$10 1GB',
-    ];
-  }
-  
-  // Map plan names to display names
-  String _getDisplayName(String planName) {
-    final cleanedName = planName.replaceAll('&amp;', '&');
-    if (cleanedName.contains('LinkUp \$10 1GB')) return 'STARTER';
-    if (cleanedName.contains('LinkUp \$20')) return 'EXPLORE';
-    if (cleanedName.contains('LinkUp \$30 12GB')) return 'PREMIUM';
-    if (cleanedName.contains('LinkUp \$40 30GB')) return 'UNLIMITED';
-    if (cleanedName.contains('LinkUp \$50 Unlimited')) return 'UNLIMITED PLUS';
-    return planName;
-  }
-  
   /// Load plans for a given zip code
   /// Only calls API if plans aren't cached for that zip code
   Future<void> loadPlans(String zipCode) async {
@@ -65,14 +43,9 @@ class PlansProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      const enrollmentType = 'NON_LIFELINE';
-      const isFamilyPlan = 'N';
-      
-      // First, try to get plans from Firestore
+      // First, try to get plans from Firestore (cached by zip code only)
       final cachedPlansData = await _firebaseManager.getPlans(
         zipCode: zipCodeToUse,
-        enrollmentType: enrollmentType,
-        isFamilyPlan: isFamilyPlan,
       );
       
       List<Plan> allPlans = [];
@@ -87,7 +60,16 @@ class PlansProvider extends ChangeNotifier {
       } else {
         // Plans not in Firestore, fetch from API
         print('📡 Plans not found in Firestore, fetching from API for zip code: $zipCodeToUse');
-        allPlans = await _apiManager.getPlanList(zipCode: zipCodeToUse);
+        
+        // Get IP address (optional)
+        final ipAddress = await _apiManager.getDeviceIPAddress();
+        
+        // Fetch plans from API with new structure
+        allPlans = await _apiManager.getPlanList(
+          zipCode: zipCodeToUse,
+          ipAddress: ipAddress,
+          isFamilyPlan: 'BOTH', // Use BOTH as per new API structure
+        );
         
         // Save plans to Firestore for future use
         if (allPlans.isNotEmpty) {
@@ -118,8 +100,6 @@ class PlansProvider extends ChangeNotifier {
             
             await _firebaseManager.savePlans(
               zipCode: zipCodeToUse,
-              enrollmentType: enrollmentType,
-              isFamilyPlan: isFamilyPlan,
               plans: plansData,
             );
             print('✅ Plans saved to Firestore for zip code: $zipCodeToUse');
@@ -131,46 +111,9 @@ class PlansProvider extends ChangeNotifier {
         print('✅ Loaded ${allPlans.length} plans from API for zip code: $zipCodeToUse');
       }
       
-      // Filter to show only the 5 hardcoded plans by name
-      final allowedPlanNames = _getAllowedPlanNames();
-      final filteredPlans = allPlans
-          .where((plan) {
-            final planName = plan.planName;
-            return allowedPlanNames.any((allowed) => planName == allowed);
-          })
-          .map((plan) {
-            final originalPlanName = plan.planName;
-            final displayName = _getDisplayName(originalPlanName);
-            
-            return Plan(
-              planId: plan.planId,
-              planName: originalPlanName.replaceAll('&amp;', '&'),
-              planPrice: plan.planPrice,
-              totalPlanPrice: plan.totalPlanPrice,
-              planDescription: plan.planDescription,
-              displayName: displayName,
-              displayDescription: plan.displayDescription,
-              displayFeaturesDescription: plan.displayFeaturesDescription,
-              data: plan.data,
-              talk: plan.talk,
-              text: plan.text,
-              isUnlimitedPlan: plan.isUnlimitedPlan,
-              isFamilyPlan: plan.isFamilyPlan,
-              isPrepaidPostpaid: plan.isPrepaidPostpaid,
-              planExpiryDays: plan.planExpiryDays,
-              planExpiryType: plan.planExpiryType,
-              carrier: plan.carrier,
-              planDiscountDetails: plan.planDiscountDetails,
-              autopayDiscount: plan.autopayDiscount,
-            );
-          })
-          .toList();
-      
-      // Sort by price to maintain consistent order (10, 20, 30, 40, 50)
-      filteredPlans.sort((a, b) => a.planPrice.compareTo(b.planPrice));
-      
-      _availablePlans = filteredPlans;
-      print('✅ Filtered to ${filteredPlans.length} hardcoded plans');
+      // Use all plans from API (no filtering)
+      _availablePlans = allPlans;
+      print('✅ Loaded ${allPlans.length} plans');
     } catch (e) {
       _errorMessage = e.toString();
       print('❌ Failed to load plans: $e');
@@ -180,9 +123,20 @@ class PlansProvider extends ChangeNotifier {
     }
   }
   
-  /// Force reload plans (useful for retry scenarios)
+  /// Force reload plans (clears cache and fetches fresh from API)
   Future<void> reloadPlans() async {
     _availablePlans = [];
+    
+    // Clear Firestore cache to force fresh API call
+    if (_currentZipCode.isNotEmpty) {
+      try {
+        await _firebaseManager.clearPlansCache(zipCode: _currentZipCode);
+        print('🗑️ Cleared plans cache for zip code: $_currentZipCode');
+      } catch (e) {
+        print('⚠️ Failed to clear plans cache: $e');
+      }
+    }
+    
     await loadPlans(_currentZipCode);
   }
   

@@ -640,11 +640,17 @@ class PortInListRecord {
           : json['port_id'] is String
               ? int.tryParse(json['port_id'] as String)
               : null,
-      portSubscriberId: json['port_subscriber_id'] is int
-          ? json['port_subscriber_id'] as int?
-          : json['port_subscriber_id'] is String
-              ? int.tryParse(json['port_subscriber_id'] as String)
-              : null,
+      portSubscriberId: json['port_subscriber_id'] != null
+          ? (json['port_subscriber_id'] is int
+              ? json['port_subscriber_id'] as int?
+              : json['port_subscriber_id'] is String
+                  ? int.tryParse(json['port_subscriber_id'] as String)
+                  : null)
+          : (json['portin_enrollment_id'] is int
+              ? json['portin_enrollment_id'] as int?
+              : json['portin_enrollment_id'] is String
+                  ? int.tryParse(json['portin_enrollment_id'] as String)
+                  : null),
       portinCompany: json['portin_company']?.toString(),
       portinStatus: json['portin_status']?.toString(),
       requestDatetime: json['request_datetime']?.toString(),
@@ -1198,12 +1204,32 @@ class VCareAPIManager {
     );
   }
 
+  /// Get device IP address (optional - returns null if unavailable)
+  Future<String?> getDeviceIPAddress() async {
+    try {
+      // Use a simple IP lookup service
+      final response = await http.get(
+        Uri.parse('https://api.ipify.org?format=text'),
+      ).timeout(const Duration(seconds: 5));
+      
+      if (response.statusCode == 200) {
+        final ip = response.body.trim();
+        print('✅ Device IP address: $ip');
+        return ip;
+      }
+    } catch (e) {
+      print('⚠️ Could not get device IP address: $e');
+    }
+    return null;
+  }
+
   /// Get list of available plans
-  /// Matches the Swift implementation's getPlanList method
+  /// Uses the new API structure with all required fields
   Future<List<Plan>> getPlanList({
     required String zipCode,
+    String? ipAddress,
     String enrollmentType = 'NON_LIFELINE',
-    String isFamilyPlan = 'N',
+    String isFamilyPlan = 'BOTH',
     String? planId,
     String agentId = 'Sushil',
     String? externalTransactionId,
@@ -1214,16 +1240,29 @@ class VCareAPIManager {
       throw Exception('Invalid zip code. Must be exactly 5 digits.');
     }
 
-    // Prepare parameters
+    // Prepare parameters according to new API structure
     final parameters = <String, dynamic>{
       'action': 'plan_list',
+      'plan_code': null,
       'zip_code': zipCode,
       'enrollment_type': enrollmentType,
-      'is_family_plan': isFamilyPlan,
       'agent_id': agentId,
       'source': source,
+      'request_name': 'plan',
+      'is_family_plan': isFamilyPlan,
+      'no_of_lines': '0',
+      'plan_type': null,
       'plan_id': planId ?? '',
+      'carrier': null,
+      'is_enrollment': 'Y',
+      'offer_type': 'multiple_line',
+      'vendor_id': _vendorId,
     };
+
+    // Add IP address if available
+    if (ipAddress != null && ipAddress.isNotEmpty) {
+      parameters['ip_address'] = ipAddress;
+    }
 
     if (externalTransactionId != null) {
       parameters['external_transaction_id'] = externalTransactionId;
@@ -2197,6 +2236,17 @@ class VCareAPIManager {
       line['is_esim'] = customerInfo['is_esim'];
     }
 
+    // Device ID (IMEI)
+    if (customerInfo['device_id'] != null && 
+        (customerInfo['device_id'] as String).isNotEmpty) {
+      line['device_id'] = customerInfo['device_id'];
+    }
+
+    // Port-in flag - MUST be added to the line object
+    if (customerInfo['is_portin'] != null) {
+      line['is_portin'] = customerInfo['is_portin'];
+    }
+
     // Port-in information (if is_portin is "Y")
     if (customerInfo['is_portin'] == 'Y') {
       if (customerInfo['port_current_carrier'] != null) {
@@ -2223,12 +2273,23 @@ class VCareAPIManager {
       if (customerInfo['port_zip_code'] != null) {
         line['port_zip_code'] = customerInfo['port_zip_code'];
       }
-      if (customerInfo['port_account_number'] != null) {
+      
+      // Add dummy values for port_account_number and port_account_password if not provided
+      // These are required by the API even for port-in orders
+      if (customerInfo['port_account_number'] == null || 
+          (customerInfo['port_account_number'] as String).isEmpty) {
+        line['port_account_number'] = '1234567890'; // Dummy account number
+      } else {
         line['port_account_number'] = customerInfo['port_account_number'];
       }
-      if (customerInfo['port_account_password'] != null) {
+      
+      if (customerInfo['port_account_password'] == null || 
+          (customerInfo['port_account_password'] as String).isEmpty) {
+        line['port_account_password'] = '1234'; // Dummy password pin
+      } else {
         line['port_account_password'] = customerInfo['port_account_password'];
       }
+      
       if (customerInfo['port_number'] != null) {
         line['port_number'] = customerInfo['port_number'];
       }
@@ -2715,111 +2776,6 @@ class VCareAPIManager {
     }
   }
 
-  /// Create port-in record when customer was created with NEWACTIVATION
-  /// This API is used to submit the port-in request for customers that were
-  /// created using create_customer_prepaid_multiline with activation_type as NEWACTIVATION
-  Future<PortInSubmitResponse> createPortInV2WhenCreateCustomerWasCalledWithoutPortinTag({
-    required String enrollmentId,
-    required String firstName,
-    required String lastName,
-    required String accountNumber,
-    required String zipCode,
-    required String state,
-    required String city,
-    required String addressOne,
-    required String passwordPin,
-    required String portNumber,
-    String? addressTwo,
-    String? imei,
-    String? sim,
-    String? currentCarrier,
-    String agentId = 'Sushil',
-    String source = 'WEBSITE',
-    String? externalTransactionId,
-  }) async {
-    print('🔍 ========================================');
-    print('🔍 CREATE PORT-IN V2 API CALL');
-    print('🔍 (When customer was created without PORTIN tag)');
-    print('🔍 ========================================');
-
-    // Prepare parameters
-    final parameters = <String, dynamic>{
-      'action': 'create_portin_v2_when_create_customer_was_called_without_portin_tag',
-      'enrollment_id': enrollmentId,
-      'first_name': firstName,
-      'last_name': lastName,
-      'account_number': accountNumber,
-      'zip_code': zipCode,
-      'state': state,
-      'city': city,
-      'address_one': addressOne,
-      'password_pin': passwordPin,
-      'port_number': portNumber,
-      'agent_id': agentId,
-      'source': source,
-    };
-
-    if (addressTwo != null && addressTwo.isNotEmpty) {
-      parameters['address_two'] = addressTwo;
-    }
-
-    if (imei != null && imei.isNotEmpty) {
-      parameters['imei'] = imei;
-    }
-
-    if (sim != null && sim.isNotEmpty) {
-      parameters['sim'] = sim;
-    }
-
-    if (currentCarrier != null && currentCarrier.isNotEmpty) {
-      parameters['current_carrier'] = currentCarrier;
-    }
-
-    if (externalTransactionId != null) {
-      parameters['external_transaction_id'] = externalTransactionId;
-    }
-
-    print('📤 Request Parameters:');
-    parameters.forEach((key, value) {
-      print('   $key: $value');
-    });
-    print('🔍 ========================================');
-
-    try {
-      // Make authenticated request
-      final response = await post(
-        endpoint: '/port',
-        parameters: parameters,
-      );
-
-      // Print raw API response
-      final responseString = response.body;
-      print('📡 Create Port-In V2 API Raw Response:');
-      print(responseString);
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-      // Parse response
-      final json = jsonDecode(responseString) as Map<String, dynamic>;
-      final createResponse = PortInSubmitResponse.fromJson(json);
-
-      print('✅ Create Port-In V2 API Response:');
-      print('   msg_code: ${createResponse.msgCode}');
-      print('   msg: ${createResponse.msg}');
-      print('   data: ${createResponse.data}');
-      print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-      if (createResponse.msgCode == 'RESTAPI000') {
-        return createResponse;
-      } else {
-        print('❌ Create Port-In V2 API Error: ${createResponse.msg}');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        throw Exception(createResponse.msg);
-      }
-    } catch (e) {
-      print('❌ Failed to create port-in v2: $e');
-      rethrow;
-    }
-  }
 
   /// Submit port-in request
   /// This API is called after creating a customer with PORTIN activation_type

@@ -557,9 +557,10 @@ class _BillingInfoViewState extends State<BillingInfoView> {
       final isPortInOrder = viewModel.numberType == 'Existing';
       
       // Determine enrollment type and SIM type
+      // Port-in orders should always use SHIPMENT (SIM needs to be shipped)
+      // HANDOVER is only for when customer already has a SIM and provides it during enrollment
       final isEsim = viewModel.simType == 'eSIM' ? 'Y' : 'N';
-      final enrollmentType = isEsim == 'Y' ? 'SHIPMENT' : 
-          (isPortInOrder ? 'HANDOVER' : 'SHIPMENT');
+      final enrollmentType = 'SHIPMENT'; // Always use SHIPMENT for port-in and new activations
 
       // Get carrier from order or use default
       final carrier = orderData['carrier'] as String? ?? 'TMBRLY';
@@ -644,6 +645,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         if (viewModel.phoneNumber.isNotEmpty) {
           customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
         }
+
+        // Add device_id (IMEI) - use viewModel.imei if available, otherwise use static value
+        customerInfo['device_id'] = viewModel.imei.isNotEmpty 
+            ? viewModel.imei 
+            : '352338107468355';
 
         final createTransactionId = VCareAPIManager.generateTransactionId(orderId, 'CREATE');
         final responseData = await apiManager.createPrepaidPostpaidCustomerV2(
@@ -834,6 +840,11 @@ class _BillingInfoViewState extends State<BillingInfoView> {
         if (viewModel.phoneNumber.isNotEmpty) {
           customerInfo['alternate_phone_number'] = viewModel.phoneNumber;
         }
+
+        // Add device_id (IMEI) - use viewModel.imei if available, otherwise use static value
+        customerInfo['device_id'] = viewModel.imei.isNotEmpty 
+            ? viewModel.imei 
+            : '352338107468355';
 
         final createTransactionId = VCareAPIManager.generateTransactionId(orderId, 'CREATE');
         final responseData = await apiManager.createPrepaidPostpaidCustomerV2(

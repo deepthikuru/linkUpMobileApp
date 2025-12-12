@@ -179,21 +179,17 @@ class FirebaseManager {
   }
 
   // Plan Caching
-  /// Save plans to Firestore, keyed by zip code, enrollment type, and family plan status
+  /// Save plans to Firestore, keyed by zip code only
   Future<void> savePlans({
     required String zipCode,
-    required String enrollmentType,
-    required String isFamilyPlan,
     required List<Map<String, dynamic>> plans,
   }) async {
-    // Create a document ID based on zip code, enrollment type, and family plan status
-    final documentId = '${zipCode}_${enrollmentType}_${isFamilyPlan}';
+    // Create a document ID based on zip code only
+    final documentId = zipCode;
     
     // Save to Firestore
     final planData = {
       'zipCode': zipCode,
-      'enrollmentType': enrollmentType,
-      'isFamilyPlan': isFamilyPlan,
       'plans': plans,
       'lastUpdated': FieldValue.serverTimestamp(),
     };
@@ -207,13 +203,11 @@ class FirebaseManager {
     }
   }
 
-  /// Retrieve plans from Firestore for a given zip code, enrollment type, and family plan status
+  /// Retrieve plans from Firestore for a given zip code
   Future<List<Map<String, dynamic>>?> getPlans({
     required String zipCode,
-    required String enrollmentType,
-    required String isFamilyPlan,
   }) async {
-    final documentId = '${zipCode}_${enrollmentType}_${isFamilyPlan}';
+    final documentId = zipCode;
     
     try {
       final doc = await _firestore.collection('plans').doc(documentId).get();
@@ -490,10 +484,8 @@ class FirebaseManager {
   /// Clear plans cache for a specific zip code (optional - for cleanup)
   Future<void> clearPlansCache({
     required String zipCode,
-    required String enrollmentType,
-    required String isFamilyPlan,
   }) async {
-    final documentId = '${zipCode}_${enrollmentType}_${isFamilyPlan}';
+    final documentId = zipCode;
 
     try {
       await _firestore.collection('plans').doc(documentId).delete();
