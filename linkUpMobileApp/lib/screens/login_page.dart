@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:provider/provider.dart';
 import '../widgets/mesh_background.dart';
 import '../providers/user_registration_view_model.dart';
@@ -9,6 +10,7 @@ import '../services/notification_service.dart';
 import '../utils/theme.dart';
 import '../utils/fallback_values.dart';
 import 'content_view.dart';
+import 'sign_up_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -26,53 +28,80 @@ class _LoginPageState extends State<LoginPage> {
     scopes: ['email', 'profile'],
   );
   bool _isLoading = false;
+  bool _isLoadingEmail = false;
+  bool _isLoadingGoogle = false;
+  bool _isLoadingApple = false;
+  bool _isButtonEnabled = false;
+  String? _errorMessage;
+  String? _successMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to text fields to enable/disable button
+    _emailController.addListener(_updateButtonState);
+    _passwordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    final isEnabled = _emailController.text.trim().isNotEmpty && 
+                      _passwordController.text.isNotEmpty;
+    if (_isButtonEnabled != isEnabled) {
+      setState(() {
+        _isButtonEnabled = isEnabled;
+        // Clear error messages when user starts typing
+        if (_errorMessage != null) {
+          _errorMessage = null;
+        }
+      });
+    }
+  }
+
+  void _clearMessages() {
+    setState(() {
+      _errorMessage = null;
+      _successMessage = null;
+    });
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _successMessage = null;
+    });
+  }
+
+  void _showSuccess(String message) {
+    setState(() {
+      _successMessage = message;
+      _errorMessage = null;
+    });
+  }
 
   Future<void> _handleForgotPassword() async {
-    final errorBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'login_errorSnackbar_background',
-      fallback: Colors.red,
-    );
-    final successBg = AppTheme.getComponentBackgroundColor(
-      context,
-      'login_successSnackbar_background',
-      fallback: Colors.green,
-    );
+    _clearMessages();
 
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(FallbackValues.errorPleaseEnterEmail),
-          backgroundColor: errorBg,
-        ),
-      );
+      _showError(FallbackValues.errorPleaseEnterEmail);
       return;
     }
 
     try {
       await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(FallbackValues.successPasswordResetSent),
-            backgroundColor: successBg,
-          ),
-        );
+        _showSuccess(FallbackValues.successPasswordResetSent);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${FallbackValues.errorFailedToSave}: ${e.toString()}'),
-            backgroundColor: errorBg,
-          ),
-        );
+        _showError('${FallbackValues.errorFailedToSave}: ${e.toString()}');
       }
     }
   }
 
   @override
   void dispose() {
+    _emailController.removeListener(_updateButtonState);
+    _passwordController.removeListener(_updateButtonState);
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -144,30 +173,21 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signInWithEmail() async {
     try {
+      // Dismiss keyboard
+      FocusScope.of(context).unfocus();
+      
+      _clearMessages();
+      
       setState(() {
         _isLoading = true;
+        _isLoadingEmail = true;
       });
 
-      final errorBg = AppTheme.getComponentBackgroundColor(
-        context,
-        'login_errorSnackbar_background',
-        fallback: Colors.red,
-      );
-      final successBg = AppTheme.getComponentBackgroundColor(
-        context,
-        'login_successSnackbar_background',
-        fallback: Colors.green,
-      );
-
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(FallbackValues.errorPleaseEnterEmail),
-            backgroundColor: errorBg,
-          ),
-        );
+        _showError(FallbackValues.errorPleaseEnterEmail);
         setState(() {
           _isLoading = false;
+          _isLoadingEmail = false;
         });
         return;
       }
@@ -178,52 +198,55 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
-        final successBg = AppTheme.getComponentBackgroundColor(
-          context,
-          'snackbar-success',
-          fallback: Colors.green,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(FallbackValues.successSignedIn),
-            backgroundColor: successBg,
-          ),
-        );
-
         // Load user data and determine if new or existing user
         await _navigateAfterLogin(userCredential.user!.uid);
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase-specific errors
       if (mounted) {
-        final errorBg = AppTheme.getComponentBackgroundColor(
-          context,
-          'snackbar-error',
-          fallback: Colors.red,
-        );
-        String errorMessage = FallbackValues.errorFailedToSave;
+        String errorMessage;
         
-        if (e.toString().contains('user-not-found')) {
-          errorMessage = 'No account found with this email';
-        } else if (e.toString().contains('wrong-password')) {
-          errorMessage = 'Incorrect password';
-        } else if (e.toString().contains('invalid-email')) {
-          errorMessage = 'Invalid email address';
-        } else {
-          errorMessage = '${FallbackValues.errorFailedToSave}: ${e.toString()}';
+        switch (e.code) {
+          case 'user-not-found':
+            errorMessage = 'No account found with this email address.';
+            break;
+          case 'wrong-password':
+            errorMessage = 'Incorrect password. Please try again.';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email address format.';
+            break;
+          case 'invalid-credential':
+            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This account has been disabled. Please contact support.';
+            break;
+          case 'too-many-requests':
+            errorMessage = 'Too many failed attempts. Please try again later.';
+            break;
+          case 'operation-not-allowed':
+            errorMessage = 'Email/password sign-in is not enabled. Please contact support.';
+            break;
+          case 'network-request-failed':
+            errorMessage = 'Network error. Please check your connection and try again.';
+            break;
+          default:
+            errorMessage = 'Sign-in failed: ${e.message ?? e.code}';
         }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: errorBg,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        _showError(errorMessage);
+      }
+    } catch (e) {
+      // Handle other errors
+      if (mounted) {
+        _showError('${FallbackValues.errorFailedToSave}: ${e.toString()}');
       }
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isLoadingEmail = false;
         });
       }
     }
@@ -231,8 +254,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signInWithGoogle() async {
     try {
+      _clearMessages();
+      
       setState(() {
         _isLoading = true;
+        _isLoadingGoogle = true;
       });
 
       // Trigger the authentication flow
@@ -242,6 +268,7 @@ class _LoginPageState extends State<LoginPage> {
         // User canceled the sign-in
         setState(() {
           _isLoading = false;
+          _isLoadingGoogle = false;
         });
         return;
       }
@@ -265,28 +292,35 @@ class _LoginPageState extends State<LoginPage> {
       
       // Successfully signed in
       if (mounted) {
-        final successBg = AppTheme.getComponentBackgroundColor(
-          context,
-          'snackbar-success',
-          fallback: Colors.green,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(FallbackValues.successSignedIn),
-            backgroundColor: successBg,
-          ),
-        );
-        
         // Load user data and determine if new or existing user
         await _navigateAfterLogin(userCredential.user!.uid);
       }
+    } on FirebaseAuthException catch (e) {
+      // Handle Firebase-specific errors
+      if (mounted) {
+        String errorMessage;
+        
+        switch (e.code) {
+          case 'invalid-credential':
+            errorMessage = 'The authentication credential is invalid or has expired. Please try signing in again.';
+            break;
+          case 'account-exists-with-different-credential':
+            errorMessage = 'An account already exists with the same email but different sign-in method.';
+            break;
+          case 'invalid-verification-code':
+            errorMessage = 'The verification code is invalid.';
+            break;
+          case 'invalid-verification-id':
+            errorMessage = 'The verification ID is invalid.';
+            break;
+          default:
+            errorMessage = 'Sign-in failed: ${e.message ?? e.code}';
+        }
+        
+        _showError(errorMessage);
+      }
     } catch (e) {
       if (mounted) {
-        final errorBg = AppTheme.getComponentBackgroundColor(
-          context,
-          'snackbar-error',
-          fallback: Colors.red,
-        );
         String errorMessage = 'Error signing in with Google';
         
         // Check for specific error codes
@@ -300,18 +334,156 @@ class _LoginPageState extends State<LoginPage> {
           errorMessage = '${FallbackValues.errorFailedToSave}: ${e.toString()}';
         }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: errorBg,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        _showError(errorMessage);
       }
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isLoadingGoogle = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    try {
+      _clearMessages();
+      
+      print('🍎 [Apple Sign-In] Starting Apple Sign-In process...');
+      
+      // Check if Sign in with Apple is available
+      print('🍎 [Apple Sign-In] Checking if Sign in with Apple is available...');
+      final isAvailable = await SignInWithApple.isAvailable();
+      print('🍎 [Apple Sign-In] Sign in with Apple available: $isAvailable');
+      
+      if (!isAvailable) {
+        throw Exception('Sign in with Apple is not available on this device');
+      }
+      
+      setState(() {
+        _isLoading = true;
+        _isLoadingApple = true;
+      });
+
+      print('🍎 [Apple Sign-In] Requesting Apple ID credential...');
+      print('🍎 [Apple Sign-In] Scopes: email, fullName');
+      
+      // Request credential for the currently signed in Apple account
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      print('🍎 [Apple Sign-In] ✅ Successfully received Apple credential');
+      print('🍎 [Apple Sign-In] User ID: ${appleCredential.userIdentifier}');
+      print('🍎 [Apple Sign-In] Email: ${appleCredential.email ?? "not provided"}');
+      print('🍎 [Apple Sign-In] Given Name: ${appleCredential.givenName ?? "not provided"}');
+      print('🍎 [Apple Sign-In] Family Name: ${appleCredential.familyName ?? "not provided"}');
+      print('🍎 [Apple Sign-In] Has identity token: ${appleCredential.identityToken != null}');
+      print('🍎 [Apple Sign-In] Has authorization code: ${appleCredential.authorizationCode != null}');
+
+      if (appleCredential.identityToken == null) {
+        print('🍎 [Apple Sign-In] ❌ ERROR: identityToken is null!');
+        throw Exception('Apple Sign-In failed: identity token is null');
+      }
+
+      print('🍎 [Apple Sign-In] Creating OAuth credential with Firebase...');
+      // Create an `OAuthCredential` from the credential returned by Apple
+      final oauthCredential = OAuthProvider("apple.com").credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      print('🍎 [Apple Sign-In] Signing in with Firebase...');
+      // Sign in the user with Firebase
+      final UserCredential userCredential = await _auth.signInWithCredential(oauthCredential);
+      print('🍎 [Apple Sign-In] ✅ Successfully signed in with Firebase');
+      print('🍎 [Apple Sign-In] Firebase User ID: ${userCredential.user?.uid}');
+
+      // Successfully signed in
+      if (mounted) {
+        // If this is the first time signing in, update the user's display name
+        if (appleCredential.givenName != null && appleCredential.familyName != null) {
+          await userCredential.user?.updateDisplayName(
+            '${appleCredential.givenName} ${appleCredential.familyName}',
+          );
+        }
+
+        // Load user data and determine if new or existing user
+        await _navigateAfterLogin(userCredential.user!.uid);
+      }
+    } on FirebaseAuthException catch (e) {
+      print('🍎 [Apple Sign-In] ❌ FirebaseAuthException occurred:');
+      print('🍎 [Apple Sign-In] Error code: ${e.code}');
+      print('🍎 [Apple Sign-In] Error message: ${e.message}');
+      
+      if (mounted) {
+        String errorMessage;
+        
+        switch (e.code) {
+          case 'invalid-credential':
+            errorMessage = 'The authentication credential is invalid or has expired. Please try signing in again.';
+            break;
+          case 'account-exists-with-different-credential':
+            errorMessage = 'An account already exists with the same email but different sign-in method.';
+            break;
+          case 'invalid-verification-code':
+            errorMessage = 'The verification code is invalid.';
+            break;
+          case 'invalid-verification-id':
+            errorMessage = 'The verification ID is invalid.';
+            break;
+          default:
+            errorMessage = 'Sign-in failed: ${e.message ?? e.code}';
+        }
+        
+        _showError(errorMessage);
+      }
+    } catch (e, stackTrace) {
+      print('🍎 [Apple Sign-In] ❌ ERROR occurred:');
+      print('🍎 [Apple Sign-In] Error type: ${e.runtimeType}');
+      print('🍎 [Apple Sign-In] Error message: $e');
+      print('🍎 [Apple Sign-In] Error toString: ${e.toString()}');
+      print('🍎 [Apple Sign-In] Stack trace: $stackTrace');
+      
+      if (mounted) {
+        String errorMessage = 'Error signing in with Apple';
+        
+        // Check for specific error types
+        if (e.toString().contains('SignInWithAppleAuthorizationException')) {
+          print('🍎 [Apple Sign-In] Detected SignInWithAppleAuthorizationException');
+          if (e.toString().contains('canceled') || e.toString().contains('cancel')) {
+            print('🍎 [Apple Sign-In] User canceled the sign-in');
+            // User canceled, just reset loading state
+            setState(() {
+              _isLoading = false;
+              _isLoadingApple = false;
+            });
+            return;
+          }
+          errorMessage = 'Apple Sign-In configuration error. Please check your setup.';
+        } else if (e.toString().contains('AKAuthenticationError')) {
+          print('🍎 [Apple Sign-In] Detected AKAuthenticationError');
+          errorMessage = 'Apple authentication error. Check device/account settings.';
+        } else if (e.toString().contains('ASAuthorizationError')) {
+          print('🍎 [Apple Sign-In] Detected ASAuthorizationError');
+          errorMessage = 'Apple authorization error. Check bundle ID configuration.';
+        } else {
+          errorMessage = '${FallbackValues.errorFailedToSave}: ${e.toString()}';
+        }
+        
+        print('🍎 [Apple Sign-In] Showing error to user: $errorMessage');
+        
+        _showError(errorMessage);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isLoadingApple = false;
         });
       }
     }
@@ -345,11 +517,18 @@ class _LoginPageState extends State<LoginPage> {
       'link-primary',
       fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
     );
-    final primaryButtonBg = AppTheme.getComponentBackgroundColor(
+    final primaryButtonDisabledBg = AppTheme.getComponentBackgroundColor(
       context,
       'login_signInButton_disabledBackground',
       fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
     );
+    // Use yellow accent for enabled state, or try to get enabled background from Contentful
+    final primaryButtonEnabledBg = AppTheme.getComponentBackgroundColor(
+      context,
+      'login_signInButton_background',
+      fallback: Color(int.parse(FallbackValues.yellowAccent.replaceFirst('#', '0xFF'))),
+    );
+    final primaryButtonBg = _isButtonEnabled ? primaryButtonEnabledBg : primaryButtonDisabledBg;
     final primaryButtonText = AppTheme.getComponentTextColor(
       context,
       'login_signInButton_text',
@@ -434,6 +613,93 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 40),
+                      // Error Message Display
+                      if (_errorMessage != null)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getComponentBackgroundColor(
+                              context,
+                              'login_errorSnackbar_background',
+                              fallback: Colors.red,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                color: Colors.white,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: _clearMessages,
+                              ),
+                            ],
+                          ),
+                        ),
+                      // Success Message Display
+                      if (_successMessage != null)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getComponentBackgroundColor(
+                              context,
+                              'login_successSnackbar_background',
+                              fallback: Colors.green,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _successMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                color: Colors.white,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: _clearMessages,
+                              ),
+                            ],
+                          ),
+                        ),
+                      // Show spacing only if there's a message
+                      if (_errorMessage != null || _successMessage != null)
+                        const SizedBox(height: 8),
                       // Email Field
                       TextField(
                         controller: _emailController,
@@ -447,6 +713,7 @@ class _LoginPageState extends State<LoginPage> {
                           fillColor: inputBg,
                         ),
                         keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: 16),
                       // Password Field
@@ -462,6 +729,12 @@ class _LoginPageState extends State<LoginPage> {
                           fillColor: inputBg,
                         ),
                         obscureText: true,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) {
+                          if (!_isLoading && _isButtonEnabled) {
+                            _signInWithEmail();
+                          }
+                        },
                       ),
                       const SizedBox(height: 8),
                       // Forgot Password Link
@@ -479,20 +752,22 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      // Sign In Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _signInWithEmail,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryButtonBg,
-                            foregroundColor: primaryButtonText,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        // Sign In Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: (_isLoading || !_isButtonEnabled) ? null : _signInWithEmail,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryButtonBg,
+                              foregroundColor: primaryButtonText,
+                              disabledBackgroundColor: primaryButtonDisabledBg,
+                              disabledForegroundColor: primaryButtonText.withOpacity(0.6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: _isLoading
+                          child: _isLoadingEmail
                               ? SizedBox(
                                   width: 20,
                                   height: 20,
@@ -543,7 +818,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 50,
                         child: ElevatedButton.icon(
                           onPressed: _isLoading ? null : _signInWithGoogle,
-                          icon: _isLoading
+                          icon: _isLoadingGoogle
                               ? SizedBox(
                                   width: 20,
                                   height: 20,
@@ -554,7 +829,7 @@ class _LoginPageState extends State<LoginPage> {
                                 )
                               : Icon(Icons.language, color: googleButtonIcon),
                           label: Text(
-                            _isLoading ? 'Signing in...' : 'Sign in with Google',
+                            _isLoadingGoogle ? 'Signing in...' : 'Sign in with Google',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -575,9 +850,7 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // Handle Apple sign in
-                          },
+                          onPressed: _isLoading ? null : _signInWithApple,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: appleButtonBg,
                             foregroundColor: buttonText,
@@ -588,10 +861,19 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.apple, color: appleButtonIcon),
+                              _isLoadingApple
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(appleButtonText),
+                                      ),
+                                    )
+                                  : Icon(Icons.apple, color: appleButtonIcon),
                               const SizedBox(width: 8),
                               Text(
-                                'Sign in with Apple',
+                                _isLoadingApple ? 'Signing in...' : 'Sign in with Apple',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -624,10 +906,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Navigate to create account - can be implemented later
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Create account feature coming soon'),
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
                           ),
                         );
                       },

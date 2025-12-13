@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:804860067099:android:9211a21e7c70a53235a7be",
+        "mobilesdk_app_id": "1:804860067099:android:c3df13e7fcc0e33f35a7be",
         "android_client_info": {
-          "package_name": "com.linkmobile"
+          "package_name": "com.linkupmobileapp"
         }
       },
       "oauth_client": [
@@ -34,7 +34,7 @@
               "client_id": "804860067099-78fhbc11trgu8aub100hce5it4fmmri8.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.linkmobile"
+                "bundle_id": "com.linkupmobileapp"
               }
             }
           ]
@@ -45,7 +45,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:804860067099:android:acb78056d291904835a7be",
         "android_client_info": {
-          "package_name": "com.linkmobile"
+          "package_name": "com.linkupmobileapp"
         }
       },
       "oauth_client": [
@@ -53,7 +53,7 @@
           "client_id": "804860067099-m7ckmvcmdcglf3buveqtpn3hc1v6h34i.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.linkmobile",
+            "package_name": "com.linkupmobileapp",
             "certificate_hash": "9330443c8519efd64b066732cd3daab131cc17b8"
           }
         },
@@ -78,7 +78,7 @@
               "client_id": "804860067099-78fhbc11trgu8aub100hce5it4fmmri8.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.linkmobile"
+                "bundle_id": "com.linkupmobileapp"
               }
             }
           ]

@@ -2876,6 +2876,9 @@ class VCareAPIManager {
   /// This API is used to check the status of a port-in request
   Future<PortInQueryResponse> queryPortIn({
     required String enrollmentId,
+    required String esn,  // Required - from get_list response new_esn field
+    required String mdn,  // Required - from get_list response number_to_port field
+    required String carrier,  // Required - from get_list response carrier field
     String agentId = 'Sushil',
     String source = 'WEBSITE',
     String? externalTransactionId,
@@ -2888,8 +2891,12 @@ class VCareAPIManager {
     final parameters = <String, dynamic>{
       'action': 'query_portin',
       'enroll_id': enrollmentId,
+      'esn': esn,
+      'mdn': mdn,
+      'carrier': carrier,
       'source': source,
       'agent_id': agentId,
+      'request_name': 'port',  // Required as per API docs
     };
 
     if (externalTransactionId != null) {

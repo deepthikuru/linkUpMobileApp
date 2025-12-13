@@ -22,6 +22,7 @@ import '../../utils/fallback_values.dart';
 import '../../utils/text_helper.dart';
 import '../../screens/profile/previous_orders_view.dart';
 import '../../providers/navigation_state.dart';
+import '../../services/vcare_api_manager.dart';
 import '../order_flow/order_detail_view.dart';
 
 // Shared content widget containing all common logic
@@ -66,11 +67,15 @@ class _StartOrderContentState extends State<_StartOrderContent> {
   String _currentZipCode = '';
   int _currentOrderIndex = 0;
   PageController? _orderPageController = PageController();
+  List<Map<String, dynamic>> _pendingPortInOrders = [];
+  Timer? _portInPollingTimer;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadPendingPortInOrders();
+    _startPortInPolling();
     // Set footer tab to home when this view loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final navigationState = Provider.of<NavigationState>(context, listen: false);
@@ -80,6 +85,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
 
   @override
   void dispose() {
+    _portInPollingTimer?.cancel();
     _orderPageController?.dispose();
     super.dispose();
   }
@@ -109,6 +115,7 @@ class _StartOrderContentState extends State<_StartOrderContent> {
       await Future.wait([
       _loadIncompleteOrders(),
       _loadRecentOrders(),
+      _loadPendingPortInOrders(),
       ]);
 
     if (!mounted) return;
@@ -185,6 +192,113 @@ class _StartOrderContentState extends State<_StartOrderContent> {
     } catch (e) {
       // Handle error
     }
+  }
+
+  Future<void> _loadPendingPortInOrders() async {
+    final viewModel = Provider.of<UserRegistrationViewModel>(context, listen: false);
+    final userId = viewModel.userId;
+    
+    if (userId == null) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('orders')
+          .where('portInStatus', isEqualTo: 'pending')
+          .where('numberType', isEqualTo: 'Existing')
+          .get();
+      
+      final List<Map<String, dynamic>> pendingOrders = [];
+      
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        pendingOrders.add({
+          'orderId': doc.id,
+          'userId': userId,
+          ...data,
+        });
+      }
+      
+      if (!mounted) return;
+      _safeSetState(() {
+        _pendingPortInOrders = pendingOrders;
+      });
+    } catch (e) {
+      print('Error loading pending port-in orders: $e');
+    }
+  }
+
+  void _startPortInPolling() {
+    _portInPollingTimer?.cancel();
+    _portInPollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _pollPortInStatus();
+    });
+  }
+
+  Future<void> _pollPortInStatus() async {
+    if (_pendingPortInOrders.isEmpty) return;
+    
+    final apiManager = VCareAPIManager();
+    
+    for (final order in _pendingPortInOrders) {
+      try {
+        final enrollmentId = order['enrollment_id'] as String?;
+        // Try portInNewEsn first (from get_list), fallback to esim_iccid
+        final esn = order['portInNewEsn'] as String? ?? 
+                    order['esim_iccid'] as String? ?? '';
+        final mdn = order['selectedPhoneNumber'] as String? ?? 
+                    order['phoneNumber'] as String? ?? '';
+        final carrier = order['carrier'] as String? ?? '';
+        
+        if (enrollmentId == null || esn.isEmpty || mdn.isEmpty || carrier.isEmpty) {
+          print('⚠️ Skipping port-in polling for order ${order['orderId']}: Missing required fields');
+          print('   Enrollment ID: ${enrollmentId ?? "null"}');
+          print('   ESN: ${esn.isEmpty ? "empty" : esn}');
+          print('   MDN: ${mdn.isEmpty ? "empty" : mdn}');
+          print('   Carrier: ${carrier.isEmpty ? "empty" : carrier}');
+          continue;
+        }
+        
+        // Clean MDN to remove formatting
+        final cleanMdn = mdn.replaceAll(RegExp(r'[^\d]'), '');
+        
+        final queryResponse = await apiManager.queryPortIn(
+          enrollmentId: enrollmentId,
+          esn: esn,
+          mdn: cleanMdn,
+          carrier: carrier,
+          agentId: 'Sushil',
+          source: 'WEBSITE',
+        );
+        
+        if (queryResponse.msgCode == 'RESTAPI000' && queryResponse.record != null) {
+          final status = queryResponse.record!.portinStatus?.toLowerCase() ?? '';
+          
+          // Update order status based on port-in status
+          if (status == 'completed' || status == 'success') {
+            await FirebaseOrderManager().updateOrderField(
+              order['userId'] as String,
+              order['orderId'] as String,
+              'portInStatus',
+              'completed',
+            );
+          } else if (status == 'failed' || status == 'rejected') {
+            await FirebaseOrderManager().updateOrderField(
+              order['userId'] as String,
+              order['orderId'] as String,
+              'portInStatus',
+              'failed',
+            );
+          }
+        }
+      } catch (e) {
+        print('Error polling port-in status for order ${order['orderId']}: $e');
+      }
+    }
+    
+    // Reload pending orders after polling
+    await _loadPendingPortInOrders();
   }
 
   List<String> _determineMissingTasks(Map<String, dynamic> orderData) {
@@ -540,6 +654,98 @@ class _StartOrderContentState extends State<_StartOrderContent> {
                     );
                   },
                 ),
+              ],
+              
+              // Pending Port-In Orders Section
+              if (_pendingPortInOrders.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                Builder(
+                  builder: (context) {
+                    final portInBg = AppTheme.getComponentBackgroundColor(
+                      context,
+                      'startOrder_pendingPortIn_background',
+                      fallback: Color(int.parse(FallbackValues.secondBlue.replaceFirst('#', '0xFF'))),
+                    );
+                    final portInTitleColor = AppTheme.getComponentTextColor(
+                      context,
+                      'startOrder_pendingPortIn_title_text',
+                      fallback: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
+                    );
+                    final portInStatusColor = AppTheme.getComponentTextColor(
+                      context,
+                      'startOrder_pendingPortIn_status_text',
+                      fallback: Color(int.parse(FallbackValues.textSecondary.replaceFirst('#', '0xFF'))),
+                    );
+                    
+                    return Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: portInBg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: portInBg.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.phone_android, color: portInTitleColor, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Port-In Status',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: portInTitleColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ..._pendingPortInOrders.map((order) {
+                            final phoneNumber = order['selectedPhoneNumber'] as String? ?? 
+                                              order['phoneNumber'] as String? ?? 'N/A';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      phoneNumber,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: portInStatusColor,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: portInStatusColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'Pending',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: portInStatusColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
               ],
               
               // Complete Your Setup Section - only for users with orders

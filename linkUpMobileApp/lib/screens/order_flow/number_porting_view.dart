@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../providers/user_registration_view_model.dart';
+import '../../providers/navigation_state.dart';
 import '../../services/firebase_order_manager.dart';
 import '../../services/vcare_api_manager.dart';
 import '../../widgets/step_navigation_container.dart';
@@ -208,9 +209,24 @@ class _NumberPortingViewState extends State<NumberPortingView> {
             
             if (saveSuccess) {
               print('✅ Port-in information saved to Firebase successfully');
-              // Now navigate to next page
-              _onPortingComplete();
-              print('✅ Moving to SIM setup');
+              
+              // Update order status to indicate port-in is pending
+              final orderManager = FirebaseOrderManager();
+              await orderManager.updateOrderField(
+                viewModel.userId!,
+                viewModel.orderId!,
+                'portInStatus',
+                'pending',
+              );
+              
+              // Navigate to Home page instead of continuing to SIM setup
+              final navigationState = Provider.of<NavigationState>(context, listen: false);
+              navigationState.navigateTo(Destination.startNewOrder);
+              navigationState.setFooterTab(FooterTab.home);
+              navigationState.orderStartStep = null;
+              navigationState.currentOrderId = null;
+              
+              print('✅ Navigated to Home page');
             } else {
               print('❌ Failed to save port-in information to Firebase');
               if (mounted) {
@@ -485,9 +501,27 @@ class _NumberPortingViewState extends State<NumberPortingView> {
 
       // Step 3: Query port-in status
       print('📋 Step 3: Querying port-in status...');
+      
+      // Get the port record from get_list response to extract esn, mdn, carrier
+      // Reuse portRecord already declared above
+      final esn = portRecord.newEsn?.toString() ?? '';
+      final mdn = portRecord.numberToPort?.toString() ?? '';
+      final carrier = portRecord.carrier ?? '';
+      
+      if (esn.isEmpty || mdn.isEmpty || carrier.isEmpty) {
+        print('❌ Cannot query port-in: Missing required fields');
+        print('   ESN: $esn');
+        print('   MDN: $mdn');
+        print('   Carrier: $carrier');
+        return false;
+      }
+      
       final queryTransactionId = VCareAPIManager.generateRandomTransactionId();
       final queryResponse = await apiManager.queryPortIn(
         enrollmentId: enrollmentId,
+        esn: esn,
+        mdn: mdn,
+        carrier: carrier,
         agentId: 'Sushil',
         source: 'WEBSITE',
         externalTransactionId: queryTransactionId,
@@ -514,6 +548,8 @@ class _NumberPortingViewState extends State<NumberPortingView> {
         }
 
         // Save port-in status to order
+        // Also save new_esn from port record for future polling
+        // Reuse portRecord already declared above
         await orderManager.saveStepProgress(
           userId: viewModel.userId!,
           orderId: viewModel.orderId!,
@@ -522,6 +558,7 @@ class _NumberPortingViewState extends State<NumberPortingView> {
             'portInStatus': record.portinStatus,
             'portInCarrierResponse': record.carrierResponse,
             'portInResolutionDescription': record.resolutionDescription,
+            'portInNewEsn': portRecord.newEsn?.toString() ?? '',
           },
         );
 

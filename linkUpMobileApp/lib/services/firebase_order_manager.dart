@@ -249,5 +249,17 @@ class FirebaseOrderManager {
       return false;
     }
   }
+
+  /// Update a single field in an order
+  Future<void> updateOrderField(
+    String userId,
+    String orderId,
+    String fieldName,
+    dynamic fieldValue,
+  ) async {
+    await _firebaseManager.updateOrder(userId, orderId, {
+      fieldName: fieldValue,
+    });
+  }
 }
 
