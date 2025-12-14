@@ -4,6 +4,7 @@
 <dict>
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- Change to "production" when building for TestFlight/App Store -->
 	<key>com.apple.developer.applesignin</key>
 	<array>
 		<string>Default</string>
