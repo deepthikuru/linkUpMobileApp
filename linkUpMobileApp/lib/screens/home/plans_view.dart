@@ -81,9 +81,15 @@ class _PlansViewBodyState extends State<PlansViewBody> {
       final planId = plan.planId;
       final planName = plan.displayName ?? plan.planName;
       final planPrice = plan.totalPlanPrice;
-      final carrier = plan.carrier.isNotEmpty 
-          ? plan.carrier.first 
-          : 'LINKUP';
+      // Prioritize LINKUP carrier if present, otherwise use first available carrier
+      String carrier = 'LINKUP'; // default fallback
+      if (plan.carrier.isNotEmpty) {
+        if (plan.carrier.contains('LINKUP')) {
+          carrier = 'LINKUP';
+        } else {
+          carrier = plan.carrier.first;
+        }
+      }
       final planCode = plan.planId.toString();
 
       print('🔄 Creating new order for userId: $userId');

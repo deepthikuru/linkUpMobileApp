@@ -115,7 +115,11 @@ class _IMEICheckViewState extends State<IMEICheckView> {
           for (var plan in plans) {
             if (plan is Map && plan['plan_id'] == planId) {
               if (plan['carrier'] is List && (plan['carrier'] as List).isNotEmpty) {
-                return (plan['carrier'] as List).first as String?;
+                final carriers = (plan['carrier'] as List).cast<String>();
+                // Prioritize LINKUP if present, otherwise use first carrier
+                return carriers.contains('LINKUP') 
+                    ? 'LINKUP' 
+                    : carriers.first;
               }
             }
           }

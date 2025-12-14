@@ -19,8 +19,54 @@ class ExpandablePlanCard extends StatelessWidget {
     this.onContinue,
   });
 
+  /// Get the display name badge for the plan
+  /// Maps plan names/prices to badge names (STARTER, EXPLORE, PREMIUM, UNLIMITED, UNLIMITED PLUS)
+  String _getDisplayName(Plan plan) {
+    // If displayName is already set, use it
+    if (plan.displayName != null && plan.displayName!.isNotEmpty) {
+      return plan.displayName!.toUpperCase();
+    }
+
+    // Otherwise, derive from plan name or price
+    final planName = plan.planName.toUpperCase();
+    
+    // $10 1GB → STARTER
+    if (planName.contains('\$10') || (plan.totalPlanPrice == 10 && plan.data <= 2048)) {
+      return 'STARTER';
+    }
+    
+    // $20 plans → EXPLORE
+    if (planName.contains('\$20')) {
+      return 'EXPLORE';
+    }
+    
+    // $30 12GB → PREMIUM
+    if (planName.contains('\$30') || planName.contains('12GB') || 
+        (plan.totalPlanPrice == 30 && plan.data >= 22528)) {
+      return 'PREMIUM';
+    }
+    
+    // $40 30GB → UNLIMITED
+    if (planName.contains('\$40') || planName.contains('30GB') ||
+        (plan.totalPlanPrice == 40 && plan.data >= 40960)) {
+      return 'UNLIMITED';
+    }
+    
+    // $50 Unlimited → UNLIMITED PLUS
+    if (planName.contains('\$50') || 
+        (plan.totalPlanPrice == 50 && plan.isUnlimitedPlan == 'Y')) {
+      return 'UNLIMITED PLUS';
+    }
+
+    // Default fallback
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Get the display name badge
+    final displayNameBadge = _getDisplayName(plan);
+    
     // Get base background color
     final baseColor = AppTheme.getComponentBackgroundColor(
       context,
@@ -74,7 +120,7 @@ class ExpandablePlanCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Badge
-                      if (plan.displayName != null && plan.displayName!.isNotEmpty)
+                      if (displayNameBadge.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -108,7 +154,7 @@ class ExpandablePlanCard extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            plan.displayName!,
+                            displayNameBadge,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -136,7 +182,7 @@ class ExpandablePlanCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (plan.displayName != null && plan.displayName!.isNotEmpty)
+                  if (displayNameBadge.isNotEmpty)
                     const SizedBox(height: 4)
                   else
                     const SizedBox(height: 0),
@@ -150,7 +196,7 @@ class ExpandablePlanCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Description text - shown before expanding
                   Text(
-                    _buildDescription(plan),
+                    _buildDescription(plan, displayNameBadge),
                     style: TextStyle(
                       fontSize: 16,
                       color: Color(int.parse(FallbackValues.appText.replaceFirst('#', '0xFF'))),
@@ -194,7 +240,7 @@ class ExpandablePlanCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Features list (description is already shown in collapsed view)
-                  ..._buildFeaturesList(context, plan),
+                  ..._buildFeaturesList(context, plan, displayNameBadge),
                   const SizedBox(height: 12),
                   // Continue button
                   if (onContinue != null)
@@ -320,31 +366,37 @@ class ExpandablePlanCard extends StatelessWidget {
     return '${mb}MB';
   }
 
-  String _buildDescription(Plan plan) {
-    final data = _formatData(plan.data, false);
-    final displayName = plan.displayName ?? '';
-
-    if (displayName.contains('STARTER')) {
+  String _buildDescription(Plan plan, String badgeName) {
+    // Use badge name to determine exact description text
+    final badge = badgeName.toUpperCase();
+    
+    if (badge == 'STARTER') {
       return '1GB, Light users';
-    } else if (displayName.contains('EXPLORE')) {
+    } else if (badge == 'EXPLORE') {
       return '5 GB, Everyday use + international perks';
-    } else if (displayName.contains('PREMIUM')) {
+    } else if (badge == 'PREMIUM') {
       return '12 GB, Streaming & multi-service';
-    } else if (displayName.contains('UNLIMITED PLUS')) {
-      return '50GB, all the data, all the speed';
-    } else if (displayName.contains('UNLIMITED')) {
+    } else if (badge == 'UNLIMITED') {
       return '30GB, Heavy usage and roaming';
+    } else if (badge == 'UNLIMITED PLUS') {
+      return '50GB, all the data, all the speed';
     }
 
-    return '$data, ${plan.planDescription.isNotEmpty ? plan.planDescription : "High-speed data"}';
+    // Fallback: Use plan description if available, otherwise format data
+    if (plan.planDescription.isNotEmpty) {
+      return plan.planDescription;
+    }
+
+    final data = _formatData(plan.data, false);
+    return '$data, High-speed data';
   }
 
-  List<Widget> _buildFeaturesList(BuildContext context, Plan plan) {
+  List<Widget> _buildFeaturesList(BuildContext context, Plan plan, String badgeName) {
     final features = <Widget>[];
-    final displayName = plan.displayName ?? '';
+    final badge = badgeName.toUpperCase();
 
-    // Build features based on plan type
-    if (displayName.contains('STARTER')) {
+    // Build features based on badge name - exact text matching
+    if (badge == 'STARTER') {
       features.add(_buildFeatureBullet(
         context,
         'Unlimited Talk & Text (USA, Canada, Mexico)',
@@ -362,7 +414,8 @@ class ExpandablePlanCard extends StatelessWidget {
         context,
         'Global Roaming via "Wifi - Calling"',
       ));
-    } else if (displayName.contains('EXPLORE')) {
+      return features;
+    } else if (badge == 'EXPLORE') {
       features.add(_buildFeatureBullet(
         context,
         'Unlimited Talk & Text (USA, Canada, Mexico)',
@@ -380,7 +433,8 @@ class ExpandablePlanCard extends StatelessWidget {
         context,
         'Global Roaming via "Wifi - Calling"',
       ));
-    } else if (displayName.contains('PREMIUM')) {
+      return features;
+    } else if (badge == 'PREMIUM') {
       features.add(_buildFeatureBullet(
         context,
         'Unlimited Talk & Text (USA, Canada, Mexico)',
@@ -398,7 +452,27 @@ class ExpandablePlanCard extends StatelessWidget {
         context,
         'Global Roaming via "Wifi - Calling"',
       ));
-    } else if (displayName.contains('UNLIMITED PLUS')) {
+      return features;
+    } else if (badge == 'UNLIMITED') {
+      features.add(_buildFeatureBullet(
+        context,
+        'Unlimited data (30GB High-speed, then reduced)',
+      ));
+      features.add(_buildFeatureBullet(context, '30 GB high-speed data'));
+      features.add(_buildFeatureBullet(
+        context,
+        '100+ International Calling Destinations',
+      ));
+      features.add(_buildFeatureBullet(
+        context,
+        'Free Roaming in Mexico & Canada',
+      ));
+      features.add(_buildFeatureBullet(
+        context,
+        'Global Roaming via "Wifi - Calling"',
+      ));
+      return features;
+    } else if (badge == 'UNLIMITED PLUS') {
       features.add(_buildFeatureBullet(
         context,
         'Unlimited data (50GB High-speed, then reduced)',
@@ -419,84 +493,95 @@ class ExpandablePlanCard extends StatelessWidget {
         context,
         'Global Roaming via "Wifi - Calling"',
       ));
-    } else if (displayName.contains('UNLIMITED')) {
-      features.add(_buildFeatureBullet(
-        context,
-        'Unlimited data (30GB High-speed, then reduced)',
-      ));
-      features.add(_buildFeatureBullet(context, '30 GB high-speed data'));
-      features.add(_buildFeatureBullet(
-        context,
-        '100+ International Calling Destinations',
-      ));
-      features.add(_buildFeatureBullet(
-        context,
-        'Free Roaming in Mexico & Canada',
-      ));
-      features.add(_buildFeatureBullet(
-        context,
-        'Global Roaming via "Wifi - Calling"',
-      ));
-    } else {
-      // Fallback: Use displayFeaturesDescription if available
-      if (plan.displayFeaturesDescription.isNotEmpty) {
-        for (var feature in plan.displayFeaturesDescription) {
+      return features;
+    }
+
+    // Fallback: Use displayFeaturesDescription if available
+    if (plan.displayFeaturesDescription.isNotEmpty) {
+      for (var feature in plan.displayFeaturesDescription) {
+        if (feature.isNotEmpty) {
           features.add(_buildFeatureBullet(context, feature));
         }
-      } else {
-        // Generic fallback
-        if ((plan.talk >= 9999000 || plan.talk == 0) &&
-            (plan.text >= 9999000 || plan.text == 0)) {
-          features.add(_buildFeatureBullet(
-            context,
-            'Unlimited Talk & Text (USA, Canada, Mexico)',
-          ));
-        }
-
-        final dataText = _formatData(plan.data, showUnlimited);
-        if (plan.data >= 1000) {
-          if (plan.isUnlimitedPlan == 'Y') {
-            features.add(_buildFeatureBullet(
-              context,
-              'Unlimited data ($dataText High-speed, then reduced)',
-            ));
-            features.add(_buildFeatureBullet(
-              context,
-              '$dataText high-speed data',
-            ));
-          } else {
-            features.add(_buildFeatureBullet(
-              context,
-              '$dataText high-speed data',
-            ));
-          }
-        }
-
-        features.add(_buildFeatureBullet(
-          context,
-          'Affordable/Flexible data add-ons',
-        ));
-
-        if (plan.totalPlanPrice >= 30) {
-          features.add(_buildFeatureBullet(
-            context,
-            '100+ International Calling Destinations',
-          ));
-        }
-
+      }
+      // Add common features if not already included
+      if (!features.any((f) => f.toString().contains('Roaming'))) {
         if (plan.totalPlanPrice >= 20) {
           features.add(_buildFeatureBullet(
             context,
             'Free Roaming in Mexico & Canada',
           ));
         }
-
         features.add(_buildFeatureBullet(
           context,
           'Global Roaming via "Wifi - Calling"',
         ));
       }
+      return features;
     }
+
+    // Final generic fallback: Build from plan data
+    // Helper to check if talk/text is unlimited
+    final bool isUnlimitedTalkText = (plan.talk >= 20000 || plan.talk == 0) &&
+        (plan.text >= 20000 || plan.text == 0);
+    
+    if (isUnlimitedTalkText) {
+      features.add(_buildFeatureBullet(
+        context,
+        'Unlimited Talk & Text (USA, Canada, Mexico)',
+      ));
+    } else {
+      if (plan.talk > 0) {
+        final talkText = _formatCalls(plan.talk, false);
+        features.add(_buildFeatureBullet(
+          context,
+          '$talkText minutes talk',
+        ));
+      }
+      if (plan.text > 0) {
+        final textText = _formatMessages(plan.text, false);
+        features.add(_buildFeatureBullet(
+          context,
+          '$textText messages',
+        ));
+      }
+    }
+
+    final dataText = _formatData(plan.data, showUnlimited);
+    if (plan.isUnlimitedPlan == 'Y') {
+      features.add(_buildFeatureBullet(
+        context,
+        'Unlimited data ($dataText High-speed, then reduced)',
+      ));
+    } else if (plan.data > 0) {
+      features.add(_buildFeatureBullet(
+        context,
+        '$dataText high-speed data',
+      ));
+    }
+
+    features.add(_buildFeatureBullet(
+      context,
+      'Affordable/Flexible data add-ons',
+    ));
+
+    if (plan.totalPlanPrice >= 30) {
+      features.add(_buildFeatureBullet(
+        context,
+        '100+ International Calling Destinations',
+      ));
+    }
+
+    if (plan.totalPlanPrice >= 20) {
+      features.add(_buildFeatureBullet(
+        context,
+        'Free Roaming in Mexico & Canada',
+      ));
+    }
+
+    features.add(_buildFeatureBullet(
+      context,
+      'Global Roaming via "Wifi - Calling"',
+    ));
 
     return features;
   }

@@ -274,8 +274,12 @@ class _NumberSelectionViewState extends State<NumberSelectionView> {
               
               if (planIdInt != null && planIdFromDocInt != null && planIdInt == planIdFromDocInt) {
                 if (plan['carrier'] is List && (plan['carrier'] as List).isNotEmpty) {
-                  final carrier = (plan['carrier'] as List).first as String;
-                  print('✅ Found carrier for plan_id $planId: $carrier');
+                  final carriers = (plan['carrier'] as List).cast<String>();
+                  // Prioritize LINKUP if present, otherwise use first carrier
+                  final carrier = carriers.contains('LINKUP') 
+                      ? 'LINKUP' 
+                      : carriers.first;
+                  print('✅ Found carrier for plan_id $planId: $carrier (from: ${carriers.join(", ")})');
                   return carrier;
                 }
               }
